@@ -10,6 +10,7 @@ import cn.luorenmu.web.WebPageScreenshot
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.common.utils.OneBotMedia
 import org.springframework.stereotype.Service
+import javax.imageio.IIOException
 
 /**
  * @author LoMu
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Service
 @Service
 class OneBotCommandHandle(
     private val webPageScreenshot: WebPageScreenshot,
-    private val groupMessageRepository: GroupMessageRepository
+    private val groupMessageRepository: GroupMessageRepository,
 ) {
 
 
@@ -44,9 +45,9 @@ class OneBotCommandHandle(
             return eternalReturnFindPlayers(command, msgId)
         }
 
-       /* if(command.contains(Regex(Command.WhoAtMe.str))){
-            return whoAtMe(senderId)
-        }*/
+        /* if(command.contains(Regex(Command.WhoAtMe.str))){
+             return whoAtMe(senderId)
+         }*/
 
 
         // When the program sends this message, it means that an unknown error has occurred internally
@@ -59,14 +60,18 @@ class OneBotCommandHandle(
 
     private fun eternalReturnFindPlayers(command: String, id: Int): String {
         val nickname = command.replace(" ", "").replace(Command.EternalReturnPlayers.str, "")
-        if (nickname.isBlank()) {
-            return ""
+        if (nickname.isBlank() || nickname.contains("@")) {
+            return MsgUtils.builder().reply(id).text("名称不合法 $nickname").build()
         }
         var url = JsonObjectUtils.getString("request.eternal_return_request.players")
         url = MatcherData.replaceDollardName(url, "nickname", nickname)
         val path = ReadWriteFile.currentPathFileName("image/${nickname}.png").substring(1)
-        synchronized(webPageScreenshot){
-            webPageScreenshot.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -500, 2000).outputImageFile(path)
+        synchronized(webPageScreenshot) {
+            try {
+                webPageScreenshot.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -500, 2000).outputImageFile(path)
+            } catch (e: IIOException) {
+                return MsgUtils.builder().reply(id).text("名称不合法 $nickname").build()
+            }
         }
         return MsgUtils.builder().reply(id).img(OneBotMedia().file(path).cache(false).proxy(false)).build()
     }

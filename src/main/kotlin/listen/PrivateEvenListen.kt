@@ -4,7 +4,6 @@ import cn.luorenmu.commom.extensions.sendPrivateMsgLimit
 import com.mikuac.shiro.annotation.PrivateMessageHandler
 import com.mikuac.shiro.annotation.PrivateMsgDeleteNoticeHandler
 import com.mikuac.shiro.annotation.common.Shiro
-import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.PrivateMessageEvent
 import com.mikuac.shiro.dto.event.notice.PrivateMsgDeleteNoticeEvent
