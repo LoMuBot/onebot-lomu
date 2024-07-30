@@ -21,7 +21,7 @@ class PrivateEvenListen {
 
     @PrivateMessageHandler
     fun privateMessageHandler(bot: Bot, privateMessage: PrivateMessageEvent) {
-        bot.sendPrivateMsgLimit(privateMessage.userId, "private message do not handle, don't send private message ")
+        bot.sendPrivateMsgLimit(privateMessage.userId, "private message do not handle, don't send private message")
     }
 
     @PrivateMsgDeleteNoticeHandler
