@@ -1,7 +1,7 @@
 package cn.luorenmu.action
 
+import cn.luorenmu.common.extensions.addMsgLimit
 import cn.luorenmu.common.extensions.selfRecentlySent
-import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.*
 import cn.luorenmu.listen.groupMessageQueue
 import cn.luorenmu.repository.KeywordReplyRepository
@@ -47,10 +47,13 @@ class OneBotCommonHandle(
             if (repeatNum == lastMessages.size) {
                 if (!selfRecentlySent(groupId, replaceCqToFileStr(message) ?: message)) {
                     isReRead = true
+                } else {
+                    return
                 }
                 val msgLimit = replaceCqToFileStr(message) ?: "none"
 
-                bot.sendGroupMsgLimit(groupId, message, msgLimit)
+                //不再复读
+                bot.addMsgLimit(groupId, message, msgLimit)
             }
         }
 
@@ -58,22 +61,21 @@ class OneBotCommonHandle(
         if (isReRead) {
             val lastMessageList = groupMessageQueue.lastMessages(groupId, 10)
             if (lastMessageList.isNotEmpty()) {
-                var i = lastMessageList.size - 1
+                var keyword: String? = null
                 val currentMessage = replaceCqToFileStr(message) ?: message
-                for (lastGroupMessage in lastMessages) {
+                for (lastGroupMessage in lastMessageList) {
                     val lastMessage = replaceCqToFileStr(lastGroupMessage!!.groupEventObject.message)
                         ?: lastGroupMessage.groupEventObject.message
-                    if (lastMessage == currentMessage) {
-                        i--
-                    } else {
+                    if (lastMessage != currentMessage) {
+                        keyword = lastMessage
                         break
                     }
+
                 }
-                if (i < 0) {
+                keyword ?: run {
                     return
-                    // 当复读的头信息超过时间限制 复读的消息设置为主动消息
                 }
-                var keyword = lastMessageList[i]?.groupEventObject?.message ?: "error message 123456789exception098675"
+
                 var needProcess = false
                 keyword = if (isImage(keyword)) {
                     needProcess = true
@@ -83,7 +85,7 @@ class OneBotCommonHandle(
                 }
 
                 //复读 回复或者At了某人 反正就是禁止这样的添加到关键词
-                if (isCQAt(keyword) || isCQReply(keyword)){
+                if (isCQAt(keyword) || isCQReply(keyword)) {
                     return
                 }
 
@@ -101,6 +103,7 @@ class OneBotCommonHandle(
                     }
                 }
             }
+
         }
     }
 }

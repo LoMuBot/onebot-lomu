@@ -15,8 +15,8 @@ import java.util.concurrent.TimeUnit
  * Date 2024.07.28 18:03
  */
 
-private val selfRecentlySendMessage: RecentlyMessageQueue<SelfSendMsg> = RecentlyMessageQueue(40)
-private val selfKeywordMessage: RecentlyMessageQueue<KeywordReply> = RecentlyMessageQueue(30)
+private val selfRecentlySendMessage: RecentlyMessageQueue<SelfSendMsg> = RecentlyMessageQueue(25)
+private val selfKeywordMessage: RecentlyMessageQueue<KeywordReply> = RecentlyMessageQueue(20)
 
 
 /**
@@ -81,6 +81,20 @@ fun Bot.sendGroupMsgKeywordLimit(id: Long, keywordReply: KeywordReply) {
         }
     }
 
+}
+
+fun Bot.addMsgLimit(id: Long, message: String, msgLimit: String = "none") {
+    synchronized(selfRecentlySendMessage) {
+        var msgLimit1 = message
+        if (msgLimit != "none") {
+            msgLimit1 = msgLimit
+        }
+        if (selfRecentlySent(id, msgLimit1)) {
+            return
+        }
+
+        selfRecentlySendMessage.addMessageToQueue(id, SelfSendMsg(msgLimit1))
+    }
 }
 
 private fun Bot.sendMsgLimit(id: Long, message: String, msgLimit: String = "none", send: () -> ActionData<MsgId>?) {

@@ -1,11 +1,16 @@
 package cn.luorenmu.action.commandHandle
 
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.*
+import cn.luorenmu.common.utils.dakggCdnUrl
+import cn.luorenmu.common.utils.getEternalReturnDataImagePath
+import cn.luorenmu.entiy.Request.RequestDetailed
+import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
+import java.io.File
 import java.net.SocketException
 import java.util.concurrent.TimeUnit
 
@@ -33,10 +38,10 @@ class EternalReturnRequestData(
         }
     }
 
-    fun tierDistributionsFind() : EternalReturnTierDistributions?{
-        val request= RequestController("eternal_return_request.tier_distribution")
+    fun tierDistributionsFind(): EternalReturnTierDistributions? {
+        val request = RequestController("eternal_return_request.tier_distribution")
         val resp = request.request()
-        if (resp.isOk){
+        if (resp.isOk) {
             return resp.body().to<EternalReturnTierDistributions>()
         }
         return null
@@ -48,12 +53,34 @@ class EternalReturnRequestData(
             requestLeaderboard.replaceUrl("season", it.type)
             val respLeaderboard = requestLeaderboard.request()
             if (respLeaderboard.isOk) {
-                return respLeaderboard.body().to<EternalRetrunLeaderboard>()
+                val leaderboard = respLeaderboard.body().to<EternalRetrunLeaderboard>()
+                leaderboard.currentSeason = it
+                return leaderboard
             }
         }
         return null
     }
 
+    fun checkCharacterImgExistThenGetPathOrDownload(name: String): String {
+        val eternalReturnDataImagePath = getEternalReturnDataImagePath("character/${name}.png")
+        val fileExists = File(eternalReturnDataImagePath).exists()
+        if (!fileExists) {
+            characterFind().let {
+                val character = it?.characters?.stream()?.filter { c -> c.key == name }?.findFirst()
+                val communityImageUrl = character!!.get().communityImageUrl
+                val dakGGCdnUrl = dakggCdnUrl(communityImageUrl)
+                val requestDetailed = RequestDetailed()
+                requestDetailed.url = dakGGCdnUrl
+                requestDetailed.method = "get"
+                val request = RequestController(requestDetailed)
+                val resp = request.request()
+                if (resp.isOk) {
+                    ReadWriteFile.writeStreamFile(eternalReturnDataImagePath, resp.bodyStream())
+                }
+            }
+        }
+        return getEternalReturnDataImagePath("character/${name}.png")
+    }
 
     fun characterLeaderboardFind(character: String, sortType: String): EternalReturnLeaderboardCharacters? {
         currentSeason()?.let {
