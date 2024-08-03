@@ -1,6 +1,5 @@
 package cn.luorenmu.listen
 
-import cn.luorenmu.commom.extensions.sendPrivateMsgLimit
 import com.mikuac.shiro.annotation.PrivateMessageHandler
 import com.mikuac.shiro.annotation.PrivateMsgDeleteNoticeHandler
 import com.mikuac.shiro.annotation.common.Shiro
@@ -20,7 +19,7 @@ class PrivateEvenListen {
 
     @PrivateMessageHandler
     fun privateMessageHandler(bot: Bot, privateMessage: PrivateMessageEvent) {
-        bot.sendPrivateMsgLimit(privateMessage.userId, "private message do not handle, don't send private message")
+
     }
 
     @PrivateMsgDeleteNoticeHandler

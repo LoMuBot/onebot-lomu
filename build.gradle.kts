@@ -23,13 +23,12 @@ tasks.withType<Test> {
 dependencies {
     implementation("cn.hutool:hutool-all:5.8.29")
     implementation("com.google.zxing:core:3.5.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.mikuac:shiro:2.2.9")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
-
+    implementation("com.alibaba.fastjson2:fastjson2-kotlin:2.0.52")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation(files("lib/MultifunctionalAutoHelper-Java.jar"))

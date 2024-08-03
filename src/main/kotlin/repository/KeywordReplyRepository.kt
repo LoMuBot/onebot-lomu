@@ -22,7 +22,7 @@ interface KeywordReplyRepository : MongoRepository<KeywordReply, String> {
     fun findBySenderIdAndMessageRegex(senderId: Long, message: String): List<KeywordReply>
 
     fun findBySenderIdAndAtMe(senderId: Long, atMe: Boolean): List<KeywordReply>
-
+    fun findByKeywordIsAndReplyIs(keyword: String, reply: String): KeywordReply?
     fun findBySenderId(senderId: Long): List<KeywordReply>
 
     @Query(

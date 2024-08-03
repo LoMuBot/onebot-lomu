@@ -1,19 +1,19 @@
 package cn.luorenmu.listen
 
-import cn.luorenmu.commom.extensions.sendGroupMsgLimit
+import cn.luorenmu.action.OneBotCommandHandle
+import cn.luorenmu.action.OneBotCommonHandle
+import cn.luorenmu.action.OneBotKeywordReply
+import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
 import cn.luorenmu.dto.RecentlyMessageQueue
-import cn.luorenmu.repository.ActiveSendMessageRepository
 import cn.luorenmu.repository.GroupMessageRepository
-import cn.luorenmu.repository.KeywordReplyRepository
-import cn.luorenmu.repository.entiy.ActiveMessage
+import cn.luorenmu.repository.OneBotConfigRespository
 import cn.luorenmu.repository.entiy.GroupMessage
-import cn.luorenmu.service.OneBotCommandHandle
-import cn.luorenmu.service.OneBotKeywordReply
 import com.mikuac.shiro.annotation.GroupMessageHandler
 import com.mikuac.shiro.annotation.common.Shiro
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -23,17 +23,18 @@ import java.time.LocalDateTime
  * Date 2024.07.04 10:22
  */
 
+val groupMessageQueue: RecentlyMessageQueue<GroupMessage> = RecentlyMessageQueue()
 
 @Component
 @Shiro
 class GroupEventListen(
-    private var groupMessageRepository: GroupMessageRepository,
-    private var commandHandler: OneBotCommandHandle,
-    private var keywordReply: OneBotKeywordReply,
-    private var activeSendMessageRepository: ActiveSendMessageRepository,
-    private var keywordReplyRepository: KeywordReplyRepository,
+    private val groupMessageRepository: GroupMessageRepository,
+    private val commandHandler: OneBotCommandHandle,
+    private val oneBotKeywordReply: OneBotKeywordReply,
+    private val oneBotCommonHandle: OneBotCommonHandle,
+    private val oneBotConfigRespository: OneBotConfigRespository,
+    private val redisTemplate: RedisTemplate<String, String>
 ) {
-    private val groupMessageQueue: RecentlyMessageQueue<GroupMessage> = RecentlyMessageQueue()
 
 
     @GroupMessageHandler
@@ -41,6 +42,10 @@ class GroupEventListen(
         val senderId = groupMessageEvent.sender.userId
         val groupId = groupMessageEvent.groupId
         val message = groupMessageEvent.message
+
+        oneBotConfigRespository.findOneByConfigName(groupMessageEvent.sender.userId.toString())?.let {
+            return
+        }
 
         // save data
         val groupMessage =
@@ -53,43 +58,41 @@ class GroupEventListen(
             )
         groupMessageRepository.save(groupMessage)
 
+        // keywordMessage
+        val banList = oneBotConfigRespository.findAllByConfigName("banKeywordGroup").map { it.configContent.toLong() }
+        var ban = false
+        for (oneBotConfig in banList) {
+            if (banList.contains(groupId)) {
+                ban = true
+            }
+        }
+        if (!ban) {
+            val mongodbKeyword = oneBotKeywordReply.process(bot.selfId, senderId, message)
+            mongodbKeyword?.let {
+                bot.sendGroupMsgKeywordLimit(groupId, it)
+            }
+        }
+
 
         // command
-        val command = message.replace(MsgUtils.builder().at(bot.selfId).build(), "")
+        val command = message.replace(MsgUtils.builder().at(bot.selfId).build(), "").replace(" ", "")
         if (commandHandler.isCommand(command)) {
             val process =
                 commandHandler.process(command, senderId, groupMessageEvent.messageId)
             if (process.isNotBlank()) {
-                bot.sendGroupMsg(groupId, process, false)
+                bot.sendGroupMsg(
+                    groupId,
+                    MsgUtils.builder().reply(groupMessageEvent.messageId).text(process).build(),
+                    false
+                )
                 return
             }
-
         }
 
-        // keywordMessage
-        val mongodbKeyword = keywordReply.process(bot.selfId, senderId, message)
-        if (mongodbKeyword.isNotEmpty()) {
-            for (s in mongodbKeyword) {
-                bot.sendGroupMsgLimit(groupId, s)
-            }
+        //reRead
+        oneBotConfigRespository.findOneByConfigName("banReRead") ?: run {
+            oneBotCommonHandle.reRead(bot, groupMessageEvent)
         }
-
-        // reRead
-        val lastMessages = groupMessageQueue.lastMessages(groupId, 1)
-        if (lastMessages.isNotEmpty()) {
-            var repeatNum = 0
-            lastMessages.forEach {
-                val userId = it?.groupEventObject?.sender?.userId
-                if (userId != senderId && it?.groupEventObject?.message == message) {
-                    repeatNum++
-                }
-            }
-            if (repeatNum == lastMessages.size) {
-                bot.sendGroupMsgLimit(groupId, message)
-                activeSendMessageRepository.insert(ActiveMessage(null, -1L, message, null))
-            }
-        }
-
         groupMessageQueue.addMessageToQueue(groupId, groupMessage)
     }
 }

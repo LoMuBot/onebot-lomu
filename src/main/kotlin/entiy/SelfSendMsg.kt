@@ -1,4 +1,4 @@
-package cn.luorenmu.dto
+package cn.luorenmu.entiy
 
 /**
  * @author LoMu

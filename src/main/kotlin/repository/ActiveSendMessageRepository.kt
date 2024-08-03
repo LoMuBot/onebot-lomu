@@ -8,5 +8,5 @@ import org.springframework.data.mongodb.repository.MongoRepository
  * Date 2024.07.30 2:59
  */
 interface ActiveSendMessageRepository : MongoRepository<ActiveMessage, String> {
-
+    fun findByMessageIs(message: String): ActiveMessage?
 }

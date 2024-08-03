@@ -8,8 +8,9 @@ import cn.luorenmu.dto.RecentlyMessageQueue
  */
 fun main() {
     val recentlyMessageQueue = RecentlyMessageQueue<Int>()
-    for (i in 0..100) {
+    for (i in 0..3) {
         recentlyMessageQueue.addMessageToQueue(1L,i)
     }
-    println(recentlyMessageQueue.lastMessage(1L))
+    println(recentlyMessageQueue.map[1L]?.size)
+    println(recentlyMessageQueue.lastMessages(1L,5))
 }

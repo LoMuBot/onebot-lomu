@@ -9,4 +9,5 @@ import org.springframework.data.mongodb.repository.MongoRepository
  */
 interface OneBotConfigRespository : MongoRepository<OneBotConfig, String> {
     fun findOneByConfigName(id: String): OneBotConfig?
+    fun findAllByConfigName(id: String): ArrayList<OneBotConfig>
 }

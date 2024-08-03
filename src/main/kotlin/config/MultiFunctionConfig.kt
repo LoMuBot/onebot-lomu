@@ -19,6 +19,8 @@ class MultiFunctionConfig {
         ReadWriteFile.createCurrentDirs("image/")
         ReadWriteFile.createCurrentDirs("qrcode/")
         ReadWriteFile.createCurrentDirs("request/")
+        ReadWriteFile.createCurrentDirs("image/eternal_return/nickname/")
+        ReadWriteFile.createCurrentDirs("image/eternal_return/data/")
         ReadWriteFile.readDirJsonToRunStore("keyword")
     }
 

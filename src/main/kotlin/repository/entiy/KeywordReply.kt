@@ -18,6 +18,14 @@ data class KeywordReply(
     var reply: String,
     var needProcess: Boolean,
     var atMe: Boolean,
-    var nextMessage: DeepMessage?
-)
+    var nextMessage: DeepMessage?,
+) {
+    fun deepMessage(list: ArrayList<String>, nextMessage: DeepMessage?): ArrayList<String> {
+        nextMessage?.let {
+            list.add(it.reply)
+            deepMessage(list, it.next)
+        }
+        return list
+    }
+}
 
