@@ -1,12 +1,13 @@
 package cn.luorenmu.action
 
-import cn.luorenmu.action.commandHandle.EternalReturnCommandDrawHandle
+import cn.luorenmu.action.commandHandle.EternalReturnCommandHandle
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.repository.OneBotCommandRespository
 import cn.luorenmu.repository.entiy.OneBotCommand
 import cn.luorenmu.request.RequestController
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.common.utils.OneBotMedia
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 
 /**
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Component
 @Component
 class OneBotCommandHandle(
     private val oneBotCommandRespository: OneBotCommandRespository,
-    private val eternalReturnCommandHandle: EternalReturnCommandDrawHandle,
+    private val eternalReturnCommandHandle: EternalReturnCommandHandle,
+    private val redisTemplate: RedisTemplate<String, String>,
 ) {
 
 
@@ -43,7 +45,7 @@ class OneBotCommandHandle(
 
             if (isCurrentCommand(command, "eternalReturnFindPlayers", oneBotCommand)) {
                 val nickname = command.replace(Regex(oneBotCommand.keyword), "")
-                return eternalReturnCommandHandle.eternalReturnFindPlayers(nickname, msgId)
+                return eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
             }
 
             if (isCurrentCommand(command, "eternalReturnLeaderboard", oneBotCommand)) {
@@ -54,14 +56,33 @@ class OneBotCommandHandle(
                 }
             }
 
-            if (isCurrentCommand(command,"eternalReturnCutoffs", oneBotCommand)) {
+
+
+
+            if (isCurrentCommand(command, "eternalReturnReFindPlayers", oneBotCommand)) {
+                val nickname = command.replace(Regex(oneBotCommand.keyword), "")
+                redisTemplate.delete("Eternal_Return_NickName:$nickname")
+                return eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
+            }
+            if (isCurrentCommand(command, "eternalReturnFindCharacter", oneBotCommand)) {
+                var characterName = command.replace(Regex(oneBotCommand.keyword), "")
+                val regex = """[1-9]""".toRegex()
+                var i = 1
+                regex.find(characterName)?.let {
+                    i = it.groupValues[0].toInt()
+                    characterName = characterName.replace(regex,"")
+                }
+                return eternalReturnCommandHandle.eternalReturnFindCharacter(characterName, i)
+            }
+
+            if (isCurrentCommand(command, "eternalReturnCutoffs", oneBotCommand)) {
                 return eternalReturnCommandHandle.cutoffs()
             }
 
         }
 
         // When the program sends this message, it means that an unknown error has occurred internally
-        return "error internally"
+        return ""
     }
 
 

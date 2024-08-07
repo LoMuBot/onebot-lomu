@@ -1,13 +1,13 @@
 package cn.luorenmu.action.commandHandle
 
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.*
+import cn.luorenmu.action.commandHandle.entiy.eternalReturn.profile.EternalReturnProfile
 import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
 import cn.luorenmu.entiy.Request.RequestDetailed
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.to
-import com.alibaba.fastjson2.toJSONString
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.io.File
@@ -50,7 +50,7 @@ class EternalReturnRequestData(
     fun leaderboardFind(): EternalRetrunLeaderboard? {
         currentSeason()?.let {
             val requestLeaderboard = RequestController("eternal_return_request.leaderboard")
-            requestLeaderboard.replaceUrl("season", it.type)
+            requestLeaderboard.replaceUrl("season", it.currentSeason.key)
             val respLeaderboard = requestLeaderboard.request()
             if (respLeaderboard.isOk) {
                 val leaderboard = respLeaderboard.body().to<EternalRetrunLeaderboard>()
@@ -85,13 +85,30 @@ class EternalReturnRequestData(
     fun characterLeaderboardFind(character: String, sortType: String): EternalReturnLeaderboardCharacters? {
         currentSeason()?.let {
             val leaderboardCharacters = RequestController("eternal_return_request.leaderboard_characters")
-            leaderboardCharacters.replaceUrl("season", it.type)
+            leaderboardCharacters.replaceUrl("season", it.currentSeason.key)
             leaderboardCharacters.replaceUrl("character", character)
             leaderboardCharacters.replaceUrl("sortType", sortType)
             val resp = leaderboardCharacters.request()
             if (resp.isOk) {
                 return resp.body().to<EternalReturnLeaderboardCharacters>()
             }
+        }
+        return null
+    }
+
+    fun characterInfoFind(character: String): EternalReturnCharacterInfo? {
+        redisTemplate.opsForValue().get("Eternal_Return_Find:${character}")?.let {
+            return it.to<EternalReturnCharacterInfo>()
+        }
+        val request = RequestController("eternal_return_request.find_character_info")
+        request.replaceUrl("key", character)
+        request.replaceUrl("key1", character)
+        val resp = request.request()
+        if (resp.isOk) {
+            val result = resp.body().to<EternalReturnCharacterInfo>()
+            redisTemplate.opsForValue()["Eternal_Return_Find:${character}", resp.body(), 1L] =
+                TimeUnit.DAYS
+            return result
         }
         return null
     }
@@ -104,18 +121,28 @@ class EternalReturnRequestData(
         val resp = requestController.request()
         if (resp.isOk) {
             val characters = resp.body().to<EternalReturnCharacter>()
-            redisTemplate.opsForValue()["Eternal_Return_Find: characters", characters.toJSONString(), 7L] =
+            redisTemplate.opsForValue()["Eternal_Return_Find: characters", resp.body(), 1L] =
                 TimeUnit.DAYS
             return characters
         }
         return null
     }
 
-    fun currentSeason(): EternalCurrentSeason? {
+    fun currentSeason(): EternalReturnCurrentSeason? {
         val requestCurrentSeason = RequestController("eternal_return_request.current_season")
         val respCurrentSeason = requestCurrentSeason.request()
         if (respCurrentSeason.isOk) {
-            return respCurrentSeason.body().to<EternalCurrentSeason>()
+            return respCurrentSeason.body().to<EternalReturnCurrentSeason>()
+        }
+        return null
+    }
+
+    fun profile(season: String): EternalReturnProfile? {
+        val requestProfile = RequestController("eternal_return_request.profile")
+        requestProfile.replaceUrl("season", season)
+        val resp = requestProfile.request()
+        if (resp.isOk) {
+            return resp.body().to<EternalReturnProfile>()
         }
         return null
     }

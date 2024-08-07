@@ -1,0 +1,33 @@
+{
+  "players": "https://dak.gg/er/players/${nickname}?gameMode=ALL",
+  "find_player": {
+    "url": "https://er.dakgg.io/api/v0/rpc/player-sync/by-name/${nickname}",
+    "method": "get"
+  },
+  "leaderboard": {
+    "url": "https://er.dakgg.io/api/v0/leaderboard?page=1&seasonKey=${season}&serverName=seoul&teamMode=SQUAD&hl=zh_CN",
+    "method": "get"
+  },
+  "current_season": {
+    "url": "https://er.dakgg.io/api/v1/data/seasons?hl=zh_CN",
+    "method": "get"
+  },
+  "dakgg_cdn": "https://cdn.dak.gg${url}",
+  "leaderboard_cutoffs": "https://dak.gg/er/leaderboard?hl=zh_CN",
+  "leaderboard_characters": {
+    "url": "https://er.dakgg.io/api/v0/leaderboard/characters/${character}?seasonKey=${season}&teamMode=ALL&sortType=${sortType}&page=1&hl=zh_CN",
+    "method": "get"
+  },
+  "character": {
+    "url": "https://er.dakgg.io/api/v0/characters?hl=zh_CN",
+    "method": "get"
+  },
+  "tier_distribution": {
+    "url": "https://er.dakgg.io/api/v0/statistics/tier-distribution?teamMode=SQUAD&hl=zh_CN",
+    "method": "get"
+  },
+  "profile": {
+    "url": "https://er.dakgg.io/api/v1/players/%E7%A5%9E%E5%9C%A3%E5%AE%A1%E5%88%A4/profile?season=${season}",
+    "method": "get"
+  }
+}

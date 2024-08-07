@@ -23,9 +23,11 @@ fun dakggCdnUrl(url: String): String {
 }
 
 fun getEternalReturnImagePath(name: String): String {
+    ReadWriteFile.createCurrentDirs("image/eternal_return/${name}")
     return ReadWriteFile.currentPathFileName("image/eternal_return/${name}").substring(1)
 }
 
 fun getEternalReturnDataImagePath(name: String): String {
+    ReadWriteFile.createCurrentDirs("image/eternal_return/data/${name}")
     return ReadWriteFile.currentPathFileName("image/eternal_return/data/${name}").substring(1)
 }

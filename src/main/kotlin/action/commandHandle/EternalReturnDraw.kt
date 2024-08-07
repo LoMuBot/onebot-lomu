@@ -11,6 +11,7 @@ import java.awt.Font
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
 
 /**
  * @author LoMu
@@ -71,7 +72,13 @@ class EternalReturnDraw(
                     val draw = DrawImageUtils.builder()
                     draw.setTemplate(getEternalReturnDataImagePath("bg-character.jpg"))
                     draw.setFont("思源黑体", Font.PLAIN)
-                    draw.drawString("${currentSeason?.type ?: "正式赛季 unknown"}排名", Color.WHITE, 40, 50, 20)
+                    draw.drawString(
+                        "${currentSeason?.currentSeason?.name ?: "正式赛季 unknown"}排名",
+                        Color.WHITE,
+                        40,
+                        50,
+                        20
+                    )
                     draw.drawString("Based on DAK.GG Data.", Color.orange, 45, 70, 10)
                     draw.drawString("最近更新: $date (30分钟后更新)", Color.gray, 40, 90, 12)
                     draw.drawImage(getEternalReturnDataImagePath("tier/${eternal.tierType}.png"), 40, 110, 30, 30, null)
@@ -121,7 +128,7 @@ class EternalReturnDraw(
                 }
             }
         }
-        return "连接到dak.gg的远程服务器出现错误"
+        return "无法正常与dak.gg建立连接"
     }
 
 
@@ -144,7 +151,7 @@ class EternalReturnDraw(
             val characterInfo3 = mostCharacters.getOrNull(2)
             var character = leaderboard.characterById[characterInfo1.characterId]
             drawImageUtils.setFont("思源黑体", 1)
-            drawImageUtils.drawString(currentSeason?.type ?: "正式赛季 unknown", Color.BLACK, 8, 35, 20)
+            drawImageUtils.drawString(currentSeason?.currentSeason?.name ?: "正式赛季 unknown", Color.BLACK, 8, 35, 20)
             drawImageUtils.setFont("思源黑体", 0)
             drawImageUtils.drawString("$rank.", Color.BLACK, 34, 130, 15)
             drawImageUtils.drawImage(
@@ -173,7 +180,7 @@ class EternalReturnDraw(
             drawImageUtils.setFont("思源黑体", 0)
             drawImageUtils.drawString("#${doubleToPercentage(player.avgPlacement, 1)}", Color.black, 650, 130, 15)
             drawImageUtils.drawString("${doubleToPercentage(player.top3Rate, 100)}%", Color.black, 756, 130, 15)
-            drawImageUtils.drawString(doubleToPercentage(player.avgPlayerKill, 1), Color.black, 860, 130, 15)
+            drawImageUtils.drawString(doubleToPercentage(player.avgPlayerKill, 1), Color.black, 855, 130, 15)
             drawImageUtils.drawImage(
                 eternalReturnRequestData.checkCharacterImgExistThenGetPathOrDownload(character.key),
                 964,
@@ -182,7 +189,7 @@ class EternalReturnDraw(
                 40,
                 null
             )
-            drawImageUtils.drawString("${doubleToPercentage(characterInfo1.pickRate, 100)}%", Color.black, 969, 155, 15)
+            drawImageUtils.drawString("${doubleToPercentage(characterInfo1.pickRate, 100)}%", Color.black, 964, 155, 15)
 
             characterInfo2?.let { c2 ->
                 character = leaderboard.characterById[c2.characterId]
@@ -194,7 +201,7 @@ class EternalReturnDraw(
                     40,
                     null
                 )
-                drawImageUtils.drawString("${doubleToPercentage(c2.pickRate, 100)}%", Color.black, 1015, 155, 15)
+                drawImageUtils.drawString("${doubleToPercentage(c2.pickRate, 100)}%", Color.black, 1010, 155, 15)
 
 
                 characterInfo3?.let { c3 ->
@@ -221,10 +228,18 @@ class EternalReturnDraw(
             redisTemplate.opsForValue()["Eternal_Return:leaderboard${rank}", cqImg, 12L] = TimeUnit.HOURS
             return cqImg
         }
-        return "dak.gg远程服务器出现了错误"
+        return "无法正常与dak.gg建立连接"
     }
 
-    fun playerRecordFind(nickname: String): String {
+    fun historyProfile(nickname: String): String {
+        eternalReturnRequestData.currentSeason()?.let { season ->
+            eternalReturnRequestData.profile(season.currentSeason.key)?.let {
+                val playerSeason = it.playerSeasons.stream().filter { playerSeasonInfo ->
+                    playerSeasonInfo.mmr != null
+                }.collect(Collectors.toList())
+
+            }
+        }
 
 
         return ""

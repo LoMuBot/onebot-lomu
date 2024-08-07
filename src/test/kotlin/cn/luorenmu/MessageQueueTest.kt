@@ -9,15 +9,16 @@ import cn.luorenmu.dto.RecentlyMessageQueue
 fun main() {
     val recentlyMessageQueue = RecentlyMessageQueue<Int>()
     recentlyMessageQueue.addMessageToQueue(1L,0)
-    for (i in 0..1) {
-        recentlyMessageQueue.addMessageToQueue(1L,1)
+    for (i in 0..100) {
+        recentlyMessageQueue.addMessageToQueue(1L,i)
     }
     var key = ""
-    val lastMessages = recentlyMessageQueue.lastMessages(1L, 5)
-    var i = lastMessages.size - 1
+    val lastMessages = recentlyMessageQueue.lastMessages(1L, 3)
+    val i = lastMessages.size - 1
     for (lastMessage in lastMessages) {
-        if (lastMessage != 1) {
+        if (lastMessage != 100) {
             key = lastMessage.toString()
+            break
         }
     }
     println(i)

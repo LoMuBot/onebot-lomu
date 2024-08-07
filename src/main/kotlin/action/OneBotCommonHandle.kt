@@ -24,7 +24,10 @@ class OneBotCommonHandle(
         val senderId = groupMessageEvent.sender.userId
         val groupId = groupMessageEvent.groupId
         val message = groupMessageEvent.message
-        val lastMessages = groupMessageQueue.lastMessages(groupId, 1)
+
+        // 复读数
+        val size = 2
+        val lastMessages = groupMessageQueue.lastMessages(groupId, size)
 
 
         var isReRead = false
@@ -59,7 +62,7 @@ class OneBotCommonHandle(
 
         //机器人已经复读了 将存储复读的头信息作为keyword
         if (isReRead) {
-            val lastMessageList = groupMessageQueue.lastMessages(groupId, 10)
+            val lastMessageList = groupMessageQueue.lastMessages(groupId, size + 1)
             if (lastMessageList.isNotEmpty()) {
                 var keyword: String? = null
                 val currentMessage = replaceCqToFileStr(message) ?: message

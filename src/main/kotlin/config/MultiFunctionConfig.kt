@@ -3,7 +3,7 @@ package cn.luorenmu.config
 import cn.luorenmu.MainApplication
 import cn.luorenmu.file.InitializeFile
 import cn.luorenmu.file.ReadWriteFile
-import cn.luorenmu.web.WebPageScreenshot
+import cn.luorenmu.pool.WebPageScreenshotPool
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -15,18 +15,16 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class MultiFunctionConfig {
     init {
-        InitializeFile.run(MainApplication::class.java, false)
+        InitializeFile.run(MainApplication::class.java, true)
         ReadWriteFile.createCurrentDirs("image/")
         ReadWriteFile.createCurrentDirs("qrcode/")
         ReadWriteFile.createCurrentDirs("request/")
-        ReadWriteFile.createCurrentDirs("image/eternal_return/nickname/")
-        ReadWriteFile.createCurrentDirs("image/eternal_return/data/")
         ReadWriteFile.readDirJsonToRunStore("keyword")
     }
 
 
     @Bean
-    fun getWebPageScreenshot(): WebPageScreenshot {
-        return WebPageScreenshot();
+    fun getWebPageScreenshotPool(): WebPageScreenshotPool {
+        return WebPageScreenshotPool(5);
     }
 }

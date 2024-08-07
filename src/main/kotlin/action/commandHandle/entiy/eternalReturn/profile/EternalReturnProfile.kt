@@ -10,5 +10,6 @@ package cn.luorenmu.action.commandHandle.entiy.eternalReturn.profile
 data class EternalReturnProfile (
     val meta: EternalReturnProfileMeta,
     val player: EternalReturnProfilePlayer,
-    val playerSeasonOverviews: List<EternalReturnProfilePlayerSeasonOverviews>
+    val playerSeasonOverviews: List<EternalReturnProfilePlayerSeasonOverviews>,
+    val playerSeasons : List<EternalReturnProfilePlayerSeason>
 )

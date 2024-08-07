@@ -21,6 +21,8 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 dependencies {
+    implementation("com.github.promeg:tinypinyin:2.0.3")
+    implementation("org.apache.opennlp:opennlp-tools:2.4.0")
     implementation("cn.hutool:hutool-all:5.8.29")
     implementation("com.google.zxing:core:3.5.3")
     implementation("org.jetbrains.kotlin:kotlin-reflect")

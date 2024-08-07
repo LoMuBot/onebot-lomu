@@ -12,7 +12,7 @@ data class EternalRetrunLeaderboard(
     val tierDistributionDtos: ArrayList<EternalReturnTierDistributionDtos>,
     val totalLeaderBoardCount: Int,
     val updatedAt: Long,
-    var currentSeason: EternalCurrentSeason? = null,
+    var currentSeason: EternalReturnCurrentSeason? = null,
 )
 
 

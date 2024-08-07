@@ -15,8 +15,8 @@ import java.util.concurrent.TimeUnit
  * Date 2024.07.28 18:03
  */
 
-private val selfRecentlySendMessage: RecentlyMessageQueue<SelfSendMsg> = RecentlyMessageQueue(25)
-private val selfKeywordMessage: RecentlyMessageQueue<KeywordReply> = RecentlyMessageQueue(20)
+private val selfRecentlySendMessage: RecentlyMessageQueue<SelfSendMsg> = RecentlyMessageQueue(40)
+private val selfKeywordMessage: RecentlyMessageQueue<KeywordReply> = RecentlyMessageQueue(30)
 
 
 /**
@@ -97,6 +97,10 @@ fun Bot.addMsgLimit(id: Long, message: String, msgLimit: String = "none") {
     }
 }
 
+/**
+ * msgLimit 用于限制图片消息
+ * 由于图片的名称一样 但是URL不一样 所以需要截取名称作为限制条件
+ */
 private fun Bot.sendMsgLimit(id: Long, message: String, msgLimit: String = "none", send: () -> ActionData<MsgId>?) {
     synchronized(selfRecentlySendMessage) {
         var msgLimit1 = message
