@@ -1,6 +1,7 @@
 package cn.luorenmu
 
 import cn.luorenmu.common.utils.firstPinYin
+import com.mikuac.shiro.common.utils.MsgUtils
 
 /**
  * @author LoMu
@@ -9,5 +10,5 @@ import cn.luorenmu.common.utils.firstPinYin
 
 
 fun main() {
-    println(firstPinYin("黛比&玛莲"))
+    println(MsgUtils.builder().voice("H:\\bot\\voice\\Emma character song.mp3").build())
 }

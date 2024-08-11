@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
  * Date 2024.07.31 0:15
  */
 @Component
-class OneBotCommonHandle(
+class OneBotChatStudy(
     private var keywordReplyRepository: KeywordReplyRepository,
 ) {
 
@@ -82,13 +82,13 @@ class OneBotCommonHandle(
                 var needProcess = false
                 keyword = if (isImage(keyword)) {
                     needProcess = true
-                    getCQFileStr(keyword)!!.replace(Regex("[{}]"), "")
+                    getCQFileStr(keyword)!!
                 } else {
                     keyword
                 }
 
                 //复读 回复或者At了某人 反正就是禁止这样的添加到关键词
-                if (isCQAt(keyword) || isCQReply(keyword)) {
+                if (isCQAt(keyword)) {
                     return
                 }
 

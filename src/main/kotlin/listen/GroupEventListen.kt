@@ -1,7 +1,7 @@
 package cn.luorenmu.listen
 
-import cn.luorenmu.action.OneBotCommandHandle
-import cn.luorenmu.action.OneBotCommonHandle
+import cn.luorenmu.action.OneBotCommandAllocator
+import cn.luorenmu.action.OneBotChatStudy
 import cn.luorenmu.action.OneBotKeywordReply
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
 import cn.luorenmu.dto.RecentlyMessageQueue
@@ -29,9 +29,9 @@ val groupMessageQueue: RecentlyMessageQueue<GroupMessage> = RecentlyMessageQueue
 @Shiro
 class GroupEventListen(
     private val groupMessageRepository: GroupMessageRepository,
-    private val commandHandler: OneBotCommandHandle,
+    private val commandHandler: OneBotCommandAllocator,
     private val oneBotKeywordReply: OneBotKeywordReply,
-    private val oneBotCommonHandle: OneBotCommonHandle,
+    private val oneBotCommonProcess: OneBotChatStudy,
     private val oneBotConfigRespository: OneBotConfigRespository,
     private val redisTemplate: RedisTemplate<String, String>
 ) {
@@ -91,7 +91,14 @@ class GroupEventListen(
 
         //reRead
         oneBotConfigRespository.findOneByConfigName("banReRead") ?: run {
-            oneBotCommonHandle.reRead(bot, groupMessageEvent)
+            oneBotCommonProcess.reRead(bot, groupMessageEvent)
+        }
+        groupMessageQueue.map[groupId]?.let{
+            for (gM in it) {
+                if (gM.groupEventObject.message == message && senderId == gM.groupEventObject.sender.userId) {
+                    return
+                }
+            }
         }
         groupMessageQueue.addMessageToQueue(groupId, groupMessage)
     }

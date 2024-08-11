@@ -1,6 +1,6 @@
 package cn.luorenmu.action
 
-import cn.luorenmu.action.commandHandle.EternalReturnCommandHandle
+import cn.luorenmu.action.commandHandle.eternalReturn.EternalReturnCommandProcess
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.repository.OneBotCommandRespository
 import cn.luorenmu.repository.entiy.OneBotCommand
@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component
  * Date 2024.07.13 1:52
  */
 @Component
-class OneBotCommandHandle(
+class OneBotCommandAllocator(
     private val oneBotCommandRespository: OneBotCommandRespository,
-    private val eternalReturnCommandHandle: EternalReturnCommandHandle,
+    private val eternalReturnCommandHandle: EternalReturnCommandProcess,
     private val redisTemplate: RedisTemplate<String, String>,
 ) {
 
@@ -45,6 +45,9 @@ class OneBotCommandHandle(
 
             if (isCurrentCommand(command, "eternalReturnFindPlayers", oneBotCommand)) {
                 val nickname = command.replace(Regex(oneBotCommand.keyword), "")
+                if (nickname.isBlank()){
+                    return ""
+                }
                 return eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
             }
 
@@ -61,6 +64,9 @@ class OneBotCommandHandle(
 
             if (isCurrentCommand(command, "eternalReturnReFindPlayers", oneBotCommand)) {
                 val nickname = command.replace(Regex(oneBotCommand.keyword), "")
+                if (nickname.isBlank()){
+                    return ""
+                }
                 redisTemplate.delete("Eternal_Return_NickName:$nickname")
                 return eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
             }
@@ -71,6 +77,9 @@ class OneBotCommandHandle(
                 regex.find(characterName)?.let {
                     i = it.groupValues[0].toInt()
                     characterName = characterName.replace(regex,"")
+                }
+                if (characterName.isBlank()){
+                    return ""
                 }
                 return eternalReturnCommandHandle.eternalReturnFindCharacter(characterName, i)
             }

@@ -3,7 +3,6 @@ server:
 
 shiro:
   ws:
-    # 该配置为正向连接示例
     client:
       enable: true
       url: "ws://127.0.0.1:3001"

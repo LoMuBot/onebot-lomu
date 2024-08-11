@@ -1,4 +1,4 @@
-package cn.luorenmu.action.commandHandle
+package cn.luorenmu.action.commandHandle.eternalReturn
 
 import cn.luorenmu.common.utils.firstPinYin
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
  * Date 2024.07.31 0:09
  */
 @Component
-class EternalReturnCommandHandle(
+class EternalReturnCommandProcess(
     private val redisTemplate: RedisTemplate<String, String>,
     private val eternalReturnDraw: EternalReturnDraw,
     private val eternalReturnRequestData: EternalReturnRequestData,
@@ -24,6 +24,7 @@ class EternalReturnCommandHandle(
     private fun correctName(name: String): String {
         return name.replace(Regex("amp;"), "")
     }
+
 
     fun eternalReturnFindCharacter(characterTemp: String, i: Int): String {
         val character = correctName(characterTemp)

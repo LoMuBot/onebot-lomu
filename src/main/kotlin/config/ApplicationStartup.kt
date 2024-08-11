@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component
  * Date 2024.07.30 4:52
  */
 @Component
+
 class ApplicationStartup(private val r: RandomActiveSendMessage) : ApplicationListener<ApplicationReadyEvent> {
 
     override fun onApplicationEvent(event: ApplicationReadyEvent) {

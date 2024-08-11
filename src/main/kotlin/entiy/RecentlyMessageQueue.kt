@@ -27,11 +27,8 @@ class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
     private val mapCurrentPoint: MutableMap<Long, Int> = mutableMapOf()
 
     /**
-     * 上一条消息指针
-     * 每次调用它都将会移动
+     * 上一条消息
      */
-    private val mapLastPoint: MutableMap<Long, Int> = mutableMapOf()
-
     fun lastMessage(id: Long): T? {
         return lastMessages(id,1).firstOrNull()
     }

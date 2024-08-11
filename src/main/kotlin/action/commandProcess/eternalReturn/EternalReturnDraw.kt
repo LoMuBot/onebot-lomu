@@ -1,4 +1,4 @@
-package cn.luorenmu.action.commandHandle
+package cn.luorenmu.action.commandHandle.eternalReturn
 
 import cn.luorenmu.common.utils.DrawImageUtils
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
