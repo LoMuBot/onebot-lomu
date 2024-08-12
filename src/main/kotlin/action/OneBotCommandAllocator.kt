@@ -1,14 +1,18 @@
 package cn.luorenmu.action
 
-import cn.luorenmu.action.commandHandle.eternalReturn.EternalReturnCommandProcess
+import cn.luorenmu.action.commandProcess.eternalReturn.EternalReturnCommandProcess
+import cn.luorenmu.entiy.OneBotAllCommands
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.repository.OneBotCommandRespository
 import cn.luorenmu.repository.entiy.OneBotCommand
 import cn.luorenmu.request.RequestController
+import com.alibaba.fastjson2.to
+import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.common.utils.OneBotMedia
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 
 /**
  * @author LoMu
@@ -22,79 +26,77 @@ class OneBotCommandAllocator(
 ) {
 
 
-    fun isCommand(command: String): Boolean {
-        val all = oneBotCommandRespository.findAll()
-        for (value in all) {
-            if (command.contains(Regex(value.keyword))) {
-                return true
-            }
-        }
-        return false
-    }
+
 
     private fun isCurrentCommand(command: String, commandName: String, oneBotCommand: OneBotCommand): Boolean {
         return oneBotCommand.commandName == commandName && command.contains(Regex(oneBotCommand.keyword))
     }
 
+
     fun process(command: String, senderId: Long, msgId: Int): String {
-        val all = oneBotCommandRespository.findAll()
-        for (oneBotCommand in all) {
-            if (isCurrentCommand(command, "ff14Bind", oneBotCommand)) {
-                return ff14Bind(senderId)
-            }
-
-            if (isCurrentCommand(command, "eternalReturnFindPlayers", oneBotCommand)) {
-                val nickname = command.replace(Regex(oneBotCommand.keyword), "")
-                if (nickname.isBlank()){
-                    return ""
-                }
-                return eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
-            }
-
-            if (isCurrentCommand(command, "eternalReturnLeaderboard", oneBotCommand)) {
-                Regex(oneBotCommand.keyword).find(command)?.let {
-                    if (it.groupValues.size > 1) {
-                        return eternalReturnCommandHandle.leaderboard(it.groupValues[1].toInt())
-                    }
+        val allCommands = redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run{
+            synchronized(redisTemplate) {
+                // 二次安全检查
+                redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
+                    val allCommands = oneBotCommandRespository.findAll()
+                    val oneBotCommands = OneBotAllCommands(allCommands)
+                    redisTemplate.opsForValue()["allCommands", oneBotCommands.toJSONString(), 1L] =
+                        TimeUnit.DAYS
+                    allCommands
                 }
             }
-
-
-
-
-            if (isCurrentCommand(command, "eternalReturnReFindPlayers", oneBotCommand)) {
-                val nickname = command.replace(Regex(oneBotCommand.keyword), "")
-                if (nickname.isBlank()){
-                    return ""
-                }
-                redisTemplate.delete("Eternal_Return_NickName:$nickname")
-                return eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
-            }
-            if (isCurrentCommand(command, "eternalReturnFindCharacter", oneBotCommand)) {
-                var characterName = command.replace(Regex(oneBotCommand.keyword), "")
-                val regex = """[1-9]""".toRegex()
-                var i = 1
-                regex.find(characterName)?.let {
-                    i = it.groupValues[0].toInt()
-                    characterName = characterName.replace(regex,"")
-                }
-                if (characterName.isBlank()){
-                    return ""
-                }
-                return eternalReturnCommandHandle.eternalReturnFindCharacter(characterName, i)
-            }
-
-            if (isCurrentCommand(command, "eternalReturnCutoffs", oneBotCommand)) {
-                return eternalReturnCommandHandle.cutoffs()
-            }
-
         }
 
-        // When the program sends this message, it means that an unknown error has occurred internally
+
+
+        allCommands.firstOrNull { isCurrentCommand(command, it.commandName, it) }?.let { oneBotCommand ->
+            return when (oneBotCommand.commandName) {
+                "ff14Bind" -> ff14Bind(senderId)
+                "eternalReturnFindPlayers" -> {
+                    val nickname = command.replace(Regex(oneBotCommand.keyword), "").trim()
+                    if (nickname.isBlank()) "" else eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
+                }
+
+                "eternalReturnLeaderboard" -> {
+                    Regex(oneBotCommand.keyword).find(command)?.let { match ->
+                        if (match.groupValues.size > 1) {
+                            eternalReturnCommandHandle.leaderboard(match.groupValues[1].toInt())
+                        } else {
+                            ""
+                        }
+                    } ?: ""
+                }
+
+                "eternalReturnReFindPlayers" -> {
+                    val nickname = command.replace(Regex(oneBotCommand.keyword), "").trim()
+                    if (nickname.isBlank()) "" else {
+                        redisTemplate.delete("Eternal_Return_NickName:$nickname")
+                        eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
+                    }
+                }
+
+                "eternalReturnFindCharacter" -> {
+                    var characterName = command.replace(Regex(oneBotCommand.keyword), "").trim()
+                    val indexMatch = """[1-9]""".toRegex().find(characterName)?.let {
+                        val index = it.value.toInt()
+                        characterName = characterName.replace(it.value, "")
+                        index
+                    } ?: 1
+                    if (characterName.isBlank()) "" else {
+                        eternalReturnCommandHandle.eternalReturnFindCharacter(characterName, indexMatch)
+                    }
+                }
+
+                "eternalReturnCutoffs" -> eternalReturnCommandHandle.cutoffs()
+                else -> ""
+            }
+        }
+
         return ""
     }
 
 
+    // TODO 待完成
     private fun ff14Bind(id: Long): String {
         val requestController = RequestController("ff14_request.create_qrcode")
         val response = requestController.request()

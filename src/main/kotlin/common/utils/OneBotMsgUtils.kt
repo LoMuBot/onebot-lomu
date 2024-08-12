@@ -6,6 +6,8 @@ import com.mikuac.shiro.common.utils.MsgUtils
  * @author LoMu
  * Date 2024.08.02 14:59
  */
+
+
 fun isImage(msg: String): Boolean {
     return msg.startsWith("[CQ:image") && msg.endsWith("]")
 }

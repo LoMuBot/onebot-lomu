@@ -2,7 +2,7 @@ package cn.luorenmu.action
 
 import cn.luorenmu.common.extensions.sendGroupDeepMsgLimit
 import cn.luorenmu.repository.ActiveSendMessageRepository
-import cn.luorenmu.repository.OneBotConfigRespository
+import cn.luorenmu.repository.OneBotConfigRepository
 import com.mikuac.shiro.core.BotContainer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Async
@@ -14,7 +14,7 @@ private val log = KotlinLogging.logger { }
 @Component
 class RandomActiveSendMessage(
     val botContainer: BotContainer,
-    private val oneBotConfigRespository: OneBotConfigRespository,
+    private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
 ) {
 
@@ -34,14 +34,15 @@ class RandomActiveSendMessage(
 
     }
 
-    fun executeActiveMessage() {
+
+     fun executeActiveMessage() {
         val firstOrNull = botContainer.robots.entries.firstOrNull()
         firstOrNull?.run {
             val groupList = value.groupList
             val activeGroupName = oneBotConfigRespository.findOneByConfigName("active_group_name")
             val groupIds = ArrayList<Long>()
             val activeMessage = activeSendMessageRepository.findAll().random()
-            log.info { "行动消息 -> $activeMessage.message "}
+            log.info { "行动消息 -> $activeMessage.message " }
             // 筛选合适的群
             for (datum in groupList.data) {
                 activeGroupName?.run {

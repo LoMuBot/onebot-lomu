@@ -4,7 +4,7 @@ import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.repository.ActiveSendMessageRepository
 import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.OneBotCommandRespository
-import cn.luorenmu.repository.OneBotConfigRespository
+import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
 import cn.luorenmu.repository.entiy.OneBotCommand
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("")
 class System(
     private val keywordReplyRepository: KeywordReplyRepository,
-    private val oneBotConfigRespository: OneBotConfigRespository,
+    private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
     private val oneBotCommandRespository: OneBotCommandRespository
 ) {

@@ -30,7 +30,7 @@ class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
      * 上一条消息
      */
     fun lastMessage(id: Long): T? {
-        return lastMessages(id,1).firstOrNull()
+        return lastMessages(id, 1).firstOrNull()
     }
 
     /**

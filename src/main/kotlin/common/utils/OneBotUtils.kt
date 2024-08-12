@@ -11,6 +11,7 @@ fun getImagePath(name: String): String {
 }
 
 fun getEternalReturnNicknameImagePath(name: String): String {
+    ReadWriteFile.createCurrentDirs("image/eternal_return/nickname/${name}.png")
     return ReadWriteFile.currentPathFileName("image/eternal_return/nickname/${name}.png").substring(1)
 }
 

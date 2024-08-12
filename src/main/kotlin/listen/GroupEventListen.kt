@@ -1,13 +1,16 @@
 package cn.luorenmu.listen
 
-import cn.luorenmu.action.OneBotCommandAllocator
 import cn.luorenmu.action.OneBotChatStudy
+import cn.luorenmu.action.OneBotCommandAllocator
 import cn.luorenmu.action.OneBotKeywordReply
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
 import cn.luorenmu.dto.RecentlyMessageQueue
+import cn.luorenmu.entiy.ConfigGroup
 import cn.luorenmu.repository.GroupMessageRepository
-import cn.luorenmu.repository.OneBotConfigRespository
+import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.GroupMessage
+import com.alibaba.fastjson2.to
+import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.annotation.GroupMessageHandler
 import com.mikuac.shiro.annotation.common.Shiro
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -16,6 +19,7 @@ import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 
 
 /**
@@ -29,11 +33,11 @@ val groupMessageQueue: RecentlyMessageQueue<GroupMessage> = RecentlyMessageQueue
 @Shiro
 class GroupEventListen(
     private val groupMessageRepository: GroupMessageRepository,
-    private val commandHandler: OneBotCommandAllocator,
+    private val oneBotCommandAllocator: OneBotCommandAllocator,
     private val oneBotKeywordReply: OneBotKeywordReply,
-    private val oneBotCommonProcess: OneBotChatStudy,
-    private val oneBotConfigRespository: OneBotConfigRespository,
-    private val redisTemplate: RedisTemplate<String, String>
+    private val oneBotChatStudy: OneBotChatStudy,
+    private val oneBotConfigRepository: OneBotConfigRepository,
+    private val redisTemplate: RedisTemplate<String, String>,
 ) {
 
 
@@ -42,10 +46,6 @@ class GroupEventListen(
         val senderId = groupMessageEvent.sender.userId
         val groupId = groupMessageEvent.groupId
         val message = groupMessageEvent.message
-
-        oneBotConfigRespository.findOneByConfigName(groupMessageEvent.sender.userId.toString())?.let {
-            return
-        }
 
         // save data
         val groupMessage =
@@ -58,15 +58,18 @@ class GroupEventListen(
             )
         groupMessageRepository.save(groupMessage)
 
-        // keywordMessage
-        val banList = oneBotConfigRespository.findAllByConfigName("banKeywordGroup").map { it.configContent.toLong() }
-        var ban = false
-        for (oneBotConfig in banList) {
-            if (banList.contains(groupId)) {
-                ban = true
-            }
+
+        // 禁止回复的群
+        val banKeywordList = redisTemplate.opsForValue()["banKeywordGroup"]?.to<ConfigGroup>() ?: run {
+            val list = oneBotConfigRepository.findAllByConfigName("banKeywordGroup").map { it.configContent.toLong() }
+            val configGroup = ConfigGroup(list)
+            redisTemplate.opsForValue()["banKeywordGroup", configGroup.toJSONString(), 1] = TimeUnit.DAYS
+            configGroup
         }
-        if (!ban) {
+
+
+        // 关键词消息
+        banKeywordList.list.firstOrNull{ it == groupId } ?: run {
             val mongodbKeyword = oneBotKeywordReply.process(bot.selfId, senderId, message)
             mongodbKeyword?.let {
                 bot.sendGroupMsgKeywordLimit(groupId, it)
@@ -74,32 +77,41 @@ class GroupEventListen(
         }
 
 
-        // command
+        // 指令
         val command = message.replace(MsgUtils.builder().at(bot.selfId).build(), "").replace(" ", "")
-        if (commandHandler.isCommand(command)) {
-            val process =
-                commandHandler.process(command, senderId, groupMessageEvent.messageId)
-            if (process.isNotBlank()) {
-                bot.sendGroupMsg(
-                    groupId,
-                    MsgUtils.builder().reply(groupMessageEvent.messageId).text(process).build(),
-                    false
-                )
-                return
-            }
+        val process =
+            oneBotCommandAllocator.process(command, senderId, groupMessageEvent.messageId)
+        if (process.isNotBlank()) {
+            bot.sendGroupMsg(
+                groupId,
+                MsgUtils.builder().reply(groupMessageEvent.messageId).text(process).build(),
+                false
+            )
+            return
         }
 
-        //reRead
-        oneBotConfigRespository.findOneByConfigName("banReRead") ?: run {
-            oneBotCommonProcess.reRead(bot, groupMessageEvent)
+
+        // 总有没活的人硬整活 禁止该群学习奇怪的东西！
+        val banStudyList = redisTemplate.opsForValue()["banStudy"].to<ConfigGroup>() ?: run {
+            val list = oneBotConfigRepository.findAllByConfigName("banStudy").map { it.configContent.toLong() }
+            val configGroup = ConfigGroup(list)
+            redisTemplate.opsForValue()["banStudy", configGroup.toJSONString(), 1] = TimeUnit.DAYS
+            configGroup
         }
-        groupMessageQueue.map[groupId]?.let{
+        banStudyList.list.firstOrNull{ it == groupId } ?: run {
+            oneBotChatStudy.reReadStudy(bot, groupMessageEvent)
+        }
+
+
+        // 同一个人在指定的20条中发了同一条消息 不入队列
+        groupMessageQueue.map[groupId]?.let {
             for (gM in it) {
                 if (gM.groupEventObject.message == message && senderId == gM.groupEventObject.sender.userId) {
                     return
                 }
             }
         }
+        //消息入队
         groupMessageQueue.addMessageToQueue(groupId, groupMessage)
     }
 }
