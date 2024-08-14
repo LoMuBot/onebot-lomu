@@ -20,6 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 
 /**
@@ -69,16 +70,25 @@ class GroupEventListen(
 
 
         // 关键词消息
-        banKeywordList.list.firstOrNull{ it == groupId } ?: run {
-            val mongodbKeyword = oneBotKeywordReply.process(bot.selfId, senderId, message)
-            mongodbKeyword?.let {
-                bot.sendGroupMsgKeywordLimit(groupId, it)
+        banKeywordList.list.firstOrNull { it == groupId } ?: run {
+            // 概率回复 40%
+            if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 4) {
+                val mongodbKeyword = oneBotKeywordReply.process(bot.selfId, senderId, message)
+                mongodbKeyword?.let {
+                    bot.sendGroupMsgKeywordLimit(groupId, it)
+                }
             }
         }
 
 
-        // 指令
-        val command = message.replace(MsgUtils.builder().at(bot.selfId).build(), "").replace(" ", "")
+        // bot指令
+        val oneBotCommand = message.replace(MsgUtils.builder().at(bot.selfId).build(), "")
+
+
+
+
+        // 外部指令
+        val command = oneBotCommand.replace(" ", "")
         val process =
             oneBotCommandAllocator.process(command, senderId, groupMessageEvent.messageId)
         if (process.isNotBlank()) {
@@ -87,7 +97,6 @@ class GroupEventListen(
                 MsgUtils.builder().reply(groupMessageEvent.messageId).text(process).build(),
                 false
             )
-            return
         }
 
 
@@ -98,7 +107,7 @@ class GroupEventListen(
             redisTemplate.opsForValue()["banStudy", configGroup.toJSONString(), 1] = TimeUnit.DAYS
             configGroup
         }
-        banStudyList.list.firstOrNull{ it == groupId } ?: run {
+        banStudyList.list.firstOrNull { it == groupId } ?: run {
             oneBotChatStudy.reReadStudy(bot, groupMessageEvent)
         }
 

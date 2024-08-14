@@ -3,12 +3,16 @@ package cn.luorenmu.action
 import cn.luorenmu.common.extensions.addMsgLimit
 import cn.luorenmu.common.extensions.selfRecentlySent
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
-import cn.luorenmu.common.utils.*
+import cn.luorenmu.common.utils.getCQFileStr
+import cn.luorenmu.common.utils.isCQAt
+import cn.luorenmu.common.utils.isImage
+import cn.luorenmu.common.utils.replaceCqToFileStr
 import cn.luorenmu.listen.groupMessageQueue
 import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.entiy.KeywordReply
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 
 /**
@@ -18,14 +22,14 @@ import org.springframework.stereotype.Component
 @Component
 class OneBotChatStudy(
     private var keywordReplyRepository: KeywordReplyRepository,
+    private val redisTemplate: RedisTemplate<String, String>,
 ) {
 
 
-    fun atStudy(bot: Bot, groupMessageEvent: GroupMessageEvent){
+    fun atStudy(bot: Bot, groupMessageEvent: GroupMessageEvent) {
         val senderId = groupMessageEvent.sender.userId
         val groupId = groupMessageEvent.groupId
         val message = groupMessageEvent.message
-
 
 
     }
@@ -66,7 +70,11 @@ class OneBotChatStudy(
                 val msgLimit = replaceCqToFileStr(message) ?: "none"
 
                 //复读
-                bot.sendGroupMsgLimit(groupId, message, msgLimit)
+                redisTemplate.opsForValue()["isReRead"]?.let {
+                    bot.sendGroupMsgLimit(groupId, message, msgLimit)
+                } ?: run {
+                    bot.addMsgLimit(groupId, message, msgLimit)
+                }
             }
         }
 
