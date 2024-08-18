@@ -71,11 +71,14 @@ class GroupEventListen(
 
         // 关键词消息
         banKeywordList.list.firstOrNull { it == groupId } ?: run {
-            // 概率回复 40%
-            if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 4) {
-                val mongodbKeyword = oneBotKeywordReply.process(bot.selfId, senderId, message)
-                mongodbKeyword?.let {
-                    bot.sendGroupMsgKeywordLimit(groupId, it)
+            redisTemplate.opsForValue()["limit:${groupId}"] ?: run {
+                // 概率回复 60%
+                if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 6) {
+                    val mongodbKeyword = oneBotKeywordReply.process(bot.selfId, senderId, message)
+                    mongodbKeyword?.let {
+                        bot.sendGroupMsgKeywordLimit(groupId, it)
+                        redisTemplate.opsForValue()["limit:${groupId}","1",3L] = TimeUnit.MINUTES
+                    }
                 }
             }
         }
@@ -83,8 +86,6 @@ class GroupEventListen(
 
         // bot指令
         val oneBotCommand = message.replace(MsgUtils.builder().at(bot.selfId).build(), "")
-
-
 
 
         // 外部指令

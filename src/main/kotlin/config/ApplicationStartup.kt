@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 class ApplicationStartup(private val r: RandomActiveSendMessage) : ApplicationListener<ApplicationReadyEvent> {
 
     override fun onApplicationEvent(event: ApplicationReadyEvent) {
-      r.start()
+     // r.start()
     }
 
 }

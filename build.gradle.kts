@@ -33,9 +33,9 @@ dependencies {
     implementation("com.alibaba.fastjson2:fastjson2-kotlin:2.0.52")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation(files("lib/MultifunctionalAutoHelper-Java.jar"))
     implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation(files("lib/MultifunctionalAutoHelper-Java.jar"))
 
     // Kotlin test dependencies
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
