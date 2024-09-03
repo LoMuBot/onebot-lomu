@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration
  */
 
 @Configuration
-class MultiFunctionConfig {
+open class MultiFunctionConfig {
     init {
         InitializeFile.run(MainApplication::class.java)
         ReadWriteFile.createCurrentDirs("image/")
@@ -24,7 +24,7 @@ class MultiFunctionConfig {
 
 
     @Bean
-    fun getWebPageScreenshotPool(): WebPageScreenshotPool {
-        return WebPageScreenshotPool(3);
+    open fun getWebPageScreenshotPool(): WebPageScreenshotPool {
+        return WebPageScreenshotPool(5)
     }
 }

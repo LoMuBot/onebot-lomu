@@ -37,7 +37,7 @@ class EternalReturnDraw(
         tierDistributions?.let { td ->
             eternalReturnRequestData.leaderboardFind()?.let { leaderboard ->
                 // 段位
-                val tierTypes = arrayOf(1, 2, 3, 4, 5, 6, 66, 7, 8)
+                val tierTypes = arrayOf(1, 2, 3, 4, 5, 6, 63, 66, 7, 8)
 
                 val count = mutableMapOf<Int, Int>()
                 val rate = mutableMapOf<Int, Double>()

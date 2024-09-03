@@ -14,5 +14,5 @@ data class OneBotConfig(
     var id: String?,
     @Indexed
     val configName: String,
-    val configContent: String
+    var configContent: String
 )

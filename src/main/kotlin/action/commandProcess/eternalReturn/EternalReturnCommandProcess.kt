@@ -1,10 +1,15 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
 
+import cn.luorenmu.service.EmailPushService
 import cn.luorenmu.common.utils.firstPinYin
+import cn.luorenmu.repository.EternalReturnPushRepository
+import cn.luorenmu.repository.entiy.EternalReturnPush
 import com.mikuac.shiro.common.utils.MsgUtils
+import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 /**
@@ -17,6 +22,8 @@ class EternalReturnCommandProcess(
     private val eternalReturnDraw: EternalReturnDraw,
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
+    private val emailPushService: EmailPushService,
+    private val eternalReturnPushRepository: EternalReturnPushRepository,
 ) {
     /**
      * 实验体绰号名修正
@@ -80,8 +87,24 @@ class EternalReturnCommandProcess(
         return ""
     }
 
+    fun eternalReturnEmailPush(groupId: Long, sender: GroupMessageEvent.GroupSender): String {
+        val email = "${sender.userId}@qq.com"
+
+        eternalReturnPushRepository.findByEmail(email)?.let {
+            return "推送列表中已收录了你的邮箱地址"
+        }
+
+        emailPushService.emailPush(
+            email, "Test Email", "${sender.userId} " +
+                    "<img src=\"https://i0.hdslb.com/bfs/new_dyn/eafcdc2ea38eddfbb8a0a1f06fe13e6214868240.png\" alt=\"img\">"
+        )
+        eternalReturnPushRepository.save(EternalReturnPush(null, email, sender, LocalDateTime.now(), groupId, true))
+
+        return "已向你的qq邮件发送了一封测试邮件"
+    }
+
     fun eternalReturnFindPlayers(nickname: String): String {
-        // check name
+        // check name rule
         if (nickname.isBlank() || nickname.contains("@") || nickname.length < 2) {
             return MsgUtils.builder().text("名称不合法 -> $nickname").build()
         }
@@ -94,6 +117,7 @@ class EternalReturnCommandProcess(
             return nicknameData
         }
 
+        // check name exist
         if (!eternalReturnRequestData.findExistPlayers(nickname)) {
             val notFound = MsgUtils.builder().text("不存在的玩家 -> $nickname").build()
             opsForValue["Eternal_Return_NickName:$nickname", notFound, 7L] = TimeUnit.DAYS

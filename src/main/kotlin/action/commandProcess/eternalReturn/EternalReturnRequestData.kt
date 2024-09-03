@@ -41,24 +41,21 @@ class EternalReturnRequestData(
     fun tierDistributionsFind(): EternalReturnTierDistributions? {
         val request = RequestController("eternal_return_request.tier_distribution")
         val resp = request.request()
-        if (resp.isOk) {
-            return resp.body().to<EternalReturnTierDistributions>()
-        }
-        return null
+        return resp?.body().to<EternalReturnTierDistributions>()
+
     }
 
     fun leaderboardFind(): EternalRetrunLeaderboard? {
-        currentSeason()?.let {
+        return currentSeason()?.let {
             val requestLeaderboard = RequestController("eternal_return_request.leaderboard")
             requestLeaderboard.replaceUrl("season", it.currentSeason.key)
             val respLeaderboard = requestLeaderboard.request()
-            if (respLeaderboard.isOk) {
+            respLeaderboard?.let { respLeaderboard ->
                 val leaderboard = respLeaderboard.body().to<EternalRetrunLeaderboard>()
                 leaderboard.currentSeason = it
-                return leaderboard
+                leaderboard
             }
         }
-        return null
     }
 
     fun checkCharacterImgExistThenGetPathOrDownload(name: String): String {
@@ -74,43 +71,37 @@ class EternalReturnRequestData(
                 requestDetailed.method = "get"
                 val request = RequestController(requestDetailed)
                 val resp = request.request()
-                if (resp.isOk) {
-                    ReadWriteFile.writeStreamFile(eternalReturnDataImagePath, resp.bodyStream())
-                }
+                resp?.let { ReadWriteFile.writeStreamFile(eternalReturnDataImagePath, resp.bodyStream()) }
             }
         }
         return getEternalReturnDataImagePath("character/${name}.png")
     }
 
     fun characterLeaderboardFind(character: String, sortType: String): EternalReturnLeaderboardCharacters? {
-        currentSeason()?.let {
+        return currentSeason()?.let {
             val leaderboardCharacters = RequestController("eternal_return_request.leaderboard_characters")
             leaderboardCharacters.replaceUrl("season", it.currentSeason.key)
             leaderboardCharacters.replaceUrl("character", character)
             leaderboardCharacters.replaceUrl("sortType", sortType)
             val resp = leaderboardCharacters.request()
-            if (resp.isOk) {
-                return resp.body().to<EternalReturnLeaderboardCharacters>()
-            }
+            resp?.body().to<EternalReturnLeaderboardCharacters>()
         }
-        return null
+
     }
 
     fun characterInfoFind(character: String): EternalReturnCharacterInfo? {
-        redisTemplate.opsForValue().get("Eternal_Return_Find:${character}")?.let {
-            return it.to<EternalReturnCharacterInfo>()
-        }
+        redisTemplate.opsForValue().get("Eternal_Return_Find:${character}")?.to<EternalReturnCharacterInfo>()
         val request = RequestController("eternal_return_request.find_character_info")
         request.replaceUrl("key", character)
         request.replaceUrl("key1", character)
         val resp = request.request()
-        if (resp.isOk) {
-            val result = resp.body().to<EternalReturnCharacterInfo>()
-            redisTemplate.opsForValue()["Eternal_Return_Find:${character}", resp.body(), 1L] =
+        return resp?.let {
+            val result = it.body().to<EternalReturnCharacterInfo>()
+            redisTemplate.opsForValue()["Eternal_Return_Find:${character}", it.body(), 1L] =
                 TimeUnit.DAYS
-            return result
+            result
         }
-        return null
+
     }
 
     fun characterFind(): EternalReturnCharacter? {
@@ -119,31 +110,25 @@ class EternalReturnRequestData(
         }
         val requestController = RequestController("eternal_return_request.character")
         val resp = requestController.request()
-        if (resp.isOk) {
-            val characters = resp.body().to<EternalReturnCharacter>()
-            redisTemplate.opsForValue()["Eternal_Return_Find: characters", resp.body(), 1L] =
+        return resp?.let {
+            val characters = it.body().to<EternalReturnCharacter>()
+            redisTemplate.opsForValue()["Eternal_Return_Find: characters", it.body(), 1L] =
                 TimeUnit.DAYS
-            return characters
+            characters
         }
-        return null
+
     }
 
     fun currentSeason(): EternalReturnCurrentSeason? {
         val requestCurrentSeason = RequestController("eternal_return_request.current_season")
         val respCurrentSeason = requestCurrentSeason.request()
-        if (respCurrentSeason.isOk) {
-            return respCurrentSeason.body().to<EternalReturnCurrentSeason>()
-        }
-        return null
+        return respCurrentSeason?.body().to<EternalReturnCurrentSeason>()
     }
 
     fun profile(season: String): EternalReturnProfile? {
         val requestProfile = RequestController("eternal_return_request.profile")
         requestProfile.replaceUrl("season", season)
         val resp = requestProfile.request()
-        if (resp.isOk) {
-            return resp.body().to<EternalReturnProfile>()
-        }
-        return null
+        return resp?.body().to<EternalReturnProfile>()
     }
 }

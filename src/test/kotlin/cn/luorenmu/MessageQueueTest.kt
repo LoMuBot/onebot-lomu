@@ -1,6 +1,6 @@
 package cn.luorenmu
 
-import cn.luorenmu.dto.RecentlyMessageQueue
+import cn.luorenmu.entiy.RecentlyMessageQueue
 
 /**
  * @author LoMu
@@ -9,19 +9,11 @@ import cn.luorenmu.dto.RecentlyMessageQueue
 fun main() {
     val recentlyMessageQueue = RecentlyMessageQueue<Int>()
     recentlyMessageQueue.addMessageToQueue(1L,0)
-    for (i in 0..100) {
-        recentlyMessageQueue.addMessageToQueue(1L,i)
-    }
-    var key = ""
-    val lastMessages = recentlyMessageQueue.lastMessages(1L, 3)
-    val i = lastMessages.size - 1
-    for (lastMessage in lastMessages) {
-        if (lastMessage != 100) {
-            key = lastMessage.toString()
-            break
-        }
-    }
-    println(i)
-    println(key)
+//    for (i in 0..100) {
+//        recentlyMessageQueue.addMessageToQueue(1L,i)
+//    }
+    val lastMessages = recentlyMessageQueue.lastMessages(1L, 2)
+    println(lastMessages.joinToString { it.toString() })
+
 
 }

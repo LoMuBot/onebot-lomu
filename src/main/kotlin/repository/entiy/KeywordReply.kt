@@ -3,6 +3,7 @@ package cn.luorenmu.repository.entiy
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
+import java.time.LocalDateTime
 
 /**
  * @author LoMu
@@ -18,6 +19,8 @@ data class KeywordReply(
     var reply: String,
     var needProcess: Boolean,
     var atMe: Boolean,
+    var groupId: Long?,
+    var createdDate: LocalDateTime?,
     var nextMessage: DeepMessage?,
 ) {
     fun deepMessage(list: ArrayList<String>, nextMessage: DeepMessage?): ArrayList<String> {

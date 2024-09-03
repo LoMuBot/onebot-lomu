@@ -4,8 +4,9 @@ import cn.luorenmu.action.OneBotChatStudy
 import cn.luorenmu.action.OneBotCommandAllocator
 import cn.luorenmu.action.OneBotKeywordReply
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
-import cn.luorenmu.dto.RecentlyMessageQueue
+import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.ConfigGroup
+import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.repository.GroupMessageRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.GroupMessage
@@ -16,6 +17,7 @@ import com.mikuac.shiro.annotation.common.Shiro
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -29,6 +31,7 @@ import kotlin.random.Random
  */
 
 val groupMessageQueue: RecentlyMessageQueue<GroupMessage> = RecentlyMessageQueue()
+val log = KotlinLogging.logger { }
 
 @Component
 @Shiro
@@ -46,7 +49,7 @@ class GroupEventListen(
     fun groupMsgListen(bot: Bot, groupMessageEvent: GroupMessageEvent) {
         val senderId = groupMessageEvent.sender.userId
         val groupId = groupMessageEvent.groupId
-        val message = groupMessageEvent.message
+        val message = groupMessageEvent.message.replace(Regex("""(\[CQ:at,qq=\d+),name=[^,\]]*"""), "$1")
 
         // save data
         val groupMessage =
@@ -72,36 +75,38 @@ class GroupEventListen(
         // 关键词消息
         banKeywordList.list.firstOrNull { it == groupId } ?: run {
             redisTemplate.opsForValue()["limit:${groupId}"] ?: run {
-                // 概率回复 60%
-                if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 6) {
+                // 概率回复 50%
+                if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 5) {
                     val mongodbKeyword = oneBotKeywordReply.process(bot.selfId, senderId, message)
                     mongodbKeyword?.let {
+                        log.info { "回复消息 -> $groupId -> ${it.reply}" }
                         bot.sendGroupMsgKeywordLimit(groupId, it)
-                        redisTemplate.opsForValue()["limit:${groupId}","1",3L] = TimeUnit.MINUTES
+                        redisTemplate.opsForValue()["limit:${groupId}", "1", 3L] = TimeUnit.MINUTES
                     }
                 }
             }
         }
 
 
-        // bot指令
-        val oneBotCommand = message.replace(MsgUtils.builder().at(bot.selfId).build(), "")
-
-
-        // 外部指令
-        val command = oneBotCommand.replace(" ", "")
-        val process =
-            oneBotCommandAllocator.process(command, senderId, groupMessageEvent.messageId)
-        if (process.isNotBlank()) {
-            bot.sendGroupMsg(
-                groupId,
-                MsgUtils.builder().reply(groupMessageEvent.messageId).text(process).build(),
-                false
-            )
+        val command = message.replace(" ", "")
+        // 指令
+        try {
+            val process =
+                oneBotCommandAllocator.process(bot.selfId, command, groupMessageEvent.groupId, groupMessageEvent.sender)
+            if (process.isNotBlank()) {
+                bot.sendGroupMsg(
+                    groupId,
+                    MsgUtils.builder().reply(groupMessageEvent.messageId).text(process).build(),
+                    false
+                )
+            }
+        } catch (e: Exception) {
+            log.error { e }
+            bot.sendGroupMsgLimit(groupId, "服务器内部错误 请求的任务被迫中断")
         }
 
 
-        // 总有没活的人硬整活 禁止该群学习奇怪的东西！
+        // 禁止该群学习
         val banStudyList = redisTemplate.opsForValue()["banStudy"].to<ConfigGroup>() ?: run {
             val list = oneBotConfigRepository.findAllByConfigName("banStudy").map { it.configContent.toLong() }
             val configGroup = ConfigGroup(list)

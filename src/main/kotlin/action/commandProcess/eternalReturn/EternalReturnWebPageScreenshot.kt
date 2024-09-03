@@ -4,6 +4,7 @@ import cn.luorenmu.common.utils.JsonObjectUtils
 import cn.luorenmu.common.utils.MatcherData
 import cn.luorenmu.common.utils.getEternalReturnImagePath
 import cn.luorenmu.common.utils.getEternalReturnNicknameImagePath
+import cn.luorenmu.listen.log
 import cn.luorenmu.pool.WebPageScreenshotPool
 import cn.luorenmu.web.WebPageScreenshot
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -23,8 +24,7 @@ class EternalReturnWebPageScreenshot(
     private val webPageScreenshot: WebPageScreenshotPool,
     private val redisTemplate: RedisTemplate<String, String>,
     private val nickNameMap: MutableMap<String, Future<*>> = mutableMapOf(),
-
-    ) {
+) {
 
 
     //分数限
@@ -82,11 +82,14 @@ class EternalReturnWebPageScreenshot(
 
         try {
             syncWebPageScreenshot(cacheName, returnMsg, 20L, TimeUnit.MINUTES) {
+                log.info { "正在执行页面截图: $nickname" }
                 it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -500, 3000).outputImageFile(path)
-            }?.get() ?: run {
+            }?.get(2, TimeUnit.MINUTES) ?: run {
                 nickNameMap.remove(cacheName)
             }
+            log.info { "已完成的截图: $nickname" }
         } catch (e: IIOException) {
+            log.error { e }
             return MsgUtils.builder().text("名称不合法 $nickname").build()
         }
         return returnMsg
@@ -96,7 +99,6 @@ class EternalReturnWebPageScreenshot(
     /**
      *  检查缓存 如果存在则返回Null 不存在则检查队列 如果存在等待任务则返回 调用该任务后需同步等待截图
      */
-    @Synchronized
     fun syncWebPageScreenshot(
         cacheName: String,
         cacheMsg: String,

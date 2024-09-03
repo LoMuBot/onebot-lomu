@@ -1,7 +1,7 @@
 package cn.luorenmu.common.extensions
 
 import cn.luorenmu.common.utils.replaceCqToFileStr
-import cn.luorenmu.dto.RecentlyMessageQueue
+import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.entiy.SelfSendMsg
 import cn.luorenmu.repository.entiy.DeepMessage
 import cn.luorenmu.repository.entiy.KeywordReply

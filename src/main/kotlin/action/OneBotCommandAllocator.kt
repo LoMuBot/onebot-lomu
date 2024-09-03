@@ -1,6 +1,7 @@
 package cn.luorenmu.action
 
 import cn.luorenmu.action.commandProcess.eternalReturn.EternalReturnCommandProcess
+import cn.luorenmu.action.commandProcess.onebotCommand.BotCommandProcess
 import cn.luorenmu.entiy.OneBotAllCommands
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.repository.OneBotCommandRespository
@@ -10,6 +11,7 @@ import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.common.utils.OneBotMedia
+import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
@@ -21,20 +23,37 @@ import java.util.concurrent.TimeUnit
 @Component
 class OneBotCommandAllocator(
     private val oneBotCommandRespository: OneBotCommandRespository,
-    private val eternalReturnCommandHandle: EternalReturnCommandProcess,
+    private val eternalReturnCommandProcess: EternalReturnCommandProcess,
     private val redisTemplate: RedisTemplate<String, String>,
+    private val botCommandProcess: BotCommandProcess,
 ) {
 
 
-
-
-    private fun isCurrentCommand(command: String, commandName: String, oneBotCommand: OneBotCommand): Boolean {
-        return oneBotCommand.commandName == commandName && command.contains(Regex(oneBotCommand.keyword))
+    private fun isCurrentCommand(
+        botId: Long,
+        command: String,
+        commandName: String,
+        oneBotCommand: OneBotCommand,
+    ): Boolean {
+        val atMe = MsgUtils.builder().at(botId).build()
+        val command1 = command.replace(atMe, "")
+        if (oneBotCommand.needAtMe) {
+            if (!command.contains(atMe)) {
+                return false
+            }
+        }
+        oneBotCommand.needAdmin?.let {
+            if (!it){
+                return false
+            }
+        }
+        return oneBotCommand.commandName == commandName && command1.contains(Regex(oneBotCommand.keyword))
     }
 
 
-    fun process(command: String, senderId: Long, msgId: Int): String {
-        val allCommands = redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run{
+    fun process(botId: Long, command: String, groupId: Long, sender: GroupMessageEvent.GroupSender): String {
+        val senderId = sender.userId
+        val allCommands = redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
             synchronized(redisTemplate) {
                 // 二次安全检查
                 redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
@@ -49,45 +68,49 @@ class OneBotCommandAllocator(
 
 
 
-        allCommands.firstOrNull { isCurrentCommand(command, it.commandName, it) }?.let { oneBotCommand ->
+        allCommands.firstOrNull { isCurrentCommand(botId, command, it.commandName, it) }?.let { oneBotCommand ->
+            val command1 = command.replace(MsgUtils.builder().at(botId).build(), "")
             return when (oneBotCommand.commandName) {
                 "ff14Bind" -> ff14Bind(senderId)
                 "eternalReturnFindPlayers" -> {
-                    val nickname = command.replace(Regex(oneBotCommand.keyword), "").trim()
-                    if (nickname.isBlank()) "" else eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
+                    val nickname = command1.replace(Regex(oneBotCommand.keyword), "").trim()
+                    if (nickname.isBlank()) "" else eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
                 }
-
+                "eternalReturnEmailPush" -> eternalReturnCommandProcess.eternalReturnEmailPush(groupId, sender)
                 "eternalReturnLeaderboard" -> {
-                    Regex(oneBotCommand.keyword).find(command)?.let { match ->
+                    Regex(oneBotCommand.keyword).find(command1)?.let { match ->
                         if (match.groupValues.size > 1) {
-                            eternalReturnCommandHandle.leaderboard(match.groupValues[1].toInt())
+                            eternalReturnCommandProcess.leaderboard(match.groupValues[1].toInt())
                         } else {
                             ""
                         }
                     } ?: ""
                 }
-
                 "eternalReturnReFindPlayers" -> {
-                    val nickname = command.replace(Regex(oneBotCommand.keyword), "").trim()
+                    val nickname = command1.replace(Regex(oneBotCommand.keyword), "").trim()
                     if (nickname.isBlank()) "" else {
                         redisTemplate.delete("Eternal_Return_NickName:$nickname")
-                        eternalReturnCommandHandle.eternalReturnFindPlayers(nickname)
+                        eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
                     }
                 }
-
                 "eternalReturnFindCharacter" -> {
-                    var characterName = command.replace(Regex(oneBotCommand.keyword), "").trim()
+                    var characterName = command1.replace(Regex(oneBotCommand.keyword), "").trim()
                     val indexMatch = """[1-9]""".toRegex().find(characterName)?.let {
                         val index = it.value.toInt()
                         characterName = characterName.replace(it.value, "")
                         index
                     } ?: 1
                     if (characterName.isBlank()) "" else {
-                        eternalReturnCommandHandle.eternalReturnFindCharacter(characterName, indexMatch)
+                        eternalReturnCommandProcess.eternalReturnFindCharacter(characterName, indexMatch)
                     }
                 }
 
-                "eternalReturnCutoffs" -> eternalReturnCommandHandle.cutoffs()
+                "eternalReturnCutoffs" -> eternalReturnCommandProcess.cutoffs()
+                "botCommandBanStudy" -> botCommandProcess.banStudy(groupId, sender.role)
+                "botCommandUnbanStudy" -> botCommandProcess.unbanStudy(groupId, sender.role)
+                "botCommandBanKeyword" -> botCommandProcess.banKeyword(groupId, sender.role)
+                "botCommandUnbanKeyword" -> botCommandProcess.unbanKeyword(groupId, sender.role)
+
                 else -> ""
             }
         }

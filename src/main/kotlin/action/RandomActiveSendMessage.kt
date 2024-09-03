@@ -12,7 +12,7 @@ import kotlin.random.Random
 private val log = KotlinLogging.logger { }
 
 @Component
-class RandomActiveSendMessage(
+open class RandomActiveSendMessage(
     val botContainer: BotContainer,
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
@@ -20,7 +20,7 @@ class RandomActiveSendMessage(
 
 
     @Async
-    fun start() {
+    open fun start() {
         val minute = 60 * 1000L // 1 minute in milliseconds
         while (true) {
             val minDelay = oneBotConfigRespository.findOneByConfigName("min_delay")!!.configContent.toLong()

@@ -28,14 +28,15 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("com.mikuac:shiro:2.2.9")
+    implementation("com.mikuac:shiro:2.3.0")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     implementation("com.alibaba.fastjson2:fastjson2-kotlin:2.0.52")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    implementation(files("lib/MultifunctionalAutoHelper-Java.jar"))
+    implementation(files("libs/MultifunctionalAutoHelper-Java.jar"))
+    implementation("org.springframework.boot:spring-boot-starter-aop")
 
     // Kotlin test dependencies
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")

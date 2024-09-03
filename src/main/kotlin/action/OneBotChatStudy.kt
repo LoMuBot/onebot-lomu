@@ -14,6 +14,7 @@ import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 
 /**
  * @author LoMu
@@ -37,7 +38,7 @@ class OneBotChatStudy(
     fun reReadStudy(bot: Bot, groupMessageEvent: GroupMessageEvent) {
         val senderId = groupMessageEvent.sender.userId
         val groupId = groupMessageEvent.groupId
-        val message = groupMessageEvent.message
+        var message = groupMessageEvent.message
 
         // 复读数
         val size = 2
@@ -109,13 +110,16 @@ class OneBotChatStudy(
                 if (isCQAt(keyword)) {
                     return
                 }
-
+                keyword = keyword.replace("@\\S+".toRegex(),"")
+                message = message.replace("@\\S+".toRegex(),"")
                 val k = KeywordReply(
                     null, -1L,
                     keyword,
                     message,
                     needProcess,
                     atMe = false,
+                    groupId = groupId,
+                    createdDate = LocalDateTime.now(),
                     nextMessage = null
                 )
                 synchronized(keywordReplyRepository) {

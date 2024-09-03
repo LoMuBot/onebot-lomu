@@ -1,5 +1,6 @@
-package cn.luorenmu.dto
+package cn.luorenmu.entiy
 
+import cn.luorenmu.listen.log
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 
@@ -16,6 +17,8 @@ class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
      *  value为List<GroupMessage>
      */
     val map: MultiValueMap<Long, T> = LinkedMultiValueMap()
+
+
 
 
     /**
@@ -54,7 +57,17 @@ class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
                 if (index < 0) {
                     index += maxSize
                 }
-                list.add(map[id]?.get(index))
+                try {
+                    list.add(map[id]?.get(index))
+                } catch (e: IndexOutOfBoundsException) {
+                    log.error {
+                        "IndexOutOfBoundsException -> ${e.message}  \n " +
+                                "-> size : ${map[id]!!.size} \n" +
+                                "-> queue.toString() : ${map[id]!!.joinToString { queue -> queue.toString() }} \n" +
+                                "-> id: Long, num: Int : ${id},${num}}"
+                    }
+                }
+
             }
         } ?: let {
             if (it.map.isNotEmpty()) {

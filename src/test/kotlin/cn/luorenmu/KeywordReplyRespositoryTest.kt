@@ -1,6 +1,9 @@
 package cn.luorenmu
 
-import com.mikuac.shiro.common.utils.MsgUtils
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.eternalReturn.EternalReturnNews
+import cn.luorenmu.entiy.Request
+import cn.luorenmu.request.RequestController
+import com.alibaba.fastjson2.to
 
 /**
  * @author LoMu
@@ -9,5 +12,11 @@ import com.mikuac.shiro.common.utils.MsgUtils
 
 
 fun main() {
-    println(MsgUtils.builder().voice("H:\\bot\\voice\\Emma character song.mp3").build())
+    val requestDetailed = Request.RequestDetailed()
+    requestDetailed.url = "https://playeternalreturn.com/api/v1/posts/news?page=1&hl=zh-CN"
+    requestDetailed.method = "GET"
+    val body = RequestController(requestDetailed).request().body()
+    println(body)
+    println(body.to<EternalReturnNews>())
+
 }
