@@ -75,7 +75,7 @@ fun Bot.sendGroupMsgKeywordLimit(id: Long, keywordReply: KeywordReply) {
             sendList.add(keywordReply.reply)
             keywordReply.deepMessage(sendList, keywordReply.nextMessage)
             for (s in sendList) {
-                sendGroupMsgLimit(id, keywordReply.reply, replaceCqToFileStr(keywordReply.reply) ?: "none")
+                sendGroupMsgLimit(id, s, replaceCqToFileStr(s) ?: "none")
                 TimeUnit.SECONDS.sleep(1)
             }
         }

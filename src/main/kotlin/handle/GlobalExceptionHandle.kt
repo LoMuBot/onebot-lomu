@@ -1,6 +1,5 @@
 package cn.luorenmu.handle
 
-import cn.luorenmu.listen.log
 import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.annotation.AfterThrowing
 import org.aspectj.lang.annotation.Aspect
