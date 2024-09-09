@@ -1,6 +1,5 @@
 package cn.luorenmu.common.extensions
 
-import cn.luorenmu.common.utils.replaceCqToFileStr
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.entiy.SelfSendMsg
 import cn.luorenmu.repository.entiy.DeepMessage
@@ -20,7 +19,7 @@ private val selfKeywordMessage: RecentlyMessageQueue<KeywordReply> = RecentlyMes
 
 
 /**
- *  true 表示消息队列已存在该消息
+ *  bool 表示消息队列是否存在该消息
  */
 fun selfRecentlySent(id: Long, message: String): Boolean {
     synchronized(selfRecentlySendMessage) {
@@ -34,14 +33,14 @@ fun selfRecentlySent(id: Long, message: String): Boolean {
     }
 }
 
-fun Bot.sendGroupMsgLimit(groupId: Long, message: String) {
-    sendMsgLimit(groupId, message) {
+fun Bot.sendGroupMsgLimit(groupId: Long, message: String): Boolean {
+    return sendMsgLimit(groupId, message) {
         this.sendGroupMsg(groupId, message, false)
     }
 }
 
-fun Bot.sendGroupMsgLimit(groupId: Long, message: String, msgLimit: String) {
-    sendMsgLimit(groupId, message, msgLimit) {
+fun Bot.sendGroupMsgLimit(groupId: Long, message: String, msgLimit: String): Boolean {
+    return sendMsgLimit(groupId, message, msgLimit) {
         this.sendGroupMsg(groupId, message, false)
     }
 }
@@ -52,22 +51,21 @@ fun Bot.sendPrivateMsgLimit(id: Long, message: String) {
     }
 }
 
-fun Bot.sendGroupMsgKeywordLimit(id: Long, keywordReply: KeywordReply) {
+fun Bot.sendGroupMsgKeywordLimit(id: Long, keywordReply: KeywordReply): Boolean {
+    var send = false
     synchronized(selfKeywordMessage) {
-        var send = false
         selfKeywordMessage.map[id]?.let {
             for (kw in it) {
                 if ((keywordReply == kw || keywordReply.keyword == kw.keyword || keywordReply.reply == kw.reply)) {
-                    return
+                    return false
                 }
             }
         } ?: run {
             send = true
         }
-        if (!selfRecentlySent(id, replaceCqToFileStr(keywordReply.reply) ?: keywordReply.reply)) {
+        if (!selfRecentlySent(id, keywordReply.reply.replaceCqToFileStr() ?: keywordReply.reply)) {
             send = true
         }
-
 
         if (send) {
             selfKeywordMessage.addMessageToQueue(id, keywordReply)
@@ -75,12 +73,12 @@ fun Bot.sendGroupMsgKeywordLimit(id: Long, keywordReply: KeywordReply) {
             sendList.add(keywordReply.reply)
             keywordReply.deepMessage(sendList, keywordReply.nextMessage)
             for (s in sendList) {
-                sendGroupMsgLimit(id, s, replaceCqToFileStr(s) ?: "none")
+                sendGroupMsgLimit(id, s, s.replaceCqToFileStr() ?: "none")
                 TimeUnit.SECONDS.sleep(1)
             }
         }
     }
-
+    return send
 }
 
 fun Bot.addMsgLimit(id: Long, message: String, msgLimit: String = "none") {
@@ -98,17 +96,22 @@ fun Bot.addMsgLimit(id: Long, message: String, msgLimit: String = "none") {
 }
 
 /**
- * msgLimit 用于限制图片消息
+ * msgLimit 用于作为限制的消息  (图片消息)
  * 由于图片的名称一样 但是URL不一样 所以需要截取名称作为限制条件
  */
-private fun Bot.sendMsgLimit(id: Long, message: String, msgLimit: String = "none", send: () -> ActionData<MsgId>?) {
+private fun Bot.sendMsgLimit(
+    id: Long,
+    message: String,
+    msgLimit: String = "none",
+    send: () -> ActionData<MsgId>?,
+): Boolean {
     synchronized(selfRecentlySendMessage) {
         var msgLimit1 = message
         if (msgLimit != "none") {
             msgLimit1 = msgLimit
         }
         if (selfRecentlySent(id, msgLimit1)) {
-            return
+            return false
         }
         val sendMsg = send()
         val selfSendMsg: SelfSendMsg = if (sendMsg != null && sendMsg.data != null) {
@@ -117,21 +120,24 @@ private fun Bot.sendMsgLimit(id: Long, message: String, msgLimit: String = "none
             SelfSendMsg(msgLimit1)
         }
         selfRecentlySendMessage.addMessageToQueue(id, selfSendMsg)
+        return true
     }
 }
 
 
-fun Bot.sendGroupDeepMsgLimit(groupId: Long, message: String, deepMessage: DeepMessage?) {
+fun Bot.sendGroupDeepMsgLimit(groupId: Long, message: String, deepMessage: DeepMessage?): Boolean {
     synchronized(selfRecentlySendMessage) {
         val selfSendMsgs = selfRecentlySendMessage.map[groupId]
         val message1 = message + deepMessage?.reply
         var deepMessage1 = deepMessage
         selfSendMsgs?.forEach {
             if (it.message == message1) {
-                return
+                return false
             }
         }
         val sendGroupMsg = this.sendGroupMsg(groupId, message, false)
+
+        // 连续发送多条消息
         deepMessage1?.let {
             while (true) {
                 TimeUnit.SECONDS.sleep(1)
@@ -149,5 +155,6 @@ fun Bot.sendGroupDeepMsgLimit(groupId: Long, message: String, deepMessage: DeepM
 
 
         selfRecentlySendMessage.addMessageToQueue(groupId, selfSendMsg)
+        return true
     }
 }

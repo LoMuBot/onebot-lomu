@@ -24,7 +24,10 @@ class DatabaseTask(
         val deleteLists = arrayListOf<KeywordReply>()
         for (keyword in lists) {
             keyword.createdDate?.let {
-                if (now.plusDays(-20).isBefore(keyword.createdDate)) {
+                if (now.plusDays(-20).isBefore(keyword.createdDate) && keyword.triggers != null && keyword.triggers!! > 10) {
+                    deleteLists.add(keyword)
+                }
+                if (now.plusDays(-20).isBefore(keyword.createdDate) && keyword.triggers != null && keyword.triggers!! == 0) {
                     deleteLists.add(keyword)
                 }
             }

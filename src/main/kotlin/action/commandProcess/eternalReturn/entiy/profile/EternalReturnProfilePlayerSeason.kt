@@ -1,4 +1,4 @@
-package cn.luorenmu.action.commandHandle.entiy.eternalReturn.profile
+package cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile
 
 /**
  * @author LoMu

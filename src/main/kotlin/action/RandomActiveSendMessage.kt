@@ -12,7 +12,7 @@ import kotlin.random.Random
 private val log = KotlinLogging.logger { }
 
 @Component
-open class RandomActiveSendMessage(
+class RandomActiveSendMessage(
     val botContainer: BotContainer,
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
@@ -20,7 +20,7 @@ open class RandomActiveSendMessage(
 
 
     @Async
-    open fun start() {
+    fun start() {
         val minute = 60 * 1000L // 1 minute in milliseconds
         while (true) {
             val minDelay = oneBotConfigRespository.findOneByConfigName("min_delay")!!.configContent.toLong()
@@ -35,22 +35,28 @@ open class RandomActiveSendMessage(
     }
 
 
-     fun executeActiveMessage() {
+    fun executeActiveMessage() {
         val firstOrNull = botContainer.robots.entries.firstOrNull()
         firstOrNull?.run {
             val groupList = value.groupList
-            val activeGroupName = oneBotConfigRespository.findOneByConfigName("active_group_name")
+            val activeGroupName = oneBotConfigRespository.findOneByConfigName("eternalReturnGroupId")
             val groupIds = ArrayList<Long>()
             val activeMessage = activeSendMessageRepository.findAll().random()
             log.info { "行动消息 -> $activeMessage.message " }
             // 筛选合适的群
-            for (datum in groupList.data) {
-                activeGroupName?.run {
-                    if (configContent.contains(datum.groupName)) {
-                        groupIds.add(datum.groupId)
+            groupList?.let {
+                for (datum in groupList.data) {
+                    activeGroupName?.run {
+                        if (configContent.contains(datum.groupName)) {
+                            groupIds.add(datum.groupId)
+                        }
                     }
                 }
+            } ?: run {
+                val lists = oneBotConfigRespository.findAllByConfigName("eternalReturnGroupId").stream().map{ oneBotConfig -> oneBotConfig.configContent.toLong()}.toList()
+                groupIds.addAll(lists)
             }
+
 
             // 主动发送groupId不为-1时消息 (指定群)
             activeMessage?.run {

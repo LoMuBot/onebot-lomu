@@ -38,6 +38,9 @@ dependencies {
     implementation(files("libs/MultifunctionalAutoHelper-Java.jar"))
     implementation("org.springframework.boot:spring-boot-starter-aop")
 
+    // 分词
+    implementation("org.ansj:ansj_seg:5.1.6")
+
     // Kotlin test dependencies
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
 }

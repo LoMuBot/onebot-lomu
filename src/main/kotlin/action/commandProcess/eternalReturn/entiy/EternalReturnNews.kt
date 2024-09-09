@@ -1,4 +1,4 @@
-package cn.luorenmu.action.commandProcess.eternalReturn.entiy.eternalReturn
+package cn.luorenmu.action.commandProcess.eternalReturn.entiy
 
 import com.alibaba.fastjson2.annotation.JSONField
 

@@ -1,6 +1,6 @@
 package cn.luorenmu
 
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.eternalReturn.EternalReturnNews
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnNews
 import cn.luorenmu.entiy.Request
 import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.to

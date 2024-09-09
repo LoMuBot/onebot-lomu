@@ -1,7 +1,10 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.*
-import cn.luorenmu.action.commandHandle.entiy.eternalReturn.profile.EternalReturnProfile
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalRetrunLeaderboard
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfile
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacterInfo
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCurrentSeason
 import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
 import cn.luorenmu.entiy.Request.RequestDetailed
@@ -22,6 +25,8 @@ import java.util.concurrent.TimeUnit
 class EternalReturnRequestData(
     private val redisTemplate: RedisTemplate<String, String>,
 ) {
+
+    // sync player
     fun findExistPlayers(nickname: String): Boolean {
         val requestController = RequestController("eternal_return_request.find_player")
         requestController.replaceUrl("nickname", nickname)
@@ -32,11 +37,16 @@ class EternalReturnRequestData(
                 request = requestController.request()
                 body = request.body()
             }
+            if(body.contains("invalid name")){
+                return false
+            }
             return !body.contains("not_found")
         } catch (e: SocketException) {
             return true
         }
     }
+
+
 
     fun tierDistributionsFind(): EternalReturnTierDistributions? {
         val request = RequestController("eternal_return_request.tier_distribution")

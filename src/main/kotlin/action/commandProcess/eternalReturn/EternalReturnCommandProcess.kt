@@ -1,8 +1,8 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
 
+import cn.luorenmu.common.extensions.firstPinYin
 import cn.luorenmu.service.EmailPushService
-import cn.luorenmu.common.utils.firstPinYin
 import cn.luorenmu.repository.EternalReturnPushRepository
 import cn.luorenmu.repository.entiy.EternalReturnPush
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -46,9 +46,9 @@ class EternalReturnCommandProcess(
             return it
         }
         characterFind?.let {
-            val correctCharacter = firstPinYin(character)
+            val correctCharacter = character.firstPinYin()
             for (character1 in it.characters) {
-                if (firstPinYin(character1.name) == correctCharacter) {
+                if (character1.name.firstPinYin() == correctCharacter) {
                     characterKey = character1.key
                     break
                 }
@@ -64,22 +64,28 @@ class EternalReturnCommandProcess(
 
 
             var rapier = ""
-            var rapierList: List<String> = listOf()
-            val characterInfo = eternalReturnRequestData.characterInfoFind(characterKey)
-            characterInfo?.let { cI ->
-                if (i1 > cI.pageProps.randomCharacter.masteries.size) {
-                    i1 = 1
-                }
-                rapierList = cI.pageProps.randomCharacter.masteries
-                rapier = cI.pageProps.randomCharacter.masteries[i1 - 1]
-            }
+//            var rapierList: List<String> = listOf()
+//            val characterInfo = eternalReturnRequestData.characterInfoFind(characterKey)
+//            characterInfo?.let { cI ->
+//                if (i1 > cI.pageProps.randomCharacter.masteries.size) {
+//                    i1 = 1
+//                }
+//                rapierList = cI.pageProps.randomCharacter.masteries
+//                rapier = cI.pageProps.randomCharacter.masteries[i1 - 1]
+//            }
+//
+//            val rapierStr = StringBuilder()
+//            rapierStr.append("武器选择")
+//            for (index in rapierList.indices) {
+//                rapierStr.append("  ${index + 1}:${rapierList[index]}  ")
+//            }
 
             val rapierStr = StringBuilder()
-            rapierStr.append("武器选择")
-            for (index in rapierList.indices) {
-                rapierStr.append("  ${index + 1}:${rapierList[index]}  ")
-            }
-
+            rapierStr.append("武器选择:")
+//            for (index in rapierList.indices) {
+//                rapierStr.append("  ${index + 1}:${rapierList[index]}  ")
+//            }
+            rapierStr.append("dak.gg对角色的数据请求进行了加密 目前无法获取武器数据")
             return eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, rapier, i) + rapierStr.toString()
 
         }
@@ -117,12 +123,14 @@ class EternalReturnCommandProcess(
             return nicknameData
         }
 
-        // check name exist
+        // check name exist and sync data
         if (!eternalReturnRequestData.findExistPlayers(nickname)) {
             val notFound = MsgUtils.builder().text("不存在的玩家 -> $nickname").build()
             opsForValue["Eternal_Return_NickName:$nickname", notFound, 7L] = TimeUnit.DAYS
             return notFound
         }
+
+
 
         return eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)
     }

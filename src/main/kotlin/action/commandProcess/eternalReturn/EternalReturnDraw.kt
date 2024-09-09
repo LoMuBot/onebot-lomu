@@ -1,5 +1,6 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
+
 import cn.luorenmu.common.utils.DrawImageUtils
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
 import cn.luorenmu.common.utils.getEternalReturnImagePath
@@ -33,11 +34,18 @@ class EternalReturnDraw(
         }
 
         val tierDistributions = eternalReturnRequestData.tierDistributionsFind()
-        val currentSeason = eternalReturnRequestData.currentSeason()
         tierDistributions?.let { td ->
             eternalReturnRequestData.leaderboardFind()?.let { leaderboard ->
                 // 段位
-                val tierTypes = arrayOf(1, 2, 3, 4, 5, 6, 63, 66, 7, 8)
+                val tierTypes = td.distributions.stream().map { ds -> ds.tierType }.distinct().sorted { o1, o2 ->
+                    var i1 = if (o1 > 10) o1 / 10 else o1
+                    var i2 = if (o2 > 10) o2 / 10 else o2
+                    if (i1 == i2) {
+                        i1 = o1 % 10
+                        i2 = o2 % 10
+                    }
+                    i1 - i2
+                }.collect(Collectors.toList())
 
                 val count = mutableMapOf<Int, Int>()
                 val rate = mutableMapOf<Int, Double>()
@@ -71,9 +79,9 @@ class EternalReturnDraw(
                     val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日HH时mm分ss"))
                     val draw = DrawImageUtils.builder()
                     draw.setTemplate(getEternalReturnDataImagePath("bg-character.jpg"))
-                    draw.setFont("思源黑体", Font.PLAIN)
+                    draw.setFont("微软雅黑", Font.BOLD)
                     draw.drawString(
-                        "${currentSeason?.currentSeason?.name ?: "正式赛季 unknown"}排名",
+                        "${leaderboard.currentSeason?.currentSeason?.name ?: "正式赛季 unknown"}排名",
                         Color.WHITE,
                         40,
                         50,
@@ -97,14 +105,14 @@ class EternalReturnDraw(
                     val h: Int = height / 3
                     var x = 500
                     var num = 1
-                    for (i in 1..8) {
+                    for (i in tierTypes) {
                         if ((h * (num - 1) + 20) > height) {
                             x += 200
                             num = 1
                         }
 
                         draw.drawImage(
-                            getEternalReturnDataImagePath("tier/${tierTypes[i]}.png"),
+                            getEternalReturnDataImagePath("tier/$i.png"),
                             x,
                             h * (num - 1) + 20,
                             20,

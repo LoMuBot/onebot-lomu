@@ -21,6 +21,7 @@ data class KeywordReply(
     var atMe: Boolean,
     var groupId: Long?,
     var createdDate: LocalDateTime?,
+    var triggers: Int?,
     var nextMessage: DeepMessage?,
 ) {
     fun deepMessage(list: ArrayList<String>, nextMessage: DeepMessage?): ArrayList<String> {

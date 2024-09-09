@@ -1,13 +1,13 @@
 package cn.luorenmu.task
 
-import cn.luorenmu.service.EmailPushService
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.eternalReturn.EternalReturnNews
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnNews
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.Request
 import cn.luorenmu.repository.EternalReturnPushRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.OneBotConfig
 import cn.luorenmu.request.RequestController
+import cn.luorenmu.service.EmailPushService
 import com.alibaba.fastjson2.to
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.BotContainer
@@ -23,11 +23,11 @@ import java.util.concurrent.TimeUnit
  * Date 2024.09.01 14:40
  */
 @Component
-open class EternalReturnRewardPushTask(
+class EternalReturnRewardPushTask(
     private val oneBotConfigRepository: OneBotConfigRepository,
     private val eternalReturnPushRepository: EternalReturnPushRepository,
     private val emailPushService: EmailPushService,
-    val botContainer: BotContainer
+    val botContainer: BotContainer,
 ) {
     private var failed = 0
     private val log = KotlinLogging.logger { }
@@ -92,13 +92,16 @@ open class EternalReturnRewardPushTask(
                     "永恒轮回活动推送:${article.i18ns.zhCN.title}",
                     "<img src=\"${article.thumbnailUrl}\" alt=\"img\">"
                 )
-                asyncPushGroup(groupList, MsgUtils.builder().text("永恒轮回活动推送:${article.i18ns.zhCN.title}").img(article.thumbnailUrl).build())
+                asyncPushGroup(groupList,
+                    MsgUtils.builder().text("永恒轮回活动推送:${article.i18ns.zhCN.title}").img(article.thumbnailUrl)
+                        .build()
+                )
             }
         }
     }
 
     @Async
-    open fun asyncPushGroup(groupList: List<Long>, msg: String) {
+    fun asyncPushGroup(groupList: List<Long>, msg: String) {
         val bot = botContainer.robots.entries.first().value
         for (group in groupList) {
             TimeUnit.SECONDS.sleep(10)

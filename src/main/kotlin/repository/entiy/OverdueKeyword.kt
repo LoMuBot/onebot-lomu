@@ -22,8 +22,9 @@ data class OverdueKeyword (
     var groupId: Long,
     var createdDate: LocalDateTime,
     var overdueDate: LocalDateTime,
+    val triggers: Int?,
     var nextMessage: DeepMessage?,
 ){
     constructor(keyword: KeywordReply) :
-            this(keyword.id,keyword.senderId,keyword.keyword,keyword.reply,keyword.needProcess,keyword.atMe,keyword.groupId!!,keyword.createdDate!!,LocalDateTime.now(),keyword.nextMessage)
+            this(keyword.id,keyword.senderId,keyword.keyword,keyword.reply,keyword.needProcess,keyword.atMe,keyword.groupId!!,keyword.createdDate!!,LocalDateTime.now(),keyword.triggers,keyword.nextMessage)
 }

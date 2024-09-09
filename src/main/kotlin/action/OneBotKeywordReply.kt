@@ -1,19 +1,34 @@
 package cn.luorenmu.action
 
 import cn.luorenmu.action.entiy.KeywordReplyJson
+import cn.luorenmu.common.extensions.isAt
+import cn.luorenmu.common.extensions.isCQAt
+import cn.luorenmu.common.extensions.sendGroupDeepMsgLimit
+import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
+import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.JsonObjectUtils
+import cn.luorenmu.listen.groupMessageQueue
+import cn.luorenmu.listen.log
 import cn.luorenmu.repository.KeywordReplyRepository
+import cn.luorenmu.repository.entiy.DeepMessage
 import cn.luorenmu.repository.entiy.KeywordReply
 import com.alibaba.fastjson2.JSONObject
 import com.mikuac.shiro.common.utils.MsgUtils
+import com.mikuac.shiro.core.Bot
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 /**
  * @author LoMu
  * Date 2024.07.27 1:21
  */
 @Component
-class OneBotKeywordReply(private var keywordReplyRepository: KeywordReplyRepository) {
+class OneBotKeywordReply(
+    private var keywordReplyRepository: KeywordReplyRepository,
+    private val redisTemplate: RedisTemplate<String, String>,
+) {
     fun jsonKeyword(id: Long, message: String): String? {
         JsonObjectUtils.getJsonObject("keyword")?.let { kf ->
             for (value in kf.values) {
@@ -44,8 +59,48 @@ class OneBotKeywordReply(private var keywordReplyRepository: KeywordReplyReposit
         return null
     }
 
-    fun process(botId: Long, id: Long, message: String): KeywordReply? {
-        return mongodbKeyword(botId, id, message)
+    fun process(bot: Bot, senderId: Long, groupId: Long, message: String){
+        redisTemplate.opsForValue()["limit:${groupId}"] ?: run {
+            if (message.isAt(bot.selfId)){
+
+            }
+
+            // 概率回复
+            if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 3) {
+                val mongodbKeyword = mongodbKeyword(bot.selfId, senderId, message)
+                mongodbKeyword?.let {
+                    log.info { "回复消息 -> $groupId -> ${it.reply}" }
+                    if (bot.sendGroupMsgKeywordLimit(groupId, it)) {
+                        it.triggers?.run {
+                            it.triggers = it.triggers!! + 1
+                        } ?: run {
+                            it.triggers = 1
+                        }
+                        keywordReplyRepository.save(it)
+                    }
+                    redisTemplate.opsForValue()["limit:${groupId}", "1", 3L] = TimeUnit.MINUTES
+                }
+
+                // 在极低概率下 会突然复读
+            } else if (Random(System.currentTimeMillis()).nextInt(0, 1000) == 3) {
+                redisTemplate.opsForValue()["limitReRead:${groupId}"] ?: run {
+                    val lastMessage = groupMessageQueue.lastMessage(groupId)
+                    if (lastMessage!!.groupEventObject.sender.userId == senderId) {
+                        bot.sendGroupDeepMsgLimit(
+                            groupId,
+                            message,
+                            DeepMessage(lastMessage.groupEventObject.message, false, null)
+                        )
+                    } else {
+                        bot.sendGroupMsgLimit(
+                            groupId,
+                            message
+                        )
+                    }
+                    redisTemplate.opsForValue()["limitReRead:${groupId}", "1", 3L] = TimeUnit.HOURS
+                }
+            }
+        }
     }
 
 

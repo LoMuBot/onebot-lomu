@@ -13,18 +13,19 @@ import org.springframework.context.annotation.Configuration
  */
 
 @Configuration
-open class MultiFunctionConfig {
+class MultiFunctionConfig {
     init {
         InitializeFile.run(MainApplication::class.java)
         ReadWriteFile.createCurrentDirs("image/")
         ReadWriteFile.createCurrentDirs("qrcode/")
         ReadWriteFile.createCurrentDirs("request/")
+        ReadWriteFile.createCurrentDirs("crx/")
         ReadWriteFile.readDirJsonToRunStore("keyword")
     }
 
 
     @Bean
-    open fun getWebPageScreenshotPool(): WebPageScreenshotPool {
-        return WebPageScreenshotPool(5)
+    fun getWebPageScreenshotPool(): WebPageScreenshotPool {
+        return WebPageScreenshotPool(4)
     }
 }

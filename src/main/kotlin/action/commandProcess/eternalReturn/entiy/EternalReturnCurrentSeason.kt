@@ -1,4 +1,6 @@
-package cn.luorenmu.action.commandHandle.entiy.eternalReturn
+package cn.luorenmu.action.commandProcess.eternalReturn.entiy
+
+import cn.luorenmu.action.commandHandle.entiy.eternalReturn.EternalReturnSeasons
 
 /**
  * @author LoMu
