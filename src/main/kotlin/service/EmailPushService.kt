@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
  * Date 2024.09.01 16:24
  */
 @Service
-open class EmailPushService(
+class EmailPushService(
     mail: Mail,
 ) {
     private var lastMsg: String? = null
@@ -26,7 +26,7 @@ open class EmailPushService(
         .setStarttlsEnable(mail.starttls)
 
     @Async
-    open fun emailPush(emails: List<String>, title: String, msg: String) {
+    fun emailPush(emails: List<String>, title: String, msg: String) {
         lastMsg?.let {
             if (it == msg)
                 return
@@ -36,7 +36,7 @@ open class EmailPushService(
     }
 
     @Async
-    open fun emailPush(email: String, title: String, msg: String) {
+    fun emailPush(email: String, title: String, msg: String) {
         emailPush(listOf(email), title, msg)
     }
 }

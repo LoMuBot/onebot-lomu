@@ -106,10 +106,10 @@ class OneBotCommandAllocator(
                 }
 
                 "eternalReturnCutoffs" -> eternalReturnCommandProcess.cutoffs()
-                "botCommandBanStudy" -> botCommandProcess.banStudy(groupId, sender.role)
-                "botCommandUnbanStudy" -> botCommandProcess.unbanStudy(groupId, sender.role)
-                "botCommandBanKeyword" -> botCommandProcess.banKeyword(groupId, sender.role)
-                "botCommandUnbanKeyword" -> botCommandProcess.unbanKeyword(groupId, sender.role)
+                "botCommandBanStudy" -> botCommandProcess.banStudy(groupId, sender.role,senderId)
+                "botCommandUnbanStudy" -> botCommandProcess.unbanStudy(groupId, sender.role,senderId)
+                "botCommandBanKeyword" -> botCommandProcess.banKeyword(groupId, sender.role,senderId)
+                "botCommandUnbanKeyword" -> botCommandProcess.unbanKeyword(groupId, sender.role,senderId)
 
                 else -> ""
             }

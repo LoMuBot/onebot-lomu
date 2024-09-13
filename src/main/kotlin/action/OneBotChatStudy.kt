@@ -63,7 +63,7 @@ class OneBotChatStudy(
             activeSendMessageRepository.checkThenSave(ActiveMessage(null, -1, message, null))
         }
 
-        val lastMessages = groupMessageQueue.lastMessages(groupId, 4)
+        val lastMessages = groupMessageQueue.lastMessages(groupId, 6)
         val currentMessagePinYin = message.toPinYin()
 
         val scoreMap = hashMapOf<String, Int>()
@@ -73,16 +73,16 @@ class OneBotChatStudy(
                 val keyword = groupMessage!!.groupEventObject.message
 
                 // 不处理
-                if (keyword.isBlank() || keyword.isImage() || keyword.isCQReply() || keyword.length < 2 || originMessage == keyword || keyword.contains(
-                        "查询"
-                    )
+                if (keyword.isBlank() || keyword.isImage() || keyword.isCQReply() || keyword.length < 2
+                    || originMessage.replace(" ", "") == keyword.replace(" ", "")
+                    || keyword.contains("查询")
                 ) {
                     continue
                 }
 
                 // 分词筛选
                 val results =
-                    ToAnalysis.parse(keyword).terms.stream().map { ta -> ta.realName }.toList()
+                    ToAnalysis.parse(keyword).terms.stream().map { ta -> ta.realName }.distinct().toList()
                 var score = 0
                 for (result in results) {
                     if (currentMessagePinYin.contains(result.toPinYin())) {
@@ -236,10 +236,13 @@ class OneBotChatStudy(
                 redisTemplate.opsForValue()["isReRead"]?.let {
                     if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 3) {
                         bot.sendGroupMsgLimit(groupId, message, msgLimit)
+                    } else {
+                        bot.addMsgLimit(groupId, message, msgLimit)
                     }
                 } ?: run {
                     bot.addMsgLimit(groupId, message, msgLimit)
                 }
+
             }
         }
 

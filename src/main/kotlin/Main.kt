@@ -21,7 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableMongoRepositories
 @EnableAsync
 @EnableAspectJAutoProxy
-open class MainApplication
+class MainApplication
 
 fun main(args: Array<String>) {
     runApplication<MainApplication>(*args)

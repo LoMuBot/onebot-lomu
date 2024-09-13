@@ -3,11 +3,11 @@ package cn.luorenmu.listen
 import cn.luorenmu.action.OneBotChatStudy
 import cn.luorenmu.action.OneBotCommandAllocator
 import cn.luorenmu.action.OneBotKeywordReply
+import cn.luorenmu.action.listenProcess.BilibiliEventListen
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.ConfigGroup
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.repository.GroupMessageRepository
-import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.GroupMessage
 import com.alibaba.fastjson2.to
@@ -41,7 +41,7 @@ class GroupEventListen(
     private val oneBotChatStudy: OneBotChatStudy,
     private val oneBotConfigRepository: OneBotConfigRepository,
     private val redisTemplate: RedisTemplate<String, String>,
-    private val keywordReplyRepository: KeywordReplyRepository,
+    private val bilibiliEventListen: BilibiliEventListen,
 ) {
 
 
@@ -63,7 +63,6 @@ class GroupEventListen(
             )
         groupMessageRepository.save(groupMessage)
 
-
         // 禁止回复的群
         val banKeywordList = redisTemplate.opsForValue()["banKeywordGroup"]?.to<ConfigGroup>() ?: run {
             val list = oneBotConfigRepository.findAllByConfigName("banKeywordGroup").map { it.configContent.toLong() }
@@ -71,12 +70,14 @@ class GroupEventListen(
             redisTemplate.opsForValue()["banKeywordGroup", configGroup.toJSONString(), 1] = TimeUnit.DAYS
             configGroup
         }
-
         // 关键词消息
         banKeywordList.list.firstOrNull { it == groupId } ?: run {
-            oneBotKeywordReply.process(bot, senderId, groupId, message)
+            oneBotKeywordReply.process(bot, groupMessageEvent.messageId, senderId, groupId, message)
         }
 
+        bilibiliEventListen.process(message)?.let {
+            bot.sendGroupMsgLimit(groupId, it)
+        }
 
         val command = message.replace(" ", "")
         // 指令

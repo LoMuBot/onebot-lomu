@@ -39,7 +39,7 @@ class RandomActiveSendMessage(
         val firstOrNull = botContainer.robots.entries.firstOrNull()
         firstOrNull?.run {
             val groupList = value.groupList
-            val activeGroupName = oneBotConfigRespository.findOneByConfigName("eternalReturnGroupId")
+            val activeGroupName = oneBotConfigRespository.findOneByConfigName("active_group_name")
             val groupIds = ArrayList<Long>()
             val activeMessage = activeSendMessageRepository.findAll().random()
             log.info { "行动消息 -> $activeMessage.message " }

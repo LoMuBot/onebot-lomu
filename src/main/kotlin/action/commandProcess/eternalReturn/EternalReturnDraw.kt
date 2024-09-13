@@ -89,10 +89,21 @@ class EternalReturnDraw(
                     )
                     draw.drawString("Based on DAK.GG Data.", Color.orange, 45, 70, 10)
                     draw.drawString("最近更新: $date (30分钟后更新)", Color.gray, 40, 90, 12)
-                    draw.drawImage(getEternalReturnDataImagePath("tier/${eternal.tierType}.png"), 40, 110, 30, 30, null)
+                    draw.drawImage(
+                        eternalReturnRequestData.checkTierIconExistThenGetPathOrDownload(
+                            eternal.tierType
+                        ),
+                        40,
+                        110,
+                        30,
+                        30,
+                        null
+                    )
                     draw.drawString(eternal.mmr.toString(), Color.white, 80, 130, 13)
                     draw.drawImage(
-                        getEternalReturnDataImagePath("tier/${demigod.tierType}.png"),
+                        eternalReturnRequestData.checkTierIconExistThenGetPathOrDownload(
+                            demigod.tierType
+                        ),
                         140,
                         110,
                         30,
@@ -112,7 +123,9 @@ class EternalReturnDraw(
                         }
 
                         draw.drawImage(
-                            getEternalReturnDataImagePath("tier/$i.png"),
+                            eternalReturnRequestData.checkTierIconExistThenGetPathOrDownload(
+                                i
+                            ),
                             x,
                             h * (num - 1) + 20,
                             20,
@@ -175,7 +188,7 @@ class EternalReturnDraw(
             val playerTier = leaderboard.playerTierByUserNum[player.userNum.toInt()]
 
             drawImageUtils.drawImage(
-                getEternalReturnDataImagePath("tier/${playerTier?.tierType ?: 6}.png"),
+                eternalReturnRequestData.checkTierIconExistThenGetPathOrDownload(playerTier?.tierType ?: 6),
                 400,
                 105,
                 40,

@@ -21,7 +21,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 dependencies {
-    implementation("com.github.promeg:tinypinyin:2.0.3")
+
     implementation("org.apache.opennlp:opennlp-tools:2.4.0")
     implementation("cn.hutool:hutool-all:5.8.29")
     implementation("com.google.zxing:core:3.5.3")
@@ -35,11 +35,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    implementation(files("libs/MultifunctionalAutoHelper-Java.jar"))
+    implementation(files("lib/MultifunctionalAutoHelper-Java.jar"))
     implementation("org.springframework.boot:spring-boot-starter-aop")
 
     // 分词
     implementation("org.ansj:ansj_seg:5.1.6")
+    // pinyin
+    implementation("com.github.promeg:tinypinyin:2.0.3")
 
     // Kotlin test dependencies
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")

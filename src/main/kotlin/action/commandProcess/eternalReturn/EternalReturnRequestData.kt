@@ -2,9 +2,9 @@ package cn.luorenmu.action.commandProcess.eternalReturn
 
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.*
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalRetrunLeaderboard
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfile
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacterInfo
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCurrentSeason
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfile
 import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
 import cn.luorenmu.entiy.Request.RequestDetailed
@@ -32,20 +32,22 @@ class EternalReturnRequestData(
         requestController.replaceUrl("nickname", nickname)
         try {
             var request = requestController.request()
-            var body = request.body()
-            if (body.contains("retry_after")) {
-                request = requestController.request()
-                body = request.body()
+            request?.let {
+                var body = request.body()
+                if (body.contains("retry_after")) {
+                    request = requestController.request()
+                    body = request.body()
+                }
+                if (body.contains("invalid name")) {
+                    return false
+                }
+                return !body.contains("not_found")
             }
-            if(body.contains("invalid name")){
-                return false
-            }
-            return !body.contains("not_found")
         } catch (e: SocketException) {
             return true
         }
+        return true
     }
-
 
 
     fun tierDistributionsFind(): EternalReturnTierDistributions? {
@@ -68,6 +70,24 @@ class EternalReturnRequestData(
         }
     }
 
+    private fun dakGGDownloadStreamFile(streamUrl: String, outputPath: String) {
+        val dakGGCdnUrl = dakggCdnUrl(streamUrl)
+        val requestDetailed = RequestDetailed()
+        requestDetailed.url = dakGGCdnUrl
+        requestDetailed.method = "get"
+        val request = RequestController(requestDetailed)
+        val resp = request.request()
+        resp?.let { ReadWriteFile.writeStreamFile(outputPath, resp.bodyStream()) }
+    }
+
+    fun checkTierIconExistThenGetPathOrDownload(id: Int): String {
+        val eternalReturnDataImagePath = getEternalReturnDataImagePath("tier/${id}.png")
+        if (!File(eternalReturnDataImagePath).exists()) {
+            dakGGDownloadStreamFile("/er/images/tier/round/$id.png", eternalReturnDataImagePath)
+        }
+        return eternalReturnDataImagePath
+    }
+
     fun checkCharacterImgExistThenGetPathOrDownload(name: String): String {
         val eternalReturnDataImagePath = getEternalReturnDataImagePath("character/${name}.png")
         val fileExists = File(eternalReturnDataImagePath).exists()
@@ -75,13 +95,7 @@ class EternalReturnRequestData(
             characterFind().let {
                 val character = it?.characters?.stream()?.filter { c -> c.key == name }?.findFirst()
                 val communityImageUrl = character!!.get().communityImageUrl
-                val dakGGCdnUrl = dakggCdnUrl(communityImageUrl)
-                val requestDetailed = RequestDetailed()
-                requestDetailed.url = dakGGCdnUrl
-                requestDetailed.method = "get"
-                val request = RequestController(requestDetailed)
-                val resp = request.request()
-                resp?.let { ReadWriteFile.writeStreamFile(eternalReturnDataImagePath, resp.bodyStream()) }
+                dakGGDownloadStreamFile(communityImageUrl, eternalReturnDataImagePath)
             }
         }
         return getEternalReturnDataImagePath("character/${name}.png")

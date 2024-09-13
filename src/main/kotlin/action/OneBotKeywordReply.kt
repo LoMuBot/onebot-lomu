@@ -2,11 +2,11 @@ package cn.luorenmu.action
 
 import cn.luorenmu.action.entiy.KeywordReplyJson
 import cn.luorenmu.common.extensions.isAt
-import cn.luorenmu.common.extensions.isCQAt
 import cn.luorenmu.common.extensions.sendGroupDeepMsgLimit
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.JsonObjectUtils
+import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.groupMessageQueue
 import cn.luorenmu.listen.log
 import cn.luorenmu.repository.KeywordReplyRepository
@@ -16,6 +16,7 @@ import com.alibaba.fastjson2.JSONObject
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
@@ -59,10 +60,13 @@ class OneBotKeywordReply(
         return null
     }
 
-    fun process(bot: Bot, senderId: Long, groupId: Long, message: String){
+    @Async("keywordProcessThreadPool")
+    fun process(bot: Bot, messageId: Int, senderId: Long, groupId: Long, message: String) {
         redisTemplate.opsForValue()["limit:${groupId}"] ?: run {
-            if (message.isAt(bot.selfId)){
-
+            if (message.isAt(bot.selfId)) {
+                if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 3) {
+                    bot.setMsgEmojiLike(messageId.toString(), "66")
+                }
             }
 
             // 概率回复
@@ -81,20 +85,20 @@ class OneBotKeywordReply(
                     redisTemplate.opsForValue()["limit:${groupId}", "1", 3L] = TimeUnit.MINUTES
                 }
 
-                // 在极低概率下 会突然复读
-            } else if (Random(System.currentTimeMillis()).nextInt(0, 1000) == 3) {
+            // 突然复读 加上喵字 嘻嘻
+            } else if (Random(System.currentTimeMillis()).nextInt(0, 100) <= 3) {
                 redisTemplate.opsForValue()["limitReRead:${groupId}"] ?: run {
                     val lastMessage = groupMessageQueue.lastMessage(groupId)
                     if (lastMessage!!.groupEventObject.sender.userId == senderId) {
                         bot.sendGroupDeepMsgLimit(
                             groupId,
-                            message,
-                            DeepMessage(lastMessage.groupEventObject.message, false, null)
+                            message + "喵~",
+                            DeepMessage(lastMessage.groupEventObject.message + "喵~", false, null)
                         )
                     } else {
                         bot.sendGroupMsgLimit(
                             groupId,
-                            message
+                            message + "喵~"
                         )
                     }
                     redisTemplate.opsForValue()["limitReRead:${groupId}", "1", 3L] = TimeUnit.HOURS

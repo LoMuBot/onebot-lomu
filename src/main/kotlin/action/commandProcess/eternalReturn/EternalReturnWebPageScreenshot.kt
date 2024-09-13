@@ -4,13 +4,14 @@ import cn.luorenmu.common.utils.JsonObjectUtils
 import cn.luorenmu.common.utils.MatcherData
 import cn.luorenmu.common.utils.getEternalReturnImagePath
 import cn.luorenmu.common.utils.getEternalReturnNicknameImagePath
-import cn.luorenmu.listen.log
 import cn.luorenmu.pool.WebPageScreenshotPool
 import cn.luorenmu.web.WebPageScreenshot
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.common.utils.OneBotMedia
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import javax.imageio.IIOException
@@ -23,9 +24,10 @@ import javax.imageio.IIOException
 class EternalReturnWebPageScreenshot(
     private val webPageScreenshot: WebPageScreenshotPool,
     private val redisTemplate: RedisTemplate<String, String>,
-    private val nickNameMap: MutableMap<String, Future<*>> = mutableMapOf(),
+    private val nickNameMap: MutableMap<String, Future<*>> = ConcurrentHashMap(),
 ) {
 
+    private val log = KotlinLogging.logger { }
 
     //分数限
     fun cutoffs(): String {
@@ -48,6 +50,7 @@ class EternalReturnWebPageScreenshot(
         return cq
     }
 
+    // 角色页面
     fun webCharacterScreenshot(character: String, rapier: String, cacheIndex: Int): String {
         val cacheName = "Eternal_Return_character:${character}-${cacheIndex}"
         //再次检查 以防万一
@@ -64,6 +67,7 @@ class EternalReturnWebPageScreenshot(
         f?.get() ?: run {
             nickNameMap.remove(cacheName)
         }
+        log.info { "已完成的截图: $cacheName" }
         return msgCQ
     }
 
@@ -82,12 +86,11 @@ class EternalReturnWebPageScreenshot(
 
         try {
             syncWebPageScreenshot(cacheName, returnMsg, 20L, TimeUnit.MINUTES) {
-                log.info { "正在执行页面截图: $nickname" }
                 it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -500, 3000).outputImageFile(path)
             }?.get(2, TimeUnit.MINUTES) ?: run {
                 nickNameMap.remove(cacheName)
             }
-            log.info { "已完成的截图: $nickname" }
+            log.info { "已完成的截图: $cacheName" }
         } catch (e: IIOException) {
             log.error { e }
             return MsgUtils.builder().text("名称不合法 $nickname").build()
@@ -98,6 +101,7 @@ class EternalReturnWebPageScreenshot(
 
     /**
      *  检查缓存 如果存在则返回Null 不存在则检查队列 如果存在等待任务则返回 调用该任务后需同步等待截图
+     *  当结果返回null时应当对线程进行休眠3s 以防止同时多线程争抢文件
      */
     fun syncWebPageScreenshot(
         cacheName: String,
@@ -106,11 +110,18 @@ class EternalReturnWebPageScreenshot(
         timeUnit: TimeUnit,
         web: (WebPageScreenshot) -> Unit,
     ): Future<*>? {
+        log.info { "正在执行页面截图: $cacheName" }
         val opsForValue = redisTemplate.opsForValue()
         // redis check
-        cacheCheck(cacheName)?.let { return null }
+        cacheCheck(cacheName)?.let {
+            log.info { "缓存中已存在: $cacheName" }
+            return null
+        }
         //如果任务正在处理 等待任务完成 不存在则开始截图
-        nickNameMap[cacheName]?.let { return it } ?: run {
+        nickNameMap[cacheName]?.let {
+            log.info { "同一任务正在处理: $cacheName" }
+            return it
+        } ?: run {
             nickNameMap[cacheName] = webPageScreenshot.execute {
                 web(it)
                 opsForValue[cacheName, cacheMsg, time] = timeUnit
@@ -120,7 +131,7 @@ class EternalReturnWebPageScreenshot(
     }
 
 
-    // redis check
+    // redis check not sync
     fun cacheCheck(name: String): String? {
         val opsForValue = redisTemplate.opsForValue()
         return opsForValue[name]
