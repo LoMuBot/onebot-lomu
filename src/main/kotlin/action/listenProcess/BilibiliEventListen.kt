@@ -46,7 +46,11 @@ class BilibiliEventListen(
             }
 
             bilibiliRequestData.bvidToCid(it)?.let { videoInfo ->
-                val videoInfoStr = MsgUtils.builder().img(videoInfo.firstFrame).text(videoInfo.part).build()
+                var videoInfoStr = ""
+                videoInfo.firstFrame?.let {
+                    videoInfoStr += MsgUtils.builder().img(it).build()
+                }
+                videoInfoStr += videoInfo.part
                 redisTemplate.opsForValue()["bilibili_videoInfo:$it", videoInfoStr, 20L] = TimeUnit.MINUTES
                 bot.sendGroupMsgLimit(
                     groupId,
