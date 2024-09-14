@@ -42,6 +42,7 @@ class BilibiliEventListen(
                 redisTemplate.opsForValue()["bilibili_video:$it"]?.let { video ->
                     bot.sendGroupMsg(groupId, video, false)
                 }
+                return
             }
 
             bilibiliRequestData.bvidToCid(it)?.let { videoInfo ->
