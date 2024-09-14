@@ -1,5 +1,6 @@
 package cn.luorenmu.action.listenProcess
 
+import cn.luorenmu.action.listenProcess.entiy.BilibiliPageInfoData
 import cn.luorenmu.action.listenProcess.entiy.BilibiliPageListInfo
 import cn.luorenmu.action.listenProcess.entiy.BilibiliVideoInfo
 import cn.luorenmu.action.listenProcess.entiy.BilibiliVideoInfoData
@@ -23,7 +24,6 @@ class BilibiliRequestData {
         requestDetailed.method = "GET"
         requestDetailed.headers = listOf(headers)
         val requestController = RequestController(requestDetailed)
-        requestController.setWaitTime(1L)
         val resp = requestController.request()
         resp?.let {
             val stream = resp.bodyStream()
@@ -34,9 +34,11 @@ class BilibiliRequestData {
     }
 
 
+
+
     fun getVideoInfo(bvid: String, cid: Long): BilibiliVideoInfoData? {
         val requestController = RequestController("bilibili_request.get_video_info")
-        requestController.setWaitTime(2L)
+        requestController.setWaitTime(1L)
         requestController.replaceUrl("bvid", bvid)
         requestController.replaceUrl("cid", cid.toString())
         val resp = requestController.request()
@@ -51,7 +53,7 @@ class BilibiliRequestData {
     }
 
 
-    fun bvidToCid(bvid: String): Long? {
+    fun bvidToCid(bvid: String): BilibiliPageInfoData? {
         val requestController = RequestController("bilibili_request.bvid_to_cid")
         requestController.replaceUrl("bvid", bvid)
         var resp = requestController.request()
@@ -62,12 +64,7 @@ class BilibiliRequestData {
              * -400：请求错误
              * -404：无视频
              */
-            if (result.code == 0) {
-                var data = result.data.firstOrNull()
-                data?.let {
-                    return data.cid
-                }
-            }
+            return result.data.firstOrNull()
         }
         return null
     }

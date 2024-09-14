@@ -5,6 +5,7 @@ import cn.luorenmu.common.extensions.checkThenSave
 import cn.luorenmu.common.extensions.getCQFileStr
 import cn.luorenmu.common.extensions.isCQAt
 import cn.luorenmu.common.extensions.isCQReply
+import cn.luorenmu.common.extensions.isCQStr
 import cn.luorenmu.common.extensions.isImage
 import cn.luorenmu.common.extensions.isMface
 import cn.luorenmu.common.extensions.replaceCqToFileStr
@@ -75,7 +76,7 @@ class OneBotChatStudy(
                 // 不处理
                 if (keyword.isBlank() || keyword.isImage() || keyword.isCQReply() || keyword.length < 2
                     || originMessage.replace(" ", "") == keyword.replace(" ", "")
-                    || keyword.contains("查询")
+                    || keyword.contains("查询") || (keyword.isCQStr() && message.isCQStr())
                 ) {
                     continue
                 }

@@ -75,9 +75,7 @@ class GroupEventListen(
             oneBotKeywordReply.process(bot, groupMessageEvent.messageId, senderId, groupId, message)
         }
 
-        bilibiliEventListen.process(message)?.let {
-            bot.sendGroupMsgLimit(groupId, it)
-        }
+        bilibiliEventListen.process(bot,groupId,message)
 
         val command = message.replace(" ", "")
         // 指令

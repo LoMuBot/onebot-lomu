@@ -22,6 +22,8 @@ interface KeywordReplyRepository : MongoRepository<KeywordReply, String> {
     fun findBySenderIdAndMessageRegex(senderId: Long, message: String): List<KeywordReply>
 
     fun findBySenderIdAndAtMe(senderId: Long, atMe: Boolean): List<KeywordReply>
+    fun findBySenderIdAndAtMeAndNeedProcess(senderId: Long, atMe: Boolean, needProcess: Boolean): ArrayList<KeywordReply>
+    fun findBySenderIdAndAtMeAndKeyword(senderId: Long, atMe: Boolean, keyword: String): ArrayList<KeywordReply>
     fun findByKeywordIsAndReplyIs(keyword: String, reply: String): KeywordReply?
     fun findBySenderId(senderId: Long): List<KeywordReply>
 

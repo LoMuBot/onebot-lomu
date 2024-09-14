@@ -1,6 +1,7 @@
 package cn.luorenmu.action.commandProcess.onebotCommand
 
 import cn.luorenmu.action.PermissionsManager
+import cn.luorenmu.common.extensions.checkThenSave
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.OneBotConfig
 import org.springframework.data.redis.core.RedisTemplate
@@ -19,8 +20,8 @@ class BotCommandProcess(
 
 
     fun banKeyword(groupId: Long, role: String, id: Long): String {
-        if (permissionsManager.isAdmin(role,id)) {
-            oneBotConfigRepository.save(OneBotConfig(null, "banKeywordGroup", groupId.toString()))
+        if (permissionsManager.isAdmin(role, id)) {
+            oneBotConfigRepository.checkThenSave(OneBotConfig(null, "banKeywordGroup", groupId.toString()))
             redisTemplate.delete("banKeywordGroup")
             return "已屏蔽该群"
         }
@@ -28,8 +29,8 @@ class BotCommandProcess(
     }
 
     fun banStudy(groupId: Long, role: String, id: Long): String {
-        if (permissionsManager.isAdmin(role,id)) {
-            oneBotConfigRepository.save(OneBotConfig(null, "banStudy", groupId.toString()))
+        if (permissionsManager.isAdmin(role, id)) {
+            oneBotConfigRepository.checkThenSave(OneBotConfig(null, "banStudy", groupId.toString()))
             redisTemplate.delete("banStudy")
             return "已屏蔽该群"
         }
@@ -37,7 +38,7 @@ class BotCommandProcess(
     }
 
     fun unbanKeyword(groupId: Long, role: String, id: Long): String {
-        if (permissionsManager.isAdmin(role,id)) {
+        if (permissionsManager.isAdmin(role, id)) {
             for (config in oneBotConfigRepository.findAllByConfigName("banKeywordGroup")) {
                 if (config.configContent.toLong() == groupId) {
                     oneBotConfigRepository.delete(config)
@@ -50,7 +51,7 @@ class BotCommandProcess(
     }
 
     fun unbanStudy(groupId: Long, role: String, id: Long): String {
-        if (permissionsManager.isAdmin(role,id)) {
+        if (permissionsManager.isAdmin(role, id)) {
             for (config in oneBotConfigRepository.findAllByConfigName("banStudyAdmin")) {
                 if (config.configContent.toLong() == groupId) {
                     return ""

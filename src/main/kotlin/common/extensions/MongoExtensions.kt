@@ -2,8 +2,10 @@ package cn.luorenmu.common.extensions
 
 import cn.luorenmu.repository.ActiveSendMessageRepository
 import cn.luorenmu.repository.KeywordReplyRepository
+import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
+import cn.luorenmu.repository.entiy.OneBotConfig
 
 /**
  * @author LoMu
@@ -12,6 +14,17 @@ import cn.luorenmu.repository.entiy.KeywordReply
 fun ActiveSendMessageRepository.checkThenSave(am: ActiveMessage): Boolean {
     synchronized(this) {
         return findByMessageIs(am.message)?.let { false } ?: run {
+            save(am)
+            true
+        }
+    }
+}
+
+fun OneBotConfigRepository.checkThenSave(am: OneBotConfig): Boolean {
+    synchronized(this) {
+        return findFirstByConfigNameAndConfigContent(am.configName, am.configContent)?.let {
+            false
+        } ?: run {
             save(am)
             true
         }

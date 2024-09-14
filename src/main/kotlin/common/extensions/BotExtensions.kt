@@ -7,6 +7,7 @@ import cn.luorenmu.repository.entiy.KeywordReply
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.action.common.ActionData
 import com.mikuac.shiro.dto.action.common.MsgId
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.TimeUnit
 
 /**
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit
 
 private val selfRecentlySendMessage: RecentlyMessageQueue<SelfSendMsg> = RecentlyMessageQueue(40)
 private val selfKeywordMessage: RecentlyMessageQueue<KeywordReply> = RecentlyMessageQueue(30)
-
+private val log = KotlinLogging.logger { }
 
 /**
  *  bool 表示消息队列是否存在该消息
@@ -120,6 +121,7 @@ private fun Bot.sendMsgLimit(
             SelfSendMsg(msgLimit1)
         }
         selfRecentlySendMessage.addMessageToQueue(id, selfSendMsg)
+        log.info { "send message $id -> $message" }
         return true
     }
 }

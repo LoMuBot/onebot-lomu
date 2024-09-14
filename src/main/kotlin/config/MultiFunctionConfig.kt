@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration
  */
 
 @Configuration
+
 class MultiFunctionConfig {
     init {
         InitializeFile.run(MainApplication::class.java)
@@ -26,6 +27,6 @@ class MultiFunctionConfig {
 
     @Bean
     fun getWebPageScreenshotPool(): WebPageScreenshotPool {
-        return WebPageScreenshotPool(4)
+        return WebPageScreenshotPool(3)
     }
 }

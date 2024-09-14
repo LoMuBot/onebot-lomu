@@ -8,7 +8,6 @@ import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.JsonObjectUtils
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.groupMessageQueue
-import cn.luorenmu.listen.log
 import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.entiy.DeepMessage
 import cn.luorenmu.repository.entiy.KeywordReply
@@ -73,7 +72,6 @@ class OneBotKeywordReply(
             if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 3) {
                 val mongodbKeyword = mongodbKeyword(bot.selfId, senderId, message)
                 mongodbKeyword?.let {
-                    log.info { "回复消息 -> $groupId -> ${it.reply}" }
                     if (bot.sendGroupMsgKeywordLimit(groupId, it)) {
                         it.triggers?.run {
                             it.triggers = it.triggers!! + 1
@@ -85,11 +83,11 @@ class OneBotKeywordReply(
                     redisTemplate.opsForValue()["limit:${groupId}", "1", 3L] = TimeUnit.MINUTES
                 }
 
-            // 突然复读 加上喵字 嘻嘻
-            } else if (Random(System.currentTimeMillis()).nextInt(0, 100) <= 3) {
+                // 突然复读 加上喵字 嘻嘻
+            } else if (Random(System.currentTimeMillis()).nextInt(0, 100) <= 8) {
                 redisTemplate.opsForValue()["limitReRead:${groupId}"] ?: run {
                     val lastMessage = groupMessageQueue.lastMessage(groupId)
-                    if (lastMessage!!.groupEventObject.sender.userId == senderId) {
+                    if (lastMessage?.groupEventObject?.sender?.userId == senderId) {
                         bot.sendGroupDeepMsgLimit(
                             groupId,
                             message + "喵~",
@@ -130,15 +128,18 @@ class OneBotKeywordReply(
         condition: () -> Boolean,
     ): Boolean {
         var found = false
+
+        // 指定用户
         if (condition()) {
-            val messages = keywordReplyRepository.findBySenderIdAndAtMe(id, atMe)
+            val msgLists = keywordReplyRepository.findBySenderIdAndAtMeAndNeedProcess(id, atMe, true)
+            msgLists.addAll(keywordReplyRepository.findBySenderIdAndAtMeAndKeyword(id, atMe, msg))
             var replaceMsg = msg
             val atMeStr = MsgUtils.builder().at(botId).build()
             if (msg.contains(atMeStr)) {
                 replaceMsg = msg.replace(atMeStr, "").replace(" ", "")
             }
-            if (messages.isNotEmpty()) {
-                for (message in messages) {
+            if (msgLists.isNotEmpty()) {
+                for (message in msgLists) {
                     if (equals(replaceMsg, message)) {
                         list.add(message)
                         found = true

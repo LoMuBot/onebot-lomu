@@ -26,7 +26,7 @@ class ThreadPoolConfig {
     fun asyncProcessThreadPool(): AsyncTaskExecutor {
         return ThreadPoolTaskExecutor().apply {
             corePoolSize = 5
-            threadNamePrefix = "bilibili-process-thread-"
+            threadNamePrefix = "async-process-thread-"
             setAllowCoreThreadTimeOut(true)
         }
     }

@@ -62,3 +62,8 @@ fun String.isAt(id: Long): Boolean {
 fun String.isCQReply(): Boolean {
     return this.contains("[CQ:reply")
 }
+
+
+fun String.isCQStr(): Boolean {
+    return this.contains("[CQ:")
+}

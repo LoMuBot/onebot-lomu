@@ -1,5 +1,6 @@
 package cn.luorenmu.action.listenProcess
 
+import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.MatcherData
 import cn.luorenmu.common.utils.getVideoPath
 import cn.luorenmu.entiy.Request
@@ -9,8 +10,11 @@ import cn.luorenmu.repository.entiy.OneBotConfig
 import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
+import com.mikuac.shiro.core.Bot
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -21,32 +25,55 @@ import kotlin.jvm.optionals.getOrNull
 class BilibiliEventListen(
     val bilibiliRequestData: BilibiliRequestData,
     val oneBotConfigRepository: OneBotConfigRepository,
+    val redisTemplate: StringRedisTemplate,
 ) {
     val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
     val bilibiliVideoShortLink = "https://b23.tv/([a-zA-Z0-9]+)"
 
 
-    fun process(message: String): String? {
+    fun process(bot: Bot, groupId: Long, message: String) {
         val correctMsg = message.replace("\\", "")
         findBilibiliLinkBvid(correctMsg)?.let {
             val videoPath = getVideoPath("bilibili/$it.flv")
-            if (downloadVideo(it, videoPath)) {
-                oneBotConfigRepository.save(
-                    OneBotConfig(
-                        null,
-                        "waitDeleteFile",
-                        WaitDeleteFile(
-                            videoPath,
-                            LocalDateTime.now(),
-                            LocalDateTime.now().plusMinutes(30)
-                        ).toJSONString()
-                    )
+            val videoPathCQ = MsgUtils.builder().video(videoPath, "").build()
+            //检查缓存
+            redisTemplate.opsForValue()["bilibili_videoInfo:$it"]?.let { info ->
+                bot.sendGroupMsg(groupId, info, false)
+                redisTemplate.opsForValue()["bilibili_video:$it"]?.let { video ->
+                    bot.sendGroupMsg(groupId, video, false)
+                }
+            }
+
+            bilibiliRequestData.bvidToCid(it)?.let { videoInfo ->
+                val videoInfoStr = MsgUtils.builder().img(videoInfo.firstFrame).text(videoInfo.part).build()
+                redisTemplate.opsForValue()["bilibili_videoInfo:$it", videoInfoStr, 20L] = TimeUnit.MINUTES
+                bot.sendGroupMsgLimit(
+                    groupId,
+                    videoInfoStr
                 )
-                return MsgUtils.builder().video(videoPath, "").build()
+
+                if (downloadVideo(it, videoInfo.cid, videoPath)) {
+                    redisTemplate.opsForValue()["bilibili_video:$it", videoPathCQ, 20L] = TimeUnit.MINUTES
+                    oneBotConfigRepository.save(
+                        OneBotConfig(
+                            null,
+                            "waitDeleteFile",
+                            WaitDeleteFile(
+                                videoPath,
+                                LocalDateTime.now(),
+                                LocalDateTime.now().plusMinutes(30)
+                            ).toJSONString()
+                        )
+                    )
+                    bot.sendGroupMsgLimit(groupId, videoPathCQ)
+                } else {
+                    bot.sendGroupMsg(groupId, "video download failed or video too large", false)
+                }
             }
         }
-        return null
+
     }
+
 
     fun findBilibiliLinkBvid(message: String): String? {
 
@@ -72,22 +99,21 @@ class BilibiliEventListen(
     /**
      *  @param bvid (bv号)
      *  @param outputPath video save local path need file name and video type (default type is flv)
-     *  @return false if video download failed or video too large (limit length 4 minute) else true
+     *  @return null if video download failed or video too large (limit length $minute minute) else string
      */
-    fun downloadVideo(bvid: String, outputPath: String): Boolean {
-        val cid = bilibiliRequestData.bvidToCid(bvid)
-        cid?.let {
-            bilibiliRequestData.getVideoInfo(bvid, cid)?.let { videoInfos ->
-                val minute = videoInfos.timelength / 1000 / 60
-                if (minute > 4) {
-                    return false
-                }
-                videoInfos.durl.firstOrNull()?.let { videoInfo ->
-                    bilibiliRequestData.downloadVideo(videoInfo.url, outputPath)
-                    return true
-                }
+    fun downloadVideo(bvid: String, cid: Long, outputPath: String): Boolean {
+        val videoInfos = bilibiliRequestData.getVideoInfo(bvid, cid)
+        videoInfos?.let {
+            val minute = videoInfos.timelength / 1000 / 60
+            if (minute > 5) {
+                return false
+            }
+            videoInfos.durl.firstOrNull()?.let { videoInfo ->
+                bilibiliRequestData.downloadVideo(videoInfo.url, outputPath)
+                return true
             }
         }
         return false
     }
+
 }
