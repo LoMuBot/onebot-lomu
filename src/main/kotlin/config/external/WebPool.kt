@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
  * Date 2024.09.14 12:51
  */
 @Component
-@ConfigurationProperties("web")
-data class WebPoolConfig(
-    var poolSize: Int = 4,
+@ConfigurationProperties("web-pool")
+data class WebPool(
+    var size: Int = 4,
 )

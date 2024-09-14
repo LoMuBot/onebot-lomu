@@ -1,6 +1,7 @@
 package cn.luorenmu.config
 
 import cn.luorenmu.MainApplication
+import cn.luorenmu.config.external.WebPool
 import cn.luorenmu.file.InitializeFile
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.pool.WebPageScreenshotPool
@@ -14,7 +15,9 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 
-class MultiFunctionConfig {
+class MultiFunctionConfig(
+    private val webPool: WebPool,
+) {
     init {
         InitializeFile.run(MainApplication::class.java)
         ReadWriteFile.createCurrentDirs("image/")
@@ -27,6 +30,6 @@ class MultiFunctionConfig {
 
     @Bean
     fun getWebPageScreenshotPool(): WebPageScreenshotPool {
-        return WebPageScreenshotPool(3)
+        return WebPageScreenshotPool(webPool.size)
     }
 }

@@ -20,6 +20,10 @@ fun ActiveSendMessageRepository.checkThenSave(am: ActiveMessage): Boolean {
     }
 }
 
+/**
+ * @param am is config object
+ * @return exist if return false else return true
+ */
 fun OneBotConfigRepository.checkThenSave(am: OneBotConfig): Boolean {
     synchronized(this) {
         return findFirstByConfigNameAndConfigContent(am.configName, am.configContent)?.let {
@@ -28,6 +32,23 @@ fun OneBotConfigRepository.checkThenSave(am: OneBotConfig): Boolean {
             save(am)
             true
         }
+    }
+}
+
+/**
+ * @param configName
+ * @param groupId
+ *
+ * true if success else failed
+ */
+fun OneBotConfigRepository.checkThenDelete(configName: String, groupId: Long): Boolean {
+    val groupIdStr = groupId.toString()
+    synchronized(this) {
+        this.findFirstByConfigNameAndConfigContent(configName, groupIdStr)?.let {
+            this.deleteById(it.id!!)
+            return true
+        }
+        return false
     }
 }
 

@@ -3,6 +3,7 @@ package cn.luorenmu
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.EnableAspectJAutoProxy
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableMongoRepositories
+@EnableConfigurationProperties
 @EnableAsync
 @EnableAspectJAutoProxy
 class MainApplication
