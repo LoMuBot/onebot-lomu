@@ -35,6 +35,8 @@ fun OneBotConfigRepository.checkThenSave(am: OneBotConfig): Boolean {
     }
 }
 
+
+
 /**
  * @param configName
  * @param groupId

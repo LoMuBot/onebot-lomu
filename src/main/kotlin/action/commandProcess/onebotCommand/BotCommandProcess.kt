@@ -16,10 +16,9 @@ class BotCommandProcess(
 
 
     fun banKeyword(groupId: Long, role: String, id: Long): String =
-        if (permissionsManager.saveConfigBotAdminOrAdmin(
+        if (permissionsManager.saveConfigBotAdminOrGroupAdmin(
                 id,
                 role,
-                "banKeywordGroupAdmin",
                 "banKeywordGroup",
                 groupId
             )
@@ -30,10 +29,9 @@ class BotCommandProcess(
 
 
     fun banStudy(groupId: Long, role: String, id: Long): String =
-        if (permissionsManager.saveConfigBotAdminOrAdmin(
+        if (permissionsManager.saveConfigBotAdminOrGroupAdmin(
                 id,
                 role,
-                "banStudyAdmin",
                 "banStudy",
                 groupId
             )
@@ -44,10 +42,9 @@ class BotCommandProcess(
 
 
     fun unbanKeyword(groupId: Long, role: String, id: Long): String =
-        if (permissionsManager.deleteConfigBotAdminOrAdmin(
+        if (permissionsManager.deleteConfigBotAdminOrGroupAdmin(
                 id,
                 role,
-                "banKeywordGroupAdmin",
                 "banKeywordGroup",
                 groupId
             )
@@ -58,10 +55,9 @@ class BotCommandProcess(
 
 
     fun unbanStudy(groupId: Long, role: String, id: Long): String =
-        if (permissionsManager.deleteConfigBotAdminOrAdmin(
+        if (permissionsManager.deleteConfigBotAdminOrGroupAdmin(
                 id,
                 role,
-                "banStudyAdmin",
                 "banStudy",
                 groupId
             )

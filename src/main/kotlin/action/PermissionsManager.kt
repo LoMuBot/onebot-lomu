@@ -16,40 +16,46 @@ class PermissionsManager(
 ) {
 
 
-    fun deleteConfigBotAdminOrAdmin(
+    fun deleteConfigBotAdminOrGroupAdmin(
         sendId: Long,
         role: String,
-        botAdminConfigName: String,
-        groupAdminConfigName: String,
+        configName: String,
         groupId: Long,
     ): Boolean {
+        val groupIdStr = groupId.toString()
         if (isBotAdmin(sendId)) {
-            if (configRepository.checkThenDelete(botAdminConfigName, groupId)) {
+            if (configRepository.checkThenDelete("${configName}Admin", groupId) && configRepository.checkThenDelete(
+                    configName,
+                    groupId
+                )
+            ) {
                 return true
             }
         }
         if (isAdmin(role, groupId)) {
-            if (configRepository.checkThenDelete(groupAdminConfigName, groupId)) {
+            configRepository.findFirstByConfigNameAndConfigContent("${configName}Admin", groupIdStr)?.let {
+                return false
+            }
+            if (configRepository.checkThenDelete(configName, groupId)) {
                 return true
             }
         }
         return false
     }
 
-    fun saveConfigBotAdminOrAdmin(
+    fun saveConfigBotAdminOrGroupAdmin(
         sendId: Long,
         role: String,
-        botAdminConfigName: String,
-        groupAdminConfigName: String,
+        configName: String,
         groupId: Long,
     ): Boolean {
         val groupStr = groupId.toString()
         if (isBotAdmin(sendId)) {
-            configRepository.checkThenSave(OneBotConfig(null, botAdminConfigName, groupStr))
-            return true
+            configRepository.checkThenSave(OneBotConfig(null, "${configName}Admin", groupStr))
+            configRepository.checkThenSave(OneBotConfig(null, configName, groupStr))
         }
-        if (isAdmin(role)) {
-            configRepository.checkThenSave(OneBotConfig(null, groupAdminConfigName, groupStr))
+        if (isGroupAdmin(role)) {
+            configRepository.checkThenSave(OneBotConfig(null, configName, groupStr))
             return true
         }
         return false
@@ -68,7 +74,8 @@ class PermissionsManager(
         return false
     }
 
-    fun isAdmin(role: String): Boolean = role == "owner" || role == "admin"
+    fun isGroupAdmin(role: String): Boolean = role == "owner" || role == "admin"
+
 
 
     fun isAdmin(role: String, id: Long): Boolean {

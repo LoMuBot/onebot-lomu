@@ -95,6 +95,7 @@ class OneBotChatStudy(
                     scoreMap.put(keyword, score)
                 }
             }
+            // 打分 将最高分作为keyword
             if (scoreMap.isNotEmpty()) {
                 val maxScore = scoreMap.maxBy { it.value }
                 if (maxScore.value < 3) {
@@ -132,7 +133,7 @@ class OneBotChatStudy(
 
 
         //机器人已经复读了 将存储复读的头信息作为keyword
-        val lastMessageList = groupMessageQueue.lastMessages(groupId, size + 3)
+        val lastMessageList = groupMessageQueue.lastMessages(groupId, size + 5)
         if (lastMessageList.isNotEmpty()) {
             var keyword: String? = null
             val currentMessage = message.replaceCqToFileStr() ?: message
@@ -140,19 +141,40 @@ class OneBotChatStudy(
 
             // 遍历查找
             for (lastGroupMessage in lastMessageList) {
+                // 如果为图片获取图片名
                 val lastMessage = lastGroupMessage!!.groupEventObject.message.replaceCqToFileStr()
                     ?: lastGroupMessage.groupEventObject.message
                 if (lastMessage != currentMessage) {
                     // 限制保存
-                    if (lastMessage.isImage() || lastMessage.isMface() || !lastMessage.isCQReply()) {
-                        keyword = lastMessage
-                        break
-                    } else {
-                        val results =
-                            ToAnalysis.parse(lastMessage).terms.stream().filter { ta -> ta.realName.length >= 2 }
-                                .map { ta -> ta.realName }.toList()
-                        for (result in results) {
-                            if (currentMessagePinYin.contains(result.toPinYin())) {
+                    if (lastMessage.isCQReply()) {
+                        continue
+                    }
+
+                    val results =
+                        ToAnalysis.parse(lastMessage).terms.stream().filter { ta -> ta.realName.length >= 2 }
+                            .map { ta -> ta.realName }.toList()
+                    for (result in results) {
+                        if (currentMessagePinYin.contains(result.toPinYin())) {
+                            keyword = lastMessage
+                            break
+                        }
+                    }
+                }
+            }
+
+
+            // 无法找到 再次尝试查找图片
+            keyword ?: run {
+                val lastMessageList = groupMessageQueue.lastMessages(groupId, size + 3)
+                if (lastMessageList.isNotEmpty()) {
+                    val currentMessage = message.replaceCqToFileStr() ?: message
+
+                    // 遍历查找
+                    for (lastGroupMessage in lastMessageList) {
+                        val lastMessage = lastGroupMessage!!.groupEventObject.message.replaceCqToFileStr()
+                            ?: lastGroupMessage.groupEventObject.message
+                        if (lastMessage != currentMessage) {
+                            if (lastMessage.isImage() || !lastMessage.isCQReply() || lastMessage.isMface()) {
                                 keyword = lastMessage
                                 break
                             }
@@ -161,8 +183,7 @@ class OneBotChatStudy(
                 }
             }
 
-
-            // 无法找到
+            // 无法找到 将其添加至主动消息
             keyword ?: run {
                 activeSendMessageRepository.checkThenSave(ActiveMessage(null, -1, message, null))
                 return

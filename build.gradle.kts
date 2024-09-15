@@ -22,7 +22,7 @@ tasks.withType<Test> {
 }
 dependencies {
 
-    implementation("org.apache.opennlp:opennlp-tools:2.4.0")
+
     implementation("cn.hutool:hutool-all:5.8.29")
     implementation("com.google.zxing:core:3.5.3")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -51,7 +51,7 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 tasks.jar {
     manifest {

@@ -50,11 +50,12 @@ class BilibiliEventListen(
                 videoInfo.firstFrame?.let {
                     videoInfoStr += MsgUtils.builder().img(it).build()
                 }
-                videoInfoStr += videoInfo.part
+                videoInfoStr += "${videoInfo.part} https://www.bilibili.com/video/$it"
                 redisTemplate.opsForValue()["bilibili_videoInfo:$it", videoInfoStr, 20L] = TimeUnit.MINUTES
-                bot.sendGroupMsgLimit(
+                bot.sendGroupMsg(
                     groupId,
-                    videoInfoStr
+                    videoInfoStr,
+                    false
                 )
 
                 if (downloadVideo(it, videoInfo.cid, videoPath)) {
@@ -71,8 +72,6 @@ class BilibiliEventListen(
                         )
                     )
                     bot.sendGroupMsgLimit(groupId, videoPathCQ)
-                } else {
-                    bot.sendGroupMsg(groupId, "video download failed or video too large", false)
                 }
             }
         }

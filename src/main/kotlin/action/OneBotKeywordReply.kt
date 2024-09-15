@@ -84,7 +84,7 @@ class OneBotKeywordReply(
                 }
 
                 // 突然复读 加上喵字 嘻嘻
-            } else if (Random(System.currentTimeMillis()).nextInt(0, 100) <= 8) {
+            } else if (Random(System.currentTimeMillis()).nextInt(0, 100) == 1) {
                 redisTemplate.opsForValue()["limitReRead:${groupId}"] ?: run {
                     val lastMessage = groupMessageQueue.lastMessage(groupId)
                     if (lastMessage?.groupEventObject?.sender?.userId == senderId) {
