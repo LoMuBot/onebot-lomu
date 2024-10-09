@@ -53,12 +53,17 @@ class PermissionsManager(
         if (isBotAdmin(sendId)) {
             configRepository.checkThenSave(OneBotConfig(null, "${configName}Admin", groupStr))
             configRepository.checkThenSave(OneBotConfig(null, configName, groupStr))
+            return true
         }
         if (isGroupAdmin(role)) {
             configRepository.checkThenSave(OneBotConfig(null, configName, groupStr))
             return true
         }
         return false
+    }
+
+    fun saveConfig(configName: String, groupId: Long) {
+        configRepository.checkThenSave(OneBotConfig(null,configName,groupId.toString()))
     }
 
 

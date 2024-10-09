@@ -1,5 +1,6 @@
 package cn.luorenmu.task
 
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnArticle
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnNews
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.Request
@@ -15,6 +16,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
 
@@ -48,28 +51,35 @@ class EternalReturnRewardPushTask(
             log.error { "eternalReturnRewardPush 任务失败超过指定次数当前任务已被拒绝" }
             return
         }
-        val requestDetailed = Request.RequestDetailed()
-        requestDetailed.url = "https://playeternalreturn.com/api/v1/posts/news?page=1&hl=zh-CN"
-        requestDetailed.method = "GET"
+
         var lastId = 0
         var lastNews: OneBotConfig? = null
         try {
-            val body = RequestController(requestDetailed).request().body()
+            val body = RequestController(Request.RequestDetailed().apply {
+                url = "https://playeternalreturn.com/api/v1/posts/news?page=1&hl=zh-CN"
+                method = "GET"
+            }).request().body()
             val eternalReturnNews = body.to<EternalReturnNews>()
-            val maxId = eternalReturnNews.articles.maxBy { it.id }.id
+
+            val format = DateTimeFormatter.ISO_ZONED_DATE_TIME
+            val articles = eternalReturnNews.articles.sortedByDescending { LocalDateTime.parse(it.createdAt, format) }
+                .filter { it.i18ns.zhCN.title.isNotBlank() }
+            val firstId = articles.first().id
+
+
             oneBotConfigRepository.findOneByConfigName("lastNews")?.let { oneBotConfig ->
                 lastId = oneBotConfig.configContent.toInt()
-                findArticleThenPush(lastId, eternalReturnNews)
+                findArticleThenPush(lastId, articles)
                 lastNews = oneBotConfig
             } ?: run {
-                findArticleThenPush(lastId, eternalReturnNews)
+                findArticleThenPush(lastId, articles)
             }
 
-            if (lastId != maxId) {
+            if (lastId != firstId) {
                 lastNews?.let {
-                    it.configContent = maxId.toString()
+                    it.configContent = firstId.toString()
                 } ?: run {
-                    lastNews = OneBotConfig(null, "lastNews", maxId.toString())
+                    lastNews = OneBotConfig(null, "lastNews", firstId.toString())
                 }
                 oneBotConfigRepository.save(lastNews!!)
             }
@@ -83,18 +93,25 @@ class EternalReturnRewardPushTask(
 
     }
 
-    fun findArticleThenPush(lastId: Int, eternalReturnNews: EternalReturnNews) {
+    fun findArticleThenPush(lastId: Int, articles: List<EternalReturnArticle>) {
         val groupList = pushGroupList()
-        for (article in eternalReturnNews.articles) {
-            if (article.id > lastId && article.i18ns.zhCN.title.contains(filterNews.toRegex())) {
+
+        for (article in articles) {
+            if (article.id == lastId) {
+                return
+            }
+            if (article.i18ns.zhCN.title.contains(filterNews.toRegex())) {
                 emailPushService.emailPush(
                     eternalReturnPushRepository.findBySendIsTrue().stream().map { it.email }.toList(),
                     "永恒轮回活动推送:${article.i18ns.zhCN.title}",
-                    "<img src=\"${article.thumbnailUrl}\" alt=\"img\">"
-                )
-                asyncPushGroup(groupList,
+                    "<img src=\"${article.thumbnailUrl}\" alt=\"img\">" +
+                            "<a href=\"${article.url}?hl=zh-CN\">访问原链接</a>",
+
+                    )
+                asyncPushGroup(
+                    groupList,
                     MsgUtils.builder().text("永恒轮回活动推送:${article.i18ns.zhCN.title}").img(article.thumbnailUrl)
-                        .build()
+                        .text("${article.url}?hl=zh-CN").build()
                 )
             }
         }

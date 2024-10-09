@@ -29,17 +29,24 @@ class DatabaseTask(
         for (config in deleteFiles) {
             val deleteFile = config.configContent.to<WaitDeleteFile>()
             if (deleteFile.deleteDate.isBefore(LocalDateTime.now())) {
-                File(deleteFile.path).delete()
-                oneBotConfigRepository.deleteById(config.id!!)
+                if (!File(deleteFile.path).exists() || File(deleteFile.path).delete()) {
+                    oneBotConfigRepository.deleteById(config.id!!)
+                }
             }
         }
     }
 
     @Scheduled(cron = "0 0 12 * * ?")
     fun timingDeleteKeyword() {
-        val lists = keywordReplyRepository.findAll()
         val now = LocalDateTime.now()
         val deleteLists = arrayListOf<KeywordReply>()
+        var lists = arrayListOf<KeywordReply>()
+        lists.addAll(keywordReplyRepository.findByCreatedDateBefore(LocalDateTime.now().plusDays(-20)))
+        lists.addAll(
+            keywordReplyRepository.findByCreatedDateAfterAndTriggersIsNullOrTriggersIs(
+                LocalDateTime.now().plusDays(-7), 0
+            )
+        )
         for (keyword in lists) {
             keyword.createdDate?.let {
                 if (now.plusDays(20)
@@ -55,6 +62,8 @@ class DatabaseTask(
 
             }
         }
+
+
         val overdueKeywordList = deleteLists.stream().map { OverdueKeyword(it) }.toList()
         overdueKeywordRepository.saveAll(overdueKeywordList)
         keywordReplyRepository.deleteAll(deleteLists)

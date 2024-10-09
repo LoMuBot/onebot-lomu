@@ -1,5 +1,6 @@
 package cn.luorenmu.action
 
+import cn.luorenmu.action.commandProcess.college.CollegeMessage
 import cn.luorenmu.action.commandProcess.eternalReturn.EternalReturnCommandProcess
 import cn.luorenmu.action.commandProcess.onebotCommand.BotCommandProcess
 import cn.luorenmu.entiy.OneBotAllCommands
@@ -11,6 +12,7 @@ import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.common.utils.OneBotMedia
+import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
@@ -26,6 +28,7 @@ class OneBotCommandAllocator(
     private val eternalReturnCommandProcess: EternalReturnCommandProcess,
     private val redisTemplate: RedisTemplate<String, String>,
     private val botCommandProcess: BotCommandProcess,
+    private val collegeMessage: CollegeMessage,
 ) {
 
 
@@ -43,7 +46,7 @@ class OneBotCommandAllocator(
             }
         }
         oneBotCommand.needAdmin?.let {
-            if (!it){
+            if (!it) {
                 return false
             }
         }
@@ -51,7 +54,8 @@ class OneBotCommandAllocator(
     }
 
 
-    fun process(botId: Long, command: String, groupId: Long, sender: GroupMessageEvent.GroupSender): String {
+    fun process(bot: Bot, command: String, groupId: Long, sender: GroupMessageEvent.GroupSender): String {
+        val botId = bot.selfId
         val senderId = sender.userId
         val allCommands = redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
             synchronized(redisTemplate) {
@@ -73,9 +77,10 @@ class OneBotCommandAllocator(
             return when (oneBotCommand.commandName) {
                 "ff14Bind" -> ff14Bind(senderId)
                 "eternalReturnFindPlayers" -> {
-                    val nickname = command1.replace(Regex(oneBotCommand.keyword), "").trim()
+                    val nickname = command1.replace(Regex(oneBotCommand.keyword), "").trim().lowercase()
                     if (nickname.isBlank()) "" else eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
                 }
+
                 "eternalReturnEmailPush" -> eternalReturnCommandProcess.eternalReturnEmailPush(groupId, sender)
                 "eternalReturnLeaderboard" -> {
                     Regex(oneBotCommand.keyword).find(command1)?.let { match ->
@@ -86,31 +91,37 @@ class OneBotCommandAllocator(
                         }
                     } ?: ""
                 }
+
                 "eternalReturnReFindPlayers" -> {
-                    val nickname = command1.replace(Regex(oneBotCommand.keyword), "").trim()
+                    val nickname = command1.replace(Regex(oneBotCommand.keyword), "").trim().lowercase()
                     if (nickname.isBlank()) "" else {
                         redisTemplate.delete("Eternal_Return_NickName:$nickname")
                         eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
                     }
                 }
+
                 "eternalReturnFindCharacter" -> {
                     var characterName = command1.replace(Regex(oneBotCommand.keyword), "").trim()
-                    val indexMatch = """[1-9]""".toRegex().find(characterName)?.let {
+                    val indexMatch = """[0-9]""".toRegex().find(characterName)?.let {
                         val index = it.value.toInt()
                         characterName = characterName.replace(it.value, "")
                         index
-                    } ?: 1
+                    } ?: -1
                     if (characterName.isBlank()) "" else {
                         eternalReturnCommandProcess.eternalReturnFindCharacter(characterName, indexMatch)
                     }
                 }
 
-                "eternalReturnCutoffs" -> eternalReturnCommandProcess.cutoffs()
-                "botCommandBanStudy" -> botCommandProcess.banStudy(groupId, sender.role,senderId)
-                "botCommandUnbanStudy" -> botCommandProcess.unbanStudy(groupId, sender.role,senderId)
-                "botCommandBanKeyword" -> botCommandProcess.banKeyword(groupId, sender.role,senderId)
-                "botCommandUnbanKeyword" -> botCommandProcess.unbanKeyword(groupId, sender.role,senderId)
 
+                "eternalReturnCutoffs" -> eternalReturnCommandProcess.cutoffs()
+                "botCommandBanStudy" -> botCommandProcess.banStudy(groupId, sender.role, senderId)
+                "botCommandUnbanStudy" -> botCommandProcess.unbanStudy(groupId, sender.role, senderId)
+                "botCommandBanKeyword" -> botCommandProcess.banKeyword(groupId, sender.role, senderId)
+                "botCommandUnbanKeyword" -> botCommandProcess.unbanKeyword(groupId, sender.role, senderId)
+                "banBilibiliEventListen" -> botCommandProcess.banBilibiliEventListen(groupId, sender.role, senderId)
+                "unbanBilibiliEventListen" -> botCommandProcess.unbanBilibiliEventListen(groupId, sender.role, senderId)
+                "coursePush" -> botCommandProcess.coursePush(groupId, senderId)
+                "course" -> collegeMessage.sendCourse() ?: run { "HTTP请求返回的结果与预期不符 无法处理" }
                 else -> ""
             }
         }

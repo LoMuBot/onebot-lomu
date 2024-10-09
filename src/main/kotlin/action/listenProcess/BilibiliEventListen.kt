@@ -4,17 +4,14 @@ import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.MatcherData
 import cn.luorenmu.common.utils.getVideoPath
 import cn.luorenmu.entiy.Request
-import cn.luorenmu.entiy.WaitDeleteFile
-import cn.luorenmu.repository.OneBotConfigRepository
-import cn.luorenmu.repository.entiy.OneBotConfig
+import cn.luorenmu.repository.BilibiliVideoRepository
+import cn.luorenmu.repository.entiy.BilibiliVideo
 import cn.luorenmu.request.RequestController
-import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
-import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
+import java.io.File
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -24,8 +21,8 @@ import kotlin.jvm.optionals.getOrNull
 @Component
 class BilibiliEventListen(
     val bilibiliRequestData: BilibiliRequestData,
-    val oneBotConfigRepository: OneBotConfigRepository,
     val redisTemplate: StringRedisTemplate,
+    val bilibiliVideoRepository: BilibiliVideoRepository,
 ) {
     val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
     val bilibiliVideoShortLink = "https://b23.tv/([a-zA-Z0-9]+)"
@@ -33,45 +30,63 @@ class BilibiliEventListen(
 
     fun process(bot: Bot, groupId: Long, message: String) {
         val correctMsg = message.replace("\\", "")
-        findBilibiliLinkBvid(correctMsg)?.let {
-            val videoPath = getVideoPath("bilibili/$it.flv")
-            val videoPathCQ = MsgUtils.builder().video(videoPath, "").build()
-            //检查缓存
-            redisTemplate.opsForValue()["bilibili_videoInfo:$it"]?.let { info ->
-                bot.sendGroupMsg(groupId, info, false)
-                redisTemplate.opsForValue()["bilibili_video:$it"]?.let { video ->
-                    bot.sendGroupMsg(groupId, video, false)
-                }
+        findBilibiliLinkBvid(correctMsg)?.let { bvid ->
+            if (bvid.length != 12) {
                 return
             }
+            val videoPath = getVideoPath("bilibili/$bvid.flv")
+            val videoPathCQ = MsgUtils.builder().video(videoPath, "").build()
 
-            bilibiliRequestData.bvidToCid(it)?.let { videoInfo ->
+            bilibiliVideoRepository.findFirstBybvid(bvid)?.let { bilibili ->
+                bot.sendGroupMsgLimit(groupId, bilibili.info)
+                bilibili.videoPathCQ?.let { videoPathCQ ->
+
+                    // 不为null 但是文件不存在 应当重新下载文件
+                    if (File(bilibili.path!!).exists()) {
+                        bot.sendGroupMsgLimit(groupId, videoPathCQ)
+                        return
+                    }
+
+                } ?: run {
+                    return
+                }
+
+            }
+
+            bilibiliRequestData.bvidToCid(bvid)?.let { videoInfo ->
                 var videoInfoStr = ""
                 videoInfo.firstFrame?.let {
                     videoInfoStr += MsgUtils.builder().img(it).build()
                 }
-                videoInfoStr += "${videoInfo.part} https://www.bilibili.com/video/$it"
-                redisTemplate.opsForValue()["bilibili_videoInfo:$it", videoInfoStr, 20L] = TimeUnit.MINUTES
+                videoInfoStr += "${videoInfo.part} https://www.bilibili.com/video/$bvid"
+
                 bot.sendGroupMsg(
                     groupId,
                     videoInfoStr,
                     false
                 )
 
-                if (downloadVideo(it, videoInfo.cid, videoPath)) {
-                    redisTemplate.opsForValue()["bilibili_video:$it", videoPathCQ, 20L] = TimeUnit.MINUTES
-                    oneBotConfigRepository.save(
-                        OneBotConfig(
+                if (downloadVideo(bvid, videoInfo.cid, videoPath)) {
+                    bilibiliVideoRepository.save(
+                        BilibiliVideo(
                             null,
-                            "waitDeleteFile",
-                            WaitDeleteFile(
-                                videoPath,
-                                LocalDateTime.now(),
-                                LocalDateTime.now().plusMinutes(30)
-                            ).toJSONString()
+                            bvid,
+                            videoPath,
+                            videoPathCQ,
+                            videoInfoStr
                         )
                     )
                     bot.sendGroupMsgLimit(groupId, videoPathCQ)
+                } else {
+                    bilibiliVideoRepository.save(
+                        BilibiliVideo(
+                            null,
+                            bvid,
+                            null,
+                            null,
+                            videoInfoStr
+                        )
+                    )
                 }
             }
         }

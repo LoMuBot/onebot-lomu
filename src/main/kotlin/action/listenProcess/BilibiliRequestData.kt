@@ -14,6 +14,12 @@ import org.springframework.stereotype.Component
  * @author LoMu
  * Date 2024.09.12 21:19
  */
+
+/**
+ * 0：成功
+ * -400：请求错误
+ * -404：无视频
+ */
 @Component
 class BilibiliRequestData {
 
@@ -32,8 +38,6 @@ class BilibiliRequestData {
         }
         return false
     }
-
-
 
 
     fun getVideoInfo(bvid: String, cid: Long): BilibiliVideoInfoData? {
@@ -59,11 +63,6 @@ class BilibiliRequestData {
         var resp = requestController.request()
         resp?.let {
             val result = it.body().to<BilibiliPageListInfo>()
-            /**
-             * 0：成功
-             * -400：请求错误
-             * -404：无视频
-             */
             return result.data.firstOrNull()
         }
         return null

@@ -29,5 +29,10 @@
   "profile": {
     "url": "https://er.dakgg.io/api/v1/players/%E7%A5%9E%E5%9C%A3%E5%AE%A1%E5%88%A4/profile?season=${season}",
     "method": "get"
-  }
+  },
+  "find_character_info": {
+    "url": "https://dak.gg/er/_next/data/DQSE4P3zwz5YlLFX1CmCh/characters/${key}.json?teamMode=SQUAD&weaponType=${weapon}&period=3day&tier=diamond_plus&character=${key1}&hl=zh_CN",
+    "method": "get"
+  },
+  "find_character":"https://dak.gg/er/characters/${characterName}?teamMode=SQUAD&weaponType=${weapon}&period=3day&tier=diamond_plus"
 }

@@ -29,6 +29,7 @@ class OneBotKeywordReply(
     private var keywordReplyRepository: KeywordReplyRepository,
     private val redisTemplate: RedisTemplate<String, String>,
 ) {
+    // 将json最为数据存储 (在数据量较大时无法做到像mongodb一样高效 且性能极其低下)
     fun jsonKeyword(id: Long, message: String): String? {
         JsonObjectUtils.getJsonObject("keyword")?.let { kf ->
             for (value in kf.values) {
@@ -69,7 +70,7 @@ class OneBotKeywordReply(
             }
 
             // 概率回复
-            if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 3) {
+            if (Random(System.currentTimeMillis()).nextInt(0, 10) == 1) {
                 val mongodbKeyword = mongodbKeyword(bot.selfId, senderId, message)
                 mongodbKeyword?.let {
                     if (bot.sendGroupMsgKeywordLimit(groupId, it)) {
@@ -84,7 +85,7 @@ class OneBotKeywordReply(
                 }
 
                 // 突然复读 加上喵字 嘻嘻
-            } else if (Random(System.currentTimeMillis()).nextInt(0, 100) == 1) {
+            } else if (Random(System.currentTimeMillis()).nextInt(0, 3000) == 1) {
                 redisTemplate.opsForValue()["limitReRead:${groupId}"] ?: run {
                     val lastMessage = groupMessageQueue.lastMessage(groupId)
                     if (lastMessage?.groupEventObject?.sender?.userId == senderId) {
@@ -106,16 +107,18 @@ class OneBotKeywordReply(
     }
 
 
+    /**
+     * keyword match
+     */
     private fun equals(msg: String, keywordReply: KeywordReply): Boolean {
-        var equals = false
         if (keywordReply.needProcess) {
             if (msg.contains(Regex(keywordReply.keyword))) {
-                equals = true
+                return true
             }
         } else if (msg == keywordReply.keyword) {
-            equals = true
+            return true
         }
-        return equals
+        return false
     }
 
 

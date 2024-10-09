@@ -1,10 +1,11 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
 
-import cn.luorenmu.common.extensions.firstPinYin
-import cn.luorenmu.service.EmailPushService
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacter
+import cn.luorenmu.common.extensions.toPinYin
 import cn.luorenmu.repository.EternalReturnPushRepository
 import cn.luorenmu.repository.entiy.EternalReturnPush
+import cn.luorenmu.service.EmailPushService
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import org.springframework.data.redis.core.RedisTemplate
@@ -29,29 +30,30 @@ class EternalReturnCommandProcess(
      * 实验体绰号名修正
      * 字符修正
      */
-    private fun correctName(name: String): String {
+    private fun correctName(name: String, characterList: EternalReturnCharacter): String {
+        // 目前没有考虑支持 优先使用双子
+        if (name == "双子" || name.toPinYin() == "黛比马莲".toPinYin()) {
+            return characterList.characters.first { it.key == "DebiMarlene" }.name
+        }
         return name.replace(Regex("amp;"), "")
     }
 
 
-    fun eternalReturnFindCharacter(characterTemp: String, i: Int): String {
-        val character = correctName(characterTemp)
-        val characterFind = eternalReturnRequestData.characterFind()
+    fun eternalReturnFindCharacter(characterName: String, i: Int): String {
+        val characterList = eternalReturnRequestData.characterFind()
         var characterKey = ""
-        var i1 = i
-        if (i <= 0) {
-            i1 = 1
-        }
-        redisTemplate.opsForValue()["Eternal_Return_character:${character}-${i}"]?.let {
-            return it
-        }
-        characterFind?.let {
-            val correctCharacter = character.firstPinYin()
+
+        characterList?.let {
+            val character = correctName(characterName, characterList)
+            val characterPinYin = character.toPinYin()
             for (character1 in it.characters) {
-                if (character1.name.firstPinYin() == correctCharacter) {
+                // 转换为首拼
+                if (character1.name.toPinYin().lowercase() == characterPinYin.lowercase()) {
                     characterKey = character1.key
                     break
                 }
+
+                // 英文角色名
                 if (character1.key.lowercase() == character.lowercase()) {
                     characterKey = character1.key
                     break
@@ -62,32 +64,34 @@ class EternalReturnCommandProcess(
                 return ""
             }
 
+            var weapon = ""
+            val weaponStr = StringBuilder()
+            weaponStr.append("武器选择:")
+            eternalReturnRequestData.characterInfoFind(characterKey,"")?.let {
+                val weaponType = it.pageProps.dehydratedState.queries.filter { it.state.data.weaponType != null }
+                    .first().state.data
 
-            var rapier = ""
-//            var rapierList: List<String> = listOf()
-//            val characterInfo = eternalReturnRequestData.characterInfoFind(characterKey)
-//            characterInfo?.let { cI ->
-//                if (i1 > cI.pageProps.randomCharacter.masteries.size) {
-//                    i1 = 1
-//                }
-//                rapierList = cI.pageProps.randomCharacter.masteries
-//                rapier = cI.pageProps.randomCharacter.masteries[i1 - 1]
-//            }
-//
-//            val rapierStr = StringBuilder()
-//            rapierStr.append("武器选择")
-//            for (index in rapierList.indices) {
-//                rapierStr.append("  ${index + 1}:${rapierList[index]}  ")
-//            }
+                val sortWeaponTypes =
+                    weaponType.weaponTypes!!.sortedBy { it.key }
+                if (sortWeaponTypes.isEmpty()) {
+                    weaponStr.append("不存在")
+                }
+                for ((index,type) in sortWeaponTypes.withIndex()) {
+                    weaponStr.append("${index}.${type.name}      ")
+                }
+                weapon = if (i == -1 || i >= sortWeaponTypes.size) {
+                    weaponType.weaponType!!.key
+                } else {
+                    sortWeaponTypes[i].key
+                }
 
-            val rapierStr = StringBuilder()
-            rapierStr.append("武器选择:")
-//            for (index in rapierList.indices) {
-//                rapierStr.append("  ${index + 1}:${rapierList[index]}  ")
-//            }
-            rapierStr.append("dak.gg对角色的数据请求进行了加密 目前无法获取武器数据")
-            return eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, rapier, i) + rapierStr.toString()
 
+            }
+
+
+            val returnMsg = eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, weapon,weaponStr.toString())
+
+            return returnMsg
         }
 
         return ""

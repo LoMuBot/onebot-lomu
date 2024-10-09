@@ -4,6 +4,7 @@ import cn.luorenmu.common.extensions.addMsgLimit
 import cn.luorenmu.common.extensions.checkThenSave
 import cn.luorenmu.common.extensions.getCQFileStr
 import cn.luorenmu.common.extensions.isCQAt
+import cn.luorenmu.common.extensions.isCQJson
 import cn.luorenmu.common.extensions.isCQReply
 import cn.luorenmu.common.extensions.isCQStr
 import cn.luorenmu.common.extensions.isImage
@@ -76,7 +77,7 @@ class OneBotChatStudy(
                 // 不处理
                 if (keyword.isBlank() || keyword.isImage() || keyword.isCQReply() || keyword.length < 2
                     || originMessage.replace(" ", "") == keyword.replace(" ", "")
-                    || keyword.contains("查询") || (keyword.isCQStr() && message.isCQStr())
+                    || keyword.contains("查询") || (keyword.isCQStr() && message.isCQStr()) || keyword.isCQJson()
                 ) {
                     continue
                 }

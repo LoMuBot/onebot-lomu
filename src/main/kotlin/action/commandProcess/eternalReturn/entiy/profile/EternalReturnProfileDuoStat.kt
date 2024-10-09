@@ -1,6 +1,4 @@
-package cn.luorenmu.action.commandHandle.entiy.eternalReturn.profile
-
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileCharacterStat
+package cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile
 
 /**
  * @author LoMu

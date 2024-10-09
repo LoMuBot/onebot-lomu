@@ -51,15 +51,15 @@ class EternalReturnWebPageScreenshot(
     }
 
     // 角色页面
-    fun webCharacterScreenshot(character: String, rapier: String, cacheIndex: Int): String {
-        val cacheName = "Eternal_Return_character:${character}-${cacheIndex}"
-        //再次检查 以防万一
+    fun webCharacterScreenshot(character: String, weapon: String, cacheMsg: String): String {
+        val cacheName = "Eternal_Return_character:${character}-${weapon}"
+        //再次检查
         cacheCheck(cacheName)?.let { return it }
         var url = JsonObjectUtils.getString("request.eternal_return_request.find_character")
         url = MatcherData.replaceDollardName(url, "characterName", character)
-        url = MatcherData.replaceDollardName(url, "rapier", rapier)
-        val path = getEternalReturnImagePath("character/${character}-${rapier}.png")
-        val msgCQ = MsgUtils.builder().img(path).build()
+        url = MatcherData.replaceDollardName(url, "weapon", weapon)
+        val path = getEternalReturnImagePath("character/${character}-${weapon}.png")
+        val msgCQ = MsgUtils.builder().img(path).text(cacheMsg).build()
         val f = syncWebPageScreenshot(cacheName, msgCQ, 1L, TimeUnit.DAYS) {
             it.setHttpUrl(url)
                 .screenshotAllCrop(381, 700, 1131, -1500, 2000).outputImageFile(path)
@@ -80,7 +80,7 @@ class EternalReturnWebPageScreenshot(
         var url = JsonObjectUtils.getString("request.eternal_return_request.players")
         url = MatcherData.replaceDollardName(url, "nickname", nickname)
         val path = getEternalReturnNicknameImagePath(nickname)
-        val returnMsg = MsgUtils.builder().img(OneBotMedia().file(path).cache(false).proxy(false)).build()
+        val returnMsg = MsgUtils.builder().img(OneBotMedia().file(path).cache(false).proxy(false)).text(url).build()
 
 
 
@@ -101,7 +101,7 @@ class EternalReturnWebPageScreenshot(
 
     /**
      *  检查缓存 如果存在则返回Null 不存在则检查队列 如果存在等待任务则返回 调用该任务后需同步等待截图
-     *  当结果返回null时应当对线程进行休眠3s 以防止同时多线程争抢文件
+     *  当结果返回null时 表示该任务其他线程已经处理完成
      */
     fun syncWebPageScreenshot(
         cacheName: String,

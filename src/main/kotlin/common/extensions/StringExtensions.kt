@@ -24,7 +24,7 @@ fun String.toPinYin(): String {
 }
 
 fun String.isImage(): Boolean {
-    return this.startsWith("[CQ:image") && this.endsWith("]")
+    return this.contains("[CQ:image")
 }
 
 
@@ -34,7 +34,7 @@ fun String.isMface(): Boolean {
 }
 
 fun String.getCQFileStr(): String? {
-    if (this.startsWith("[CQ:image") && this.endsWith("]")) {
+    if (isImage()) {
         val regex = """file=([^,]+)""".toRegex()
         val matchResult = regex.find(this)
         if (matchResult != null) {
@@ -66,4 +66,12 @@ fun String.isCQReply(): Boolean {
 
 fun String.isCQStr(): Boolean {
     return this.contains("[CQ:")
+}
+
+fun String.isCQJson(): Boolean {
+    return this.contains("[CQ:json")
+}
+
+fun String.isCQRecord(): Boolean {
+    return this.contains("[CQ:record")
 }

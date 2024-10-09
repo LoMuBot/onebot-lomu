@@ -1,5 +1,7 @@
 package cn.luorenmu.action.commandHandle.entiy.eternalReturn
 
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnDistributions
+
 /**
  * @author LoMu
  * Date 2024.08.03 9:41

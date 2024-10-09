@@ -17,6 +17,9 @@ Bot并没有接入NLP所以无法理解自然语言 它的所有回复相当于�
 ## TODO
 
 - 频繁词汇记录并限制回复
-- 不再依赖selenium(数据量较大)
+- 不再依赖selenium(数据量较大)       
+      
+     
+特别感谢 bilibili-api-collect     
 
 由liteLoaderNTQQ LLonebot shiro 强力驱动

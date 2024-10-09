@@ -10,7 +10,8 @@ import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
 import cn.luorenmu.repository.entiy.OneBotCommand
 import cn.luorenmu.repository.entiy.OneBotConfig
-import org.springframework.data.redis.core.RedisTemplate
+import cn.luorenmu.task.CollegeMessagePush
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.web.bind.annotation.*
 
 
@@ -26,7 +27,8 @@ class System(
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
     private val oneBotCommandRespository: OneBotCommandRespository,
-    private val redisTemplate: RedisTemplate<String,String>
+    private val redisTemplate: StringRedisTemplate,
+    private val collegeMessagePush: CollegeMessagePush,
 ) {
     @PostMapping("/")
     fun hello(@RequestBody body: String) {
@@ -38,6 +40,12 @@ class System(
     @GetMapping("/")
     fun system(): String {
         return "server running success"
+    }
+
+    @GetMapping("/test")
+    fun test(): String {
+        collegeMessagePush.coursePush()
+        return "success"
     }
 
     @PostMapping("/command")

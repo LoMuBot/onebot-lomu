@@ -4,8 +4,9 @@ import cn.luorenmu.action.OneBotChatStudy
 import cn.luorenmu.action.OneBotCommandAllocator
 import cn.luorenmu.action.OneBotKeywordReply
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
+import cn.luorenmu.action.listenProcess.GroupSpecialListen
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
-import cn.luorenmu.entiy.ConfigGroup
+import cn.luorenmu.entiy.ConfigId
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.repository.GroupMessageRepository
 import cn.luorenmu.repository.OneBotConfigRepository
@@ -18,7 +19,7 @@ import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
@@ -40,9 +41,23 @@ class GroupEventListen(
     private val oneBotKeywordReply: OneBotKeywordReply,
     private val oneBotChatStudy: OneBotChatStudy,
     private val oneBotConfigRepository: OneBotConfigRepository,
-    private val redisTemplate: RedisTemplate<String, String>,
+    private val redisTemplate: StringRedisTemplate,
     private val bilibiliEventListen: BilibiliEventListen,
+    private val groupSpecialListen: GroupSpecialListen,
 ) {
+
+    /**
+     * false if the id exist else true not exist
+     */
+    fun idIsNotExistFunction(configName: String, id: Long): Boolean =
+        (redisTemplate.opsForValue()[configName]?.to<ConfigId>()
+            ?: run {
+                val list =
+                    oneBotConfigRepository.findAllByConfigName(configName).map { it.configContent.toLong() }
+                val configId = ConfigId(list)
+                redisTemplate.opsForValue()[configName, configId.toJSONString(), 1] = TimeUnit.DAYS
+                configId
+            }).list.firstOrNull { it == id } == null
 
 
     @GroupMessageHandler
@@ -63,25 +78,28 @@ class GroupEventListen(
             )
         groupMessageRepository.save(groupMessage)
 
-        // 禁止回复的群
-        val banKeywordList = redisTemplate.opsForValue()["banKeywordGroup"]?.to<ConfigGroup>() ?: run {
-            val list = oneBotConfigRepository.findAllByConfigName("banKeywordGroup").map { it.configContent.toLong() }
-            val configGroup = ConfigGroup(list)
-            redisTemplate.opsForValue()["banKeywordGroup", configGroup.toJSONString(), 1] = TimeUnit.DAYS
-            configGroup
-        }
+
         // 关键词消息
-        banKeywordList.list.firstOrNull { it == groupId } ?: run {
+        if (idIsNotExistFunction("banKeywordGroup", groupId)) {
             oneBotKeywordReply.process(bot, groupMessageEvent.messageId, senderId, groupId, message)
         }
 
-        bilibiliEventListen.process(bot,groupId,message)
+
+        // 禁止监听
+        if (idIsNotExistFunction("banBilibiliEventListen", groupId)) {
+            bilibiliEventListen.process(bot, groupId, message)
+        }
+
+        if (!idIsNotExistFunction("recordListenSender", senderId)) {
+            groupSpecialListen.recordMessageListen(bot, groupMessageEvent)
+        }
+
 
         val command = message.replace(" ", "")
         // 指令
         try {
             val process =
-                oneBotCommandAllocator.process(bot.selfId, command, groupMessageEvent.groupId, groupMessageEvent.sender)
+                oneBotCommandAllocator.process(bot, command, groupMessageEvent.groupId, groupMessageEvent.sender)
             if (process.isNotBlank()) {
                 bot.sendGroupMsg(
                     groupId,
@@ -91,16 +109,16 @@ class GroupEventListen(
             }
         } catch (e: Exception) {
             bot.sendGroupMsgLimit(groupId, "服务器内部错误 请求的任务被迫中断")
-            throw e
+            log.error { "意外错误: ${e.stackTraceToString()} , 因: ${e.message}" }
         }
 
 
         // 禁止该群学习
-        val banStudyList = redisTemplate.opsForValue()["banStudy"].to<ConfigGroup>() ?: run {
+        val banStudyList = redisTemplate.opsForValue()["banStudy"].to<ConfigId>() ?: run {
             val list = oneBotConfigRepository.findAllByConfigName("banStudy").map { it.configContent.toLong() }
-            val configGroup = ConfigGroup(list)
-            redisTemplate.opsForValue()["banStudy", configGroup.toJSONString(), 1] = TimeUnit.DAYS
-            configGroup
+            val configId = ConfigId(list)
+            redisTemplate.opsForValue()["banStudy", configId.toJSONString(), 1] = TimeUnit.DAYS
+            configId
         }
         banStudyList.list.firstOrNull { it == groupId } ?: run {
             oneBotChatStudy.process(bot, groupMessageEvent)

@@ -1,6 +1,4 @@
-package cn.luorenmu.action.commandHandle.entiy.eternalReturn
-
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacterPickRate
+package cn.luorenmu.action.commandProcess.eternalReturn.entiy
 
 /**
  * @author LoMu
