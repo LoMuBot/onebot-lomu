@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component
 class BilibiliRequestData {
 
     fun downloadVideo(url: String, outputPath: String): Boolean {
+
         val requestDetailed = Request.RequestDetailed()
         val headers = Request.RequestParam("referer", "https://www.bilibili.com")
         requestDetailed.url = url

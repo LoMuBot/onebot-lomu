@@ -11,7 +11,9 @@ import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
 import cn.luorenmu.entiy.Request.RequestDetailed
 import cn.luorenmu.file.ReadWriteFile
+import cn.luorenmu.listen.log
 import cn.luorenmu.request.RequestController
+import com.alibaba.fastjson2.JSONException
 import com.alibaba.fastjson2.to
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
@@ -120,13 +122,22 @@ class EternalReturnRequestData(
         val request = RequestController("eternal_return_request.find_character_info")
         request.replaceUrl("key", character)
         request.replaceUrl("key1", character)
-        request.replaceUrl("weapon",weapon)
+        request.replaceUrl("weapon", weapon)
         val resp = request.request()
         return resp?.let {
-            val result = it.body().to<EternalReturnCharacterInfo>()
-            redisTemplate.opsForValue()["Eternal_Return_Find:${character}", it.body(), 1L] =
-                TimeUnit.DAYS
-            result
+            try {
+                val result = it.body().to<EternalReturnCharacterInfo>()
+
+                redisTemplate.opsForValue()["Eternal_Return_Find:${character}", it.body(), 1L] =
+                    TimeUnit.DAYS
+                result
+            }catch (e: JSONException){
+                log.error {
+                    "characterInfoFind动态链接已失效,需手动更新"
+                }
+                return null
+            }
+
         }
 
     }

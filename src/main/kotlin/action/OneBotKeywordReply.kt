@@ -2,22 +2,18 @@ package cn.luorenmu.action
 
 import cn.luorenmu.action.entiy.KeywordReplyJson
 import cn.luorenmu.common.extensions.isAt
-import cn.luorenmu.common.extensions.sendGroupDeepMsgLimit
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
-import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.JsonObjectUtils
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
-import cn.luorenmu.listen.groupMessageQueue
+import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.KeywordReplyRepository
-import cn.luorenmu.repository.entiy.DeepMessage
 import cn.luorenmu.repository.entiy.KeywordReply
 import com.alibaba.fastjson2.JSONObject
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
-import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
-import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 /**
@@ -26,8 +22,8 @@ import kotlin.random.Random
  */
 @Component
 class OneBotKeywordReply(
+    private val stringRedisTemplate: StringRedisTemplate,
     private var keywordReplyRepository: KeywordReplyRepository,
-    private val redisTemplate: RedisTemplate<String, String>,
 ) {
     // 将json最为数据存储 (在数据量较大时无法做到像mongodb一样高效 且性能极其低下)
     fun jsonKeyword(id: Long, message: String): String? {
@@ -61,46 +57,33 @@ class OneBotKeywordReply(
     }
 
     @Async("keywordProcessThreadPool")
-    fun process(bot: Bot, messageId: Int, senderId: Long, groupId: Long, message: String) {
-        redisTemplate.opsForValue()["limit:${groupId}"] ?: run {
-            if (message.isAt(bot.selfId)) {
-                if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 3) {
-                    bot.setMsgEmojiLike(messageId.toString(), "66")
-                }
+    fun process(bot: Bot, messageSender: MessageSender) {
+        val atMe = messageSender.message.isAt(bot.selfId)
+        if (atMe) {
+            if (Random(System.currentTimeMillis()).nextInt(
+                    0,
+                    10
+                ) <= 5
+            ) {
+                bot.setMsgEmojiLike(messageSender.messageId.toString(), "66")
             }
+        }
 
-            // 概率回复
-            if (Random(System.currentTimeMillis()).nextInt(0, 10) == 1) {
-                val mongodbKeyword = mongodbKeyword(bot.selfId, senderId, message)
-                mongodbKeyword?.let {
-                    if (bot.sendGroupMsgKeywordLimit(groupId, it)) {
-                        it.triggers?.run {
-                            it.triggers = it.triggers!! + 1
-                        } ?: run {
-                            it.triggers = 1
-                        }
-                        keywordReplyRepository.save(it)
+        // 概率回复
+        if (Random(System.currentTimeMillis()).nextDouble(
+                0.0,
+                1.0
+            ) <= (stringRedisTemplate.opsForValue()["probability"]?.toDouble() ?: 0.1) || atMe
+        ) {
+            val mongodbKeyword = mongodbKeyword(bot.selfId, messageSender.senderId, messageSender.message)
+            mongodbKeyword?.let {
+                if (bot.sendGroupMsgKeywordLimit(messageSender.groupOrSenderId, it)) {
+                    it.triggers?.run {
+                        it.triggers = it.triggers!! + 1
+                    } ?: run {
+                        it.triggers = 1
                     }
-                    redisTemplate.opsForValue()["limit:${groupId}", "1", 3L] = TimeUnit.MINUTES
-                }
-
-                // 突然复读 加上喵字 嘻嘻
-            } else if (Random(System.currentTimeMillis()).nextInt(0, 3000) == 1) {
-                redisTemplate.opsForValue()["limitReRead:${groupId}"] ?: run {
-                    val lastMessage = groupMessageQueue.lastMessage(groupId)
-                    if (lastMessage?.groupEventObject?.sender?.userId == senderId) {
-                        bot.sendGroupDeepMsgLimit(
-                            groupId,
-                            message + "喵~",
-                            DeepMessage(lastMessage.groupEventObject.message + "喵~", false, null)
-                        )
-                    } else {
-                        bot.sendGroupMsgLimit(
-                            groupId,
-                            message + "喵~"
-                        )
-                    }
-                    redisTemplate.opsForValue()["limitReRead:${groupId}", "1", 3L] = TimeUnit.HOURS
+                    keywordReplyRepository.save(it)
                 }
             }
         }

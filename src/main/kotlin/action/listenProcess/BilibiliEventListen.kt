@@ -9,7 +9,6 @@ import cn.luorenmu.repository.entiy.BilibiliVideo
 import cn.luorenmu.request.RequestController
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.io.File
 import kotlin.jvm.optionals.getOrNull
@@ -20,20 +19,17 @@ import kotlin.jvm.optionals.getOrNull
  */
 @Component
 class BilibiliEventListen(
-    val bilibiliRequestData: BilibiliRequestData,
-    val redisTemplate: StringRedisTemplate,
-    val bilibiliVideoRepository: BilibiliVideoRepository,
+    private val bilibiliRequestData: BilibiliRequestData,
+    private val bilibiliVideoRepository: BilibiliVideoRepository,
 ) {
-    val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
-    val bilibiliVideoShortLink = "https://b23.tv/([a-zA-Z0-9]+)"
+    private val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
+    private val bilibiliVideoShortLink = "https://b23.tv/([a-zA-Z0-9]+)"
 
 
     fun process(bot: Bot, groupId: Long, message: String) {
         val correctMsg = message.replace("\\", "")
         findBilibiliLinkBvid(correctMsg)?.let { bvid ->
-            if (bvid.length != 12) {
-                return
-            }
+
             val videoPath = getVideoPath("bilibili/$bvid.flv")
             val videoPathCQ = MsgUtils.builder().video(videoPath, "").build()
 
@@ -60,33 +56,36 @@ class BilibiliEventListen(
                 }
                 videoInfoStr += "${videoInfo.part} https://www.bilibili.com/video/$bvid"
 
-                bot.sendGroupMsg(
+                bot.sendGroupMsgLimit(
                     groupId,
-                    videoInfoStr,
-                    false
+                    videoInfoStr
                 )
 
-                if (downloadVideo(bvid, videoInfo.cid, videoPath)) {
-                    bilibiliVideoRepository.save(
-                        BilibiliVideo(
-                            null,
-                            bvid,
-                            videoPath,
-                            videoPathCQ,
-                            videoInfoStr
+                downloadVideo(bvid, videoInfo.cid, videoPath)?.let { success ->
+                    if (success) {
+                        bilibiliVideoRepository.save(
+                            BilibiliVideo(
+                                null,
+                                bvid,
+                                videoPath,
+                                videoPathCQ,
+                                videoInfoStr
+                            )
                         )
-                    )
-                    bot.sendGroupMsgLimit(groupId, videoPathCQ)
-                } else {
-                    bilibiliVideoRepository.save(
-                        BilibiliVideo(
-                            null,
-                            bvid,
-                            null,
-                            null,
-                            videoInfoStr
+                        bot.sendGroupMsgLimit(groupId, videoPathCQ)
+                    } else {
+                        bilibiliVideoRepository.save(
+                            BilibiliVideo(
+                                null,
+                                bvid,
+                                null,
+                                null,
+                                videoInfoStr
+                            )
                         )
-                    )
+                    }
+                } ?: run {
+                    bot.sendGroupMsg(groupId, "视频下载失败", false)
                 }
             }
         }
@@ -94,10 +93,15 @@ class BilibiliEventListen(
     }
 
 
-    fun findBilibiliLinkBvid(message: String): String? {
-
+    private fun findBilibiliLinkBvid(message: String): String? {
         if (message.contains(bilibiliVideoLongLink.toRegex())) {
-            return MatcherData.matcherIndexStr(message, bilibiliVideoLongLink, 0).getOrNull()
+            return MatcherData.matcherIndexStr(message, bilibiliVideoLongLink, 0).getOrNull()?.let { bvid ->
+                if (bvid.length == 12) {
+                    return bvid
+                }
+                null
+            }
+
         }
         if (message.contains(bilibiliVideoShortLink.toRegex())) {
             // short link to long link
@@ -118,9 +122,9 @@ class BilibiliEventListen(
     /**
      *  @param bvid (bv号)
      *  @param outputPath video save local path need file name and video type (default type is flv)
-     *  @return null if video download failed or video too large (limit length $minute minute) else string
+     *  @return null if video download failed  else false video too large (limit length $minute minute)
      */
-    fun downloadVideo(bvid: String, cid: Long, outputPath: String): Boolean {
+    private fun downloadVideo(bvid: String, cid: Long, outputPath: String): Boolean? {
         val videoInfos = bilibiliRequestData.getVideoInfo(bvid, cid)
         videoInfos?.let {
             val minute = videoInfos.timelength / 1000 / 60
@@ -128,8 +132,10 @@ class BilibiliEventListen(
                 return false
             }
             videoInfos.durl.firstOrNull()?.let { videoInfo ->
-                bilibiliRequestData.downloadVideo(videoInfo.url, outputPath)
-                return true
+                if (bilibiliRequestData.downloadVideo(videoInfo.url, outputPath)) {
+                    return true
+                }
+                return null
             }
         }
         return false

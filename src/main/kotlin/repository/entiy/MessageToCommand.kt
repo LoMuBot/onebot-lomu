@@ -16,8 +16,18 @@ data class MessageToCommand(
     val keyword: String,
     val command: String,
     // 指定发送者 当为-1 表示支持任何人
-    val senderId: Long ,
+    val senderId: Long,
     // 指定群 当为-1 表示支持所有群
-    val groupId: Long ,
+    val groupId: Long,
 
-)
+    ) {
+    constructor(
+        keyword: String,
+        command: String,
+        // 指定发送者 当为-1 表示支持任何人
+        senderId: Long,
+        // 指定群 当为-1 表示支持所有群
+        groupId: Long,
+    ) : this(null, keyword, command, senderId, groupId) {
+    }
+}

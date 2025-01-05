@@ -1,20 +1,15 @@
 package cn.luorenmu.action
 
-import cn.luorenmu.action.commandProcess.college.CollegeMessage
 import cn.luorenmu.action.commandProcess.eternalReturn.EternalReturnCommandProcess
-import cn.luorenmu.action.commandProcess.onebotCommand.BotCommandProcess
 import cn.luorenmu.entiy.OneBotAllCommands
-import cn.luorenmu.file.ReadWriteFile
+import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.OneBotCommandRespository
 import cn.luorenmu.repository.entiy.OneBotCommand
-import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
-import com.mikuac.shiro.common.utils.OneBotMedia
 import com.mikuac.shiro.core.Bot
-import com.mikuac.shiro.dto.event.message.GroupMessageEvent
-import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
@@ -26,9 +21,8 @@ import java.util.concurrent.TimeUnit
 class OneBotCommandAllocator(
     private val oneBotCommandRespository: OneBotCommandRespository,
     private val eternalReturnCommandProcess: EternalReturnCommandProcess,
-    private val redisTemplate: RedisTemplate<String, String>,
-    private val botCommandProcess: BotCommandProcess,
-    private val collegeMessage: CollegeMessage,
+    private val redisTemplate: StringRedisTemplate,
+    private val permissionsManager: PermissionsManager,
 ) {
 
 
@@ -39,7 +33,7 @@ class OneBotCommandAllocator(
         oneBotCommand: OneBotCommand,
     ): Boolean {
         val atMe = MsgUtils.builder().at(botId).build()
-        val command1 = command.replace(atMe, "")
+        val removeAtAndEmptyCharacterCommand = command.replace(atMe, "").replace(" ", "")
         if (oneBotCommand.needAtMe) {
             if (!command.contains(atMe)) {
                 return false
@@ -50,13 +44,13 @@ class OneBotCommandAllocator(
                 return false
             }
         }
-        return oneBotCommand.commandName == commandName && command1.contains(Regex(oneBotCommand.keyword))
+        return oneBotCommand.commandName == commandName && removeAtAndEmptyCharacterCommand.contains(Regex(oneBotCommand.keyword))
     }
 
 
-    fun process(bot: Bot, command: String, groupId: Long, sender: GroupMessageEvent.GroupSender): String {
+    fun process(bot: Bot, messageSender: MessageSender): String? {
         val botId = bot.selfId
-        val senderId = sender.userId
+        val senderId = messageSender.senderId
         val allCommands = redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
             synchronized(redisTemplate) {
                 // 二次安全检查
@@ -71,76 +65,96 @@ class OneBotCommandAllocator(
         }
 
 
+        allCommands.firstOrNull { isCurrentCommand(botId, messageSender.message, it.commandName, it) }
+            ?.let { oneBotCommand ->
+                val command = messageSender.message.replace(MsgUtils.builder().at(botId).build(), "")
+                return when (oneBotCommand.commandName) {
+                    "eternalReturnFindPlayers" -> {
+                        val nickname =
+                            command.replace(Regex(oneBotCommand.keyword), "").trim().lowercase().replace(" ", "")
+                        if (nickname.isBlank()) "" else eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
+                    }
 
-        allCommands.firstOrNull { isCurrentCommand(botId, command, it.commandName, it) }?.let { oneBotCommand ->
-            val command1 = command.replace(MsgUtils.builder().at(botId).build(), "")
-            return when (oneBotCommand.commandName) {
-                "ff14Bind" -> ff14Bind(senderId)
-                "eternalReturnFindPlayers" -> {
-                    val nickname = command1.replace(Regex(oneBotCommand.keyword), "").trim().lowercase()
-                    if (nickname.isBlank()) "" else eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
-                }
+                    "eternalReturnEmailPush" -> eternalReturnCommandProcess.eternalReturnEmailPush(
+                        messageSender.groupOrSenderId,
+                        messageSender
+                    )
 
-                "eternalReturnEmailPush" -> eternalReturnCommandProcess.eternalReturnEmailPush(groupId, sender)
-                "eternalReturnLeaderboard" -> {
-                    Regex(oneBotCommand.keyword).find(command1)?.let { match ->
-                        if (match.groupValues.size > 1) {
-                            eternalReturnCommandProcess.leaderboard(match.groupValues[1].toInt())
-                        } else {
-                            ""
+                    "eternalReturnLeaderboard" -> {
+                        Regex(oneBotCommand.keyword).find(command)?.let { match ->
+                            if (match.groupValues.size > 1) {
+                                eternalReturnCommandProcess.leaderboard(match.groupValues[1].toInt())
+                            } else {
+                                ""
+                            }
                         }
-                    } ?: ""
-                }
-
-                "eternalReturnReFindPlayers" -> {
-                    val nickname = command1.replace(Regex(oneBotCommand.keyword), "").trim().lowercase()
-                    if (nickname.isBlank()) "" else {
-                        redisTemplate.delete("Eternal_Return_NickName:$nickname")
-                        eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
                     }
-                }
 
-                "eternalReturnFindCharacter" -> {
-                    var characterName = command1.replace(Regex(oneBotCommand.keyword), "").trim()
-                    val indexMatch = """[0-9]""".toRegex().find(characterName)?.let {
-                        val index = it.value.toInt()
-                        characterName = characterName.replace(it.value, "")
-                        index
-                    } ?: -1
-                    if (characterName.isBlank()) "" else {
-                        eternalReturnCommandProcess.eternalReturnFindCharacter(characterName, indexMatch)
+                    "eternalReturnReFindPlayers" -> {
+                        val nickname =
+                            command.replace(Regex(oneBotCommand.keyword), "").trim().lowercase().replace(" ", "")
+                        if (nickname.isBlank()) "" else {
+                            redisTemplate.delete("Eternal_Return_NickName:$nickname")
+                            eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
+                        }
                     }
+
+                    "eternalReturnFindCharacter" -> {
+                        var characterName = command.replace(Regex(oneBotCommand.keyword), "").trim().replace(" ", "")
+                        val indexMatch = """[0-9]""".toRegex().find(characterName)?.let {
+                            val index = it.value.toInt()
+                            characterName = characterName.replace(it.value, "")
+                            index
+                        } ?: -1
+                        if (characterName.isBlank()) null else {
+                            eternalReturnCommandProcess.eternalReturnFindCharacter(characterName, indexMatch)
+                        }
+                    }
+
+
+                    "eternalReturnCutoffs" -> eternalReturnCommandProcess.cutoffs()
+                    "botCommandBanStudy" -> permissionsManager.banStudy(
+                        messageSender.groupOrSenderId,
+                        messageSender.role,
+                        senderId
+                    )
+
+                    "botCommandUnbanStudy" -> permissionsManager.unbanStudy(
+                        messageSender.groupOrSenderId,
+                        messageSender.role,
+                        senderId
+                    )
+
+                    "botCommandBanKeyword" -> permissionsManager.banKeyword(
+                        messageSender.groupOrSenderId,
+                        messageSender.role,
+                        senderId
+                    )
+
+                    "botCommandUnbanKeyword" -> permissionsManager.unbanKeyword(
+                        messageSender.groupOrSenderId,
+                        messageSender.role,
+                        senderId
+                    )
+
+                    "BilibiliEventListen" -> permissionsManager.bilibiliEventListen(
+                        messageSender.groupOrSenderId,
+                        messageSender.role,
+                        senderId
+                    )
+
+                    "banBilibiliEventListen" -> permissionsManager.banBilibiliEventListen(
+                        messageSender.groupOrSenderId,
+                        messageSender.role,
+                        senderId
+                    )
+
+                    else -> null
                 }
-
-
-                "eternalReturnCutoffs" -> eternalReturnCommandProcess.cutoffs()
-                "botCommandBanStudy" -> botCommandProcess.banStudy(groupId, sender.role, senderId)
-                "botCommandUnbanStudy" -> botCommandProcess.unbanStudy(groupId, sender.role, senderId)
-                "botCommandBanKeyword" -> botCommandProcess.banKeyword(groupId, sender.role, senderId)
-                "botCommandUnbanKeyword" -> botCommandProcess.unbanKeyword(groupId, sender.role, senderId)
-                "banBilibiliEventListen" -> botCommandProcess.banBilibiliEventListen(groupId, sender.role, senderId)
-                "unbanBilibiliEventListen" -> botCommandProcess.unbanBilibiliEventListen(groupId, sender.role, senderId)
-                "coursePush" -> botCommandProcess.coursePush(groupId, senderId)
-                "course" -> collegeMessage.sendCourse() ?: run { "HTTP请求返回的结果与预期不符 无法处理" }
-                else -> ""
             }
-        }
 
-        return ""
+        return null
     }
 
 
-    // TODO 待完成
-    private fun ff14Bind(id: Long): String {
-        val requestController = RequestController("ff14_request.create_qrcode")
-        val response = requestController.request()
-        val path = ReadWriteFile.currentPathFileName("qrcode/${id}.png").substring(1)
-
-        val file = ReadWriteFile.writeStreamFile(
-            path,
-            response.bodyStream()
-        )
-        val img = MsgUtils.builder().img(OneBotMedia().file(file.absolutePath).cache(false).proxy(false))
-        return img.build()
-    }
 }

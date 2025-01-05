@@ -3,11 +3,11 @@ package cn.luorenmu.action.commandProcess.eternalReturn
 
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacter
 import cn.luorenmu.common.extensions.toPinYin
+import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.EternalReturnPushRepository
 import cn.luorenmu.repository.entiy.EternalReturnPush
 import cn.luorenmu.service.EmailPushService
 import com.mikuac.shiro.common.utils.MsgUtils
-import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -67,16 +67,18 @@ class EternalReturnCommandProcess(
             var weapon = ""
             val weaponStr = StringBuilder()
             weaponStr.append("武器选择:")
-            eternalReturnRequestData.characterInfoFind(characterKey,"")?.let {
-                val weaponType = it.pageProps.dehydratedState.queries.filter { it.state.data.weaponType != null }
-                    .first().state.data
+
+
+            eternalReturnRequestData.characterInfoFind(characterKey, "")?.let { characterInfo ->
+                val weaponType =
+                    characterInfo.pageProps.dehydratedState.queries.first { it1 -> it1.state.data.weaponType != null }.state.data
 
                 val sortWeaponTypes =
-                    weaponType.weaponTypes!!.sortedBy { it.key }
+                    weaponType.weaponTypes!!.sortedBy { weapon -> weapon.key }
                 if (sortWeaponTypes.isEmpty()) {
                     weaponStr.append("不存在")
                 }
-                for ((index,type) in sortWeaponTypes.withIndex()) {
+                for ((index, type) in sortWeaponTypes.withIndex()) {
                     weaponStr.append("${index}.${type.name}      ")
                 }
                 weapon = if (i == -1 || i >= sortWeaponTypes.size) {
@@ -85,11 +87,11 @@ class EternalReturnCommandProcess(
                     sortWeaponTypes[i].key
                 }
 
-
             }
 
 
-            val returnMsg = eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, weapon,weaponStr.toString())
+            val returnMsg =
+                eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, weapon, weaponStr.toString())
 
             return returnMsg
         }
@@ -97,15 +99,15 @@ class EternalReturnCommandProcess(
         return ""
     }
 
-    fun eternalReturnEmailPush(groupId: Long, sender: GroupMessageEvent.GroupSender): String {
-        val email = "${sender.userId}@qq.com"
+    fun eternalReturnEmailPush(groupId: Long, sender: MessageSender): String {
+        val email = "${sender.senderId}@qq.com"
 
         eternalReturnPushRepository.findByEmail(email)?.let {
             return "推送列表中已收录了你的邮箱地址"
         }
 
         emailPushService.emailPush(
-            email, "Test Email", "${sender.userId} " +
+            email, "Test Email", "${sender.senderId} " +
                     "<img src=\"https://i0.hdslb.com/bfs/new_dyn/eafcdc2ea38eddfbb8a0a1f06fe13e6214868240.png\" alt=\"img\">"
         )
         eternalReturnPushRepository.save(EternalReturnPush(null, email, sender, LocalDateTime.now(), groupId, true))
@@ -134,8 +136,6 @@ class EternalReturnCommandProcess(
             return notFound
         }
 
-
-
         return eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)
     }
 
@@ -143,20 +143,6 @@ class EternalReturnCommandProcess(
     // 排名
     fun leaderboard(i: Int): String {
         return eternalReturnDraw.leaderboard(i)
-    }
-
-
-    fun characterLeaderborad(characterChineseName: String, sortType: String) {
-        eternalReturnRequestData.characterFind()?.let {
-            var characterKey = "Jackie"
-            for (character in it.characters) {
-                if (character.name == characterChineseName) {
-                    characterKey = character.key
-                }
-            }
-            eternalReturnRequestData.characterLeaderboardFind(characterKey, sortType)?.characterById
-
-        }
     }
 
     //分数限

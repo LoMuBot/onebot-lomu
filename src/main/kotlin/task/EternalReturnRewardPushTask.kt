@@ -44,7 +44,7 @@ class EternalReturnRewardPushTask(
     }
 
 
-    @Scheduled(cron = "0 0 * * * ?")
+    @Scheduled(cron = "0 */5 * * * *")
     //@Scheduled(cron = "0 */1 * * * *")
     fun eternalReturnRewardPush() {
         if (failed > 3) {
@@ -133,6 +133,6 @@ class EternalReturnRewardPushTask(
                 .toList()
         return bot.groupList.data.stream().filter {
             it.groupName.contains("永恒轮回") || groups.contains(it.groupId)
-        }.map<Long> { it.groupId }.toList()
+        }.map { it.groupId }.toList()
     }
 }

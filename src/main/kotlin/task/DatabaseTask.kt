@@ -1,6 +1,7 @@
 package cn.luorenmu.task
 
 import cn.luorenmu.entiy.WaitDeleteFile
+import cn.luorenmu.listen.log
 import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.OverdueKeywordRepository
@@ -38,35 +39,15 @@ class DatabaseTask(
 
     @Scheduled(cron = "0 0 12 * * ?")
     fun timingDeleteKeyword() {
-        val now = LocalDateTime.now()
-        val deleteLists = arrayListOf<KeywordReply>()
-        var lists = arrayListOf<KeywordReply>()
-        lists.addAll(keywordReplyRepository.findByCreatedDateBefore(LocalDateTime.now().plusDays(-20)))
+        val lists = arrayListOf<KeywordReply>()
+        lists.addAll(keywordReplyRepository.findByCreatedDateBeforeAndTriggersGreaterThan(LocalDateTime.now().plusDays(-10),20))
         lists.addAll(
             keywordReplyRepository.findByCreatedDateAfterAndTriggersIsNullOrTriggersIs(
                 LocalDateTime.now().plusDays(-7), 0
             )
         )
-        for (keyword in lists) {
-            keyword.createdDate?.let {
-                if (now.plusDays(20)
-                        .isBefore(keyword.createdDate) && keyword.triggers != null && keyword.triggers!! > 10 || keyword.triggers!! == 1
-                ) {
-                    deleteLists.add(keyword)
-                }
-                if (now.plusDays(7)
-                        .isBefore(keyword.createdDate) && keyword.triggers == null || keyword.triggers!! == 0
-                ) {
-                    deleteLists.add(keyword)
-                }
-
-            }
-        }
-
-
-        val overdueKeywordList = deleteLists.stream().map { OverdueKeyword(it) }.toList()
-        overdueKeywordRepository.saveAll(overdueKeywordList)
-        keywordReplyRepository.deleteAll(deleteLists)
+        log.info { "delete keyword ${lists.size}" }
+        keywordReplyRepository.deleteAll(lists)
     }
 
 }

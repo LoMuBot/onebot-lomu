@@ -34,7 +34,7 @@ interface KeywordReplyRepository : MongoRepository<KeywordReply, String> {
     fun findBySenderId(senderId: Long): List<KeywordReply>
 
 
-    fun findByCreatedDateBefore(time: LocalDateTime): List<KeywordReply>
+    fun findByCreatedDateBeforeAndTriggersGreaterThan(time: LocalDateTime, tirggers: Int): List<KeywordReply>
     fun findByCreatedDateAfterAndTriggersIsNullOrTriggersIs(date: LocalDateTime, triggers: Int): List<KeywordReply>
 
     @Query(

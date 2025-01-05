@@ -19,9 +19,6 @@ class PrivateEvenListen {
 
     @PrivateMessageHandler
     fun privateMessageHandler(bot: Bot, privateMessage: PrivateMessageEvent) {
-        if (privateMessage.userId == 2842775752) {
-            bot.sendPrivateMsg(privateMessage.userId,"ok",false)
-        }
     }
 
     @PrivateMsgDeleteNoticeHandler

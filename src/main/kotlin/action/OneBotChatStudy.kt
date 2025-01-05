@@ -1,18 +1,6 @@
 package cn.luorenmu.action
 
-import cn.luorenmu.common.extensions.addMsgLimit
-import cn.luorenmu.common.extensions.checkThenSave
-import cn.luorenmu.common.extensions.getCQFileStr
-import cn.luorenmu.common.extensions.isCQAt
-import cn.luorenmu.common.extensions.isCQJson
-import cn.luorenmu.common.extensions.isCQReply
-import cn.luorenmu.common.extensions.isCQStr
-import cn.luorenmu.common.extensions.isImage
-import cn.luorenmu.common.extensions.isMface
-import cn.luorenmu.common.extensions.replaceCqToFileStr
-import cn.luorenmu.common.extensions.selfRecentlySent
-import cn.luorenmu.common.extensions.sendGroupMsgLimit
-import cn.luorenmu.common.extensions.toPinYin
+import cn.luorenmu.common.extensions.*
 import cn.luorenmu.listen.groupMessageQueue
 import cn.luorenmu.repository.ActiveSendMessageRepository
 import cn.luorenmu.repository.KeywordReplyRepository
@@ -93,7 +81,7 @@ class OneBotChatStudy(
 
                 }
                 if (score != 0) {
-                    scoreMap.put(keyword, score)
+                    scoreMap[keyword] = score
                 }
             }
             // 打分 将最高分作为keyword
@@ -112,11 +100,11 @@ class OneBotChatStudy(
                         maxScoreStr,
                         message,
                         false,
-                        false,
-                        groupId,
-                        LocalDateTime.now(),
-                        0,
-                        null
+                        atMe = false,
+                        groupId = groupId,
+                        createdDate = LocalDateTime.now(),
+                        triggers = 0,
+                        nextMessage = null
                     )
                 )
             }
@@ -134,14 +122,14 @@ class OneBotChatStudy(
 
 
         //机器人已经复读了 将存储复读的头信息作为keyword
-        val lastMessageList = groupMessageQueue.lastMessages(groupId, size + 5)
-        if (lastMessageList.isNotEmpty()) {
+        val lastMessageListSize5 = groupMessageQueue.lastMessages(groupId, size + 5)
+        if (lastMessageListSize5.isNotEmpty()) {
             var keyword: String? = null
             val currentMessage = message.replaceCqToFileStr() ?: message
             val currentMessagePinYin = currentMessage.toPinYin()
 
             // 遍历查找
-            for (lastGroupMessage in lastMessageList) {
+            for (lastGroupMessage in lastMessageListSize5) {
                 // 如果为图片获取图片名
                 val lastMessage = lastGroupMessage!!.groupEventObject.message.replaceCqToFileStr()
                     ?: lastGroupMessage.groupEventObject.message
@@ -152,7 +140,7 @@ class OneBotChatStudy(
                     }
 
                     val results =
-                        ToAnalysis.parse(lastMessage).terms.stream().filter { ta -> ta.realName.length >= 2 }
+                        ToAnalysis.parse(lastMessage).terms.stream()
                             .map { ta -> ta.realName }.toList()
                     for (result in results) {
                         if (currentMessagePinYin.contains(result.toPinYin())) {
@@ -166,12 +154,10 @@ class OneBotChatStudy(
 
             // 无法找到 再次尝试查找图片
             keyword ?: run {
-                val lastMessageList = groupMessageQueue.lastMessages(groupId, size + 3)
-                if (lastMessageList.isNotEmpty()) {
-                    val currentMessage = message.replaceCqToFileStr() ?: message
+                if (lastMessageListSize5.isNotEmpty()) {
 
                     // 遍历查找
-                    for (lastGroupMessage in lastMessageList) {
+                    for (lastGroupMessage in lastMessageListSize5) {
                         val lastMessage = lastGroupMessage!!.groupEventObject.message.replaceCqToFileStr()
                             ?: lastGroupMessage.groupEventObject.message
                         if (lastMessage != currentMessage) {
@@ -184,16 +170,15 @@ class OneBotChatStudy(
                 }
             }
 
-            // 无法找到 将其添加至主动消息
+            // 无法找到
             keyword ?: run {
-                activeSendMessageRepository.checkThenSave(ActiveMessage(null, -1, message, null))
                 return
             }
 
             var needProcess = false
-            keyword = if (keyword.isImage()) {
+            keyword = if (keyword!!.isImage()) {
                 needProcess = true
-                keyword.getCQFileStr()!!
+                keyword!!.getCQFileStr()!!
             } else {
                 keyword
             }
@@ -206,7 +191,7 @@ class OneBotChatStudy(
 
             val k = KeywordReply(
                 null, -1L,
-                keyword,
+                keyword!!,
                 message1,
                 needProcess,
                 atMe = false,
@@ -224,7 +209,7 @@ class OneBotChatStudy(
     fun reRead(bot: Bot, groupMessageEvent: GroupMessageEvent): Boolean {
         val senderId = groupMessageEvent.sender.userId
         val groupId = groupMessageEvent.groupId
-        var message = groupMessageEvent.message
+        val message = groupMessageEvent.message
 
 
         val lastMessages = groupMessageQueue.lastMessages(groupId, size)

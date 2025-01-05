@@ -8,7 +8,8 @@ import cn.luorenmu.action.listenProcess.GroupSpecialListen
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.ConfigId
 import cn.luorenmu.entiy.RecentlyMessageQueue
-import cn.luorenmu.repository.GroupMessageRepository
+import cn.luorenmu.listen.entity.MessageSender
+import cn.luorenmu.listen.entity.MessageType
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.GroupMessage
 import com.alibaba.fastjson2.to
@@ -36,7 +37,6 @@ val log = KotlinLogging.logger { }
 @Component
 @Shiro
 class GroupEventListen(
-    private val groupMessageRepository: GroupMessageRepository,
     private val oneBotCommandAllocator: OneBotCommandAllocator,
     private val oneBotKeywordReply: OneBotKeywordReply,
     private val oneBotChatStudy: OneBotChatStudy,
@@ -62,12 +62,23 @@ class GroupEventListen(
 
     @GroupMessageHandler
     fun groupMsgListen(bot: Bot, groupMessageEvent: GroupMessageEvent) {
-        val senderId = groupMessageEvent.sender.userId
         val groupId = groupMessageEvent.groupId
+        val sender = groupMessageEvent.sender
+        val senderId = sender.userId
         // 替换掉群备注 [CQ:at,qq=141412312,name=群最帅] -> [CQ:at,qq=141412312)
         val message = groupMessageEvent.message.replace(Regex("""(\[CQ:at,qq=\d+),name=[^,\]]*"""), "$1")
 
-        // save data
+        val messageSender = MessageSender(
+            groupId,
+            sender.nickname,
+            senderId,
+            sender.role,
+            groupMessageEvent.messageId,
+            message,
+            MessageType.GROUP
+        )
+
+
         val groupMessage =
             GroupMessage(
                 null,
@@ -76,17 +87,16 @@ class GroupEventListen(
                 LocalDateTime.now(),
                 groupMessageEvent
             )
-        groupMessageRepository.save(groupMessage)
 
 
         // 关键词消息
         if (idIsNotExistFunction("banKeywordGroup", groupId)) {
-            oneBotKeywordReply.process(bot, groupMessageEvent.messageId, senderId, groupId, message)
+            oneBotKeywordReply.process(bot, messageSender)
         }
 
 
-        // 禁止监听
-        if (idIsNotExistFunction("banBilibiliEventListen", groupId)) {
+        // 监听
+        if (!idIsNotExistFunction("BilibiliEventListen", groupId)) {
             bilibiliEventListen.process(bot, groupId, message)
         }
 
@@ -95,18 +105,18 @@ class GroupEventListen(
         }
 
 
-        val command = message.replace(" ", "")
         // 指令
         try {
-            val process =
-                oneBotCommandAllocator.process(bot, command, groupMessageEvent.groupId, groupMessageEvent.sender)
-            if (process.isNotBlank()) {
-                bot.sendGroupMsg(
-                    groupId,
-                    MsgUtils.builder().reply(groupMessageEvent.messageId).text(process).build(),
-                    false
-                )
+            oneBotCommandAllocator.process(bot, messageSender)?.let {
+                if (it.isNotBlank()) {
+                    bot.sendGroupMsg(
+                        groupId,
+                        MsgUtils.builder().reply(groupMessageEvent.messageId).text(it).build(),
+                        false
+                    )
+                }
             }
+
         } catch (e: Exception) {
             bot.sendGroupMsgLimit(groupId, "服务器内部错误 请求的任务被迫中断")
             log.error { "意外错误: ${e.stackTraceToString()} , 因: ${e.message}" }

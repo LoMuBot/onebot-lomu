@@ -4,6 +4,7 @@ import cn.luorenmu.common.extensions.checkThenDelete
 import cn.luorenmu.common.extensions.checkThenSave
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.OneBotConfig
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 
 /**
@@ -12,11 +13,12 @@ import org.springframework.stereotype.Component
  */
 @Component
 class PermissionsManager(
+    private val redisTemplate: StringRedisTemplate,
     private val configRepository: OneBotConfigRepository,
 ) {
 
 
-    fun deleteConfigBotAdminOrGroupAdmin(
+    private fun deleteConfigBotAdminOrGroupAdmin(
         sendId: Long,
         role: String,
         configName: String,
@@ -43,7 +45,7 @@ class PermissionsManager(
         return false
     }
 
-    fun saveConfigBotAdminOrGroupAdmin(
+    private fun saveConfigBotAdminOrGroupAdmin(
         sendId: Long,
         role: String,
         configName: String,
@@ -62,8 +64,8 @@ class PermissionsManager(
         return false
     }
 
-    fun saveConfig(configName: String, groupId: Long) {
-        configRepository.checkThenSave(OneBotConfig(null,configName,groupId.toString()))
+    private fun saveConfig(configName: String, groupId: Long) {
+        configRepository.checkThenSave(OneBotConfig(null, configName, groupId.toString()))
     }
 
 
@@ -82,7 +84,6 @@ class PermissionsManager(
     fun isGroupAdmin(role: String): Boolean = role == "owner" || role == "admin"
 
 
-
     fun isAdmin(role: String, id: Long): Boolean {
         if (role == "owner" || role == "admin") {
             return true
@@ -97,4 +98,81 @@ class PermissionsManager(
         }
         return false
     }
+
+
+    fun banKeyword(groupId: Long, role: String, id: Long): String =
+        if (saveConfigBotAdminOrGroupAdmin(
+                id,
+                role,
+                "banKeywordGroup",
+                groupId
+            )
+        ) {
+            redisTemplate.delete("banKeywordGroup")
+            "已屏蔽该群"
+        } else ""
+
+    fun bilibiliEventListen(groupId: Long, role: String, id: Long): String =
+        if (saveConfigBotAdminOrGroupAdmin(
+                id,
+                role,
+                "BilibiliEventListen",
+                groupId
+            )
+        ) {
+            redisTemplate.delete("BilibiliEventListen")
+            "已监听该群"
+        } else ""
+
+    fun banBilibiliEventListen(groupId: Long, role: String, id: Long): String =
+        if (deleteConfigBotAdminOrGroupAdmin(
+                id,
+                role,
+                "BilibiliEventListen",
+                groupId
+            )
+        ) {
+            redisTemplate.delete("BilibiliEventListen")
+            "视频监听已被禁止"
+        } else ""
+
+
+    fun banStudy(groupId: Long, role: String, id: Long): String =
+        if (saveConfigBotAdminOrGroupAdmin(
+                id,
+                role,
+                "banStudy",
+                groupId
+            )
+        ) {
+            redisTemplate.delete("banStudy")
+            "已屏蔽该群"
+        } else ""
+
+
+    fun unbanKeyword(groupId: Long, role: String, id: Long): String =
+        if (deleteConfigBotAdminOrGroupAdmin(
+                id,
+                role,
+                "banKeywordGroup",
+                groupId
+            )
+        ) {
+            redisTemplate.delete("banKeywordGroup")
+            "已解除对该群的屏蔽"
+        } else ""
+
+
+    fun unbanStudy(groupId: Long, role: String, id: Long): String =
+        if (deleteConfigBotAdminOrGroupAdmin(
+                id,
+                role,
+                "banStudy",
+                groupId
+            )
+        ) {
+            redisTemplate.delete("banStudy")
+            "已解除对该群的屏蔽"
+        } else ""
+
 }

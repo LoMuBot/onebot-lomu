@@ -1,5 +1,6 @@
 package cn.luorenmu.repository.entiy
 
+import cn.luorenmu.listen.entity.MessageSender
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent.GroupSender
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
@@ -16,7 +17,7 @@ data class EternalReturnPush(
     var id: String?,
     @Indexed
     var email: String,
-    var sender: GroupSender,
+    var sender: MessageSender?,
     var createdDate: LocalDateTime,
     var subscribeGroupId: Long,
     var send: Boolean,
