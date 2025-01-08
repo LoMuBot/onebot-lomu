@@ -44,7 +44,7 @@ class DeerListen(
                         commandSender.senderId,
                         nowYear,
                         nowMonth,
-                        mutableListOf(LocalDateTime.now().dayOfMonth)
+                        mutableListOf(nowDay)
                     )
                     deerRepository.save(deer)
                     deer
@@ -68,15 +68,15 @@ class DeerListen(
         }.toMutableList()
         listDeer.sortByDescending { it.count }
         val senderIndex = listDeer.indexOfFirst { it.id == senderId }
-        val rankingCount = listDeer.count { it.count == listDeer[senderIndex].count }
-        val removeList = mutableListOf<Int>()
+        val rankingCount = listDeer.count { it.count == listDeer[senderIndex].count } - 1
+        val removeList = mutableListOf<DeerSender>()
         for (i in 0 until senderIndex) {
             if (listDeer[i].count == listDeer[senderIndex].count) {
-                removeList.add(i)
+                removeList.add(listDeer[i])
             }
         }
         removeList.forEach {
-            listDeer.removeAt(it)
+            listDeer.remove(it)
         }
         val ranking = listDeer.indexOfFirst { it.id == senderId } + 1
         return "第${ranking}名与${rankingCount}人位于同一名次"
