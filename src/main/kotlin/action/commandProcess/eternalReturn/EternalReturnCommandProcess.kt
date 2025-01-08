@@ -2,6 +2,7 @@ package cn.luorenmu.action.commandProcess.eternalReturn
 
 
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacter
+import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.common.extensions.toPinYin
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.EternalReturnPushRepository

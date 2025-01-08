@@ -1,9 +1,9 @@
-package cn.luorenmu.action.listenProcess
+package cn.luorenmu.action.request
 
-import cn.luorenmu.action.listenProcess.entiy.BilibiliPageInfoData
-import cn.luorenmu.action.listenProcess.entiy.BilibiliPageListInfo
-import cn.luorenmu.action.listenProcess.entiy.BilibiliVideoInfo
-import cn.luorenmu.action.listenProcess.entiy.BilibiliVideoInfoData
+import cn.luorenmu.action.request.entiy.BilibiliPageInfoData
+import cn.luorenmu.action.request.entiy.BilibiliPageListInfo
+import cn.luorenmu.action.request.entiy.BilibiliVideoInfo
+import cn.luorenmu.action.request.entiy.BilibiliVideoInfoData
 import cn.luorenmu.entiy.Request
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.request.RequestController
@@ -61,7 +61,7 @@ class BilibiliRequestData {
     fun bvidToCid(bvid: String): BilibiliPageInfoData? {
         val requestController = RequestController("bilibili_request.bvid_to_cid")
         requestController.replaceUrl("bvid", bvid)
-        var resp = requestController.request()
+        val resp = requestController.request()
         resp?.let {
             val result = it.body().to<BilibiliPageListInfo>()
             return result.data.firstOrNull()

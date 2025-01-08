@@ -1,4 +1,4 @@
-package cn.luorenmu.action.commandProcess.eternalReturn
+package cn.luorenmu.action.request
 
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.*
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalRetrunLeaderboard

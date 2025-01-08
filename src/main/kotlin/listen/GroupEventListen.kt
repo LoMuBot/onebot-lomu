@@ -4,6 +4,7 @@ import cn.luorenmu.action.OneBotChatStudy
 import cn.luorenmu.action.OneBotCommandAllocator
 import cn.luorenmu.action.OneBotKeywordReply
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
+import cn.luorenmu.action.listenProcess.DeerListen
 import cn.luorenmu.action.listenProcess.GroupSpecialListen
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.ConfigId
@@ -44,6 +45,7 @@ class GroupEventListen(
     private val redisTemplate: StringRedisTemplate,
     private val bilibiliEventListen: BilibiliEventListen,
     private val groupSpecialListen: GroupSpecialListen,
+    private val deerListen: DeerListen
 ) {
 
     /**
@@ -104,6 +106,9 @@ class GroupEventListen(
             groupSpecialListen.recordMessageListen(bot, groupMessageEvent)
         }
 
+
+        // 特别的
+        deerListen.process(bot,messageSender)
 
         // 指令
         try {

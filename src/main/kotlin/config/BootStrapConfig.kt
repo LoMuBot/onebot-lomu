@@ -26,7 +26,8 @@ class BootStrapConfig(
 ) {
     init {
         InitializeFile.run(MainApplication::class.java)
-        ReadWriteFile.createCurrentDirs("image/")
+        ReadWriteFile.createCurrentDirs("image/qq/avatar")
+        ReadWriteFile.createCurrentDirs("image/qq/deer")
         ReadWriteFile.createCurrentDirs("qrcode/")
         ReadWriteFile.createCurrentDirs("request/")
         ReadWriteFile.createCurrentDirs("crx/")

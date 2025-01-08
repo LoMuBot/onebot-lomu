@@ -1,7 +1,7 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
 
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnDistributions
+import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.common.utils.DrawImageUtils
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
 import cn.luorenmu.common.utils.getEternalReturnImagePath
