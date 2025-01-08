@@ -107,7 +107,7 @@ class GroupEventListen(
         }
 
 
-        // 特别的
+        // strange function ?
         deerListen.process(bot,messageSender)
 
         // 指令

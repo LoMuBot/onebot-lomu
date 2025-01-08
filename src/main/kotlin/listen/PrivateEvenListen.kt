@@ -19,6 +19,7 @@ class PrivateEvenListen {
 
     @PrivateMessageHandler
     fun privateMessageHandler(bot: Bot, privateMessage: PrivateMessageEvent) {
+        // ignore
     }
 
     @PrivateMsgDeleteNoticeHandler

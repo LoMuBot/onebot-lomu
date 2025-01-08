@@ -100,7 +100,7 @@ class PermissionsManager(
     }
 
 
-    fun banKeyword(groupId: Long, role: String, id: Long): String =
+    fun banKeyword(groupId: Long, role: String, id: Long): String? =
         if (saveConfigBotAdminOrGroupAdmin(
                 id,
                 role,
@@ -110,9 +110,9 @@ class PermissionsManager(
         ) {
             redisTemplate.delete("banKeywordGroup")
             "已屏蔽该群"
-        } else ""
+        } else null
 
-    fun bilibiliEventListen(groupId: Long, role: String, id: Long): String =
+    fun bilibiliEventListen(groupId: Long, role: String, id: Long): String? =
         if (saveConfigBotAdminOrGroupAdmin(
                 id,
                 role,
@@ -122,9 +122,9 @@ class PermissionsManager(
         ) {
             redisTemplate.delete("BilibiliEventListen")
             "已监听该群"
-        } else ""
+        } else null
 
-    fun banBilibiliEventListen(groupId: Long, role: String, id: Long): String =
+    fun banBilibiliEventListen(groupId: Long, role: String, id: Long): String? =
         if (deleteConfigBotAdminOrGroupAdmin(
                 id,
                 role,
@@ -134,10 +134,10 @@ class PermissionsManager(
         ) {
             redisTemplate.delete("BilibiliEventListen")
             "视频监听已被禁止"
-        } else ""
+        } else null
 
 
-    fun banStudy(groupId: Long, role: String, id: Long): String =
+    fun banStudy(groupId: Long, role: String, id: Long): String? =
         if (saveConfigBotAdminOrGroupAdmin(
                 id,
                 role,
@@ -147,10 +147,10 @@ class PermissionsManager(
         ) {
             redisTemplate.delete("banStudy")
             "已屏蔽该群"
-        } else ""
+        } else null
 
 
-    fun unbanKeyword(groupId: Long, role: String, id: Long): String =
+    fun unbanKeyword(groupId: Long, role: String, id: Long): String? =
         if (deleteConfigBotAdminOrGroupAdmin(
                 id,
                 role,
@@ -160,10 +160,10 @@ class PermissionsManager(
         ) {
             redisTemplate.delete("banKeywordGroup")
             "已解除对该群的屏蔽"
-        } else ""
+        } else null
 
 
-    fun unbanStudy(groupId: Long, role: String, id: Long): String =
+    fun unbanStudy(groupId: Long, role: String, id: Long): String? =
         if (deleteConfigBotAdminOrGroupAdmin(
                 id,
                 role,
@@ -173,6 +173,6 @@ class PermissionsManager(
         ) {
             redisTemplate.delete("banStudy")
             "已解除对该群的屏蔽"
-        } else ""
+        } else null
 
 }

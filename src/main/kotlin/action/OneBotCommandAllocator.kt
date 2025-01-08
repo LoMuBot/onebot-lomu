@@ -85,7 +85,7 @@ class OneBotCommandAllocator(
                             if (match.groupValues.size > 1) {
                                 eternalReturnCommandProcess.leaderboard(match.groupValues[1].toInt())
                             } else {
-                                ""
+                                null
                             }
                         }
                     }

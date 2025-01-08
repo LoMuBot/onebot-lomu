@@ -1,11 +1,7 @@
 package cn.luorenmu.action.request
 
-import cn.luorenmu.action.commandHandle.entiy.eternalReturn.*
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalRetrunLeaderboard
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacter
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacterInfo
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCurrentSeason
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnLeaderboardCharacters
+import cn.luorenmu.action.commandHandle.entiy.eternalReturn.EternalReturnTierDistributions
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.*
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfile
 import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
@@ -31,16 +27,18 @@ class EternalReturnRequestData(
 ) {
 
     // sync player
-    fun findExistPlayers(nickname: String): Boolean {
+    fun findExistPlayers(nickname: String, counter: Int = 0): Boolean {
+        if (counter == 3) {
+            return true
+        }
         val requestController = RequestController("eternal_return_request.find_player")
         requestController.replaceUrl("nickname", nickname)
         try {
-            var request = requestController.request()
+            val request = requestController.request()
             request?.let {
-                var body = request.body()
+                val body = request.body()
                 if (body.contains("retry_after")) {
-                    request = requestController.request()
-                    body = request.body()
+                    return findExistPlayers(nickname, counter + 1)
                 }
                 if (body.contains("invalid name")) {
                     return false
@@ -49,6 +47,8 @@ class EternalReturnRequestData(
             }
         } catch (e: SocketException) {
             return true
+        } catch (e: Exception) {
+            return findExistPlayers(nickname, counter + 1)
         }
         return true
     }
@@ -66,8 +66,8 @@ class EternalReturnRequestData(
             val requestLeaderboard = RequestController("eternal_return_request.leaderboard")
             requestLeaderboard.replaceUrl("season", it.currentSeason.key)
             val respLeaderboard = requestLeaderboard.request()
-            respLeaderboard?.let { respLeaderboard ->
-                val leaderboard = respLeaderboard.body().to<EternalRetrunLeaderboard>()
+            respLeaderboard?.let { resp ->
+                val leaderboard = resp.body().to<EternalRetrunLeaderboard>()
                 leaderboard.currentSeason = it
                 leaderboard
             }
@@ -105,17 +105,6 @@ class EternalReturnRequestData(
         return getEternalReturnDataImagePath("character/${name}.png")
     }
 
-    fun characterLeaderboardFind(character: String, sortType: String): EternalReturnLeaderboardCharacters? {
-        return currentSeason()?.let {
-            val leaderboardCharacters = RequestController("eternal_return_request.leaderboard_characters")
-            leaderboardCharacters.replaceUrl("season", it.currentSeason.key)
-            leaderboardCharacters.replaceUrl("character", character)
-            leaderboardCharacters.replaceUrl("sortType", sortType)
-            val resp = leaderboardCharacters.request()
-            resp?.body().to<EternalReturnLeaderboardCharacters>()
-        }
-
-    }
 
     fun characterInfoFind(character: String, weapon: String): EternalReturnCharacterInfo? {
         redisTemplate.opsForValue().get("Eternal_Return_Find:${character}")?.to<EternalReturnCharacterInfo>()
@@ -131,7 +120,7 @@ class EternalReturnRequestData(
                 redisTemplate.opsForValue()["Eternal_Return_Find:${character}", it.body(), 1L] =
                     TimeUnit.DAYS
                 result
-            }catch (e: JSONException){
+            } catch (e: JSONException) {
                 log.error {
                     "characterInfoFind动态链接已失效,需手动更新"
                 }
