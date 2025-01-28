@@ -1,8 +1,9 @@
 package cn.luorenmu.listen
 
-import cn.luorenmu.action.OneBotChatStudy
+import cn.luorenmu.action.disuse.OneBotChatStudy
 import cn.luorenmu.action.OneBotCommandAllocator
 import cn.luorenmu.action.PermissionsManager
+import cn.luorenmu.action.disuse.OneBotKeywordReply
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
 import cn.luorenmu.action.listenProcess.DeerListen
 import cn.luorenmu.entiy.ConfigId
@@ -40,6 +41,7 @@ class GroupEventListen(
     private val oneBotChatStudy: OneBotChatStudy,
     private val oneBotConfigRepository: OneBotConfigRepository,
     private val redisTemplate: StringRedisTemplate,
+    private val keywordReply: OneBotKeywordReply,
     private val bilibiliEventListen: BilibiliEventListen,
     private val deerListen: DeerListen,
     private val permissionsManager: PermissionsManager,
@@ -90,8 +92,7 @@ class GroupEventListen(
             )
 
 
-        // strange function ?
-        deerListen.process(bot, messageSender)
+
 
         // 指令
         try {
@@ -115,7 +116,14 @@ class GroupEventListen(
         }
 
 
-        oneBotChatStudy.reRead(bot, groupMessageEvent)
+
+        // 监听类
+        oneBotChatStudy.process(bot, groupMessageEvent)
+        keywordReply.process(bot,messageSender)
+        bilibiliEventListen.process(bot,messageSender)
+        // strange function ?
+        deerListen.process(bot, messageSender)
+
 
 
         // 同一个人在指定的20条中发了同一条消息 不入队列

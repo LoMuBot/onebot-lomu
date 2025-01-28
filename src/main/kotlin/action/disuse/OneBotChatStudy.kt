@@ -1,5 +1,6 @@
-package cn.luorenmu.action
+package cn.luorenmu.action.disuse
 
+import cn.luorenmu.action.commandProcess.botCommand.ChatStudyCommand
 import cn.luorenmu.common.extensions.*
 import cn.luorenmu.listen.groupMessageQueue
 import cn.luorenmu.repository.ActiveSendMessageRepository
@@ -24,11 +25,15 @@ class OneBotChatStudy(
     private val keywordReplyRepository: KeywordReplyRepository,
     private val redisTemplate: RedisTemplate<String, String>,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
+    private val chatStudyCommand: ChatStudyCommand
 ) {
     // 复读数 size + 1
     private val size = 3
 
     fun process(bot: Bot, groupMessageEvent: GroupMessageEvent) {
+        if (!chatStudyCommand.state(groupMessageEvent.groupId)){
+            return
+        }
         val groupId = groupMessageEvent.groupId
         val originMessage = groupMessageEvent.message
         if (reRead(bot, groupMessageEvent)) {

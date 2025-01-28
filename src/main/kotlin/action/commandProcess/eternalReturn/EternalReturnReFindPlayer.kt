@@ -31,4 +31,8 @@ class EternalReturnReFindPlayer(
     override fun commandName(): String {
         return "eternalReturnReFindPlayers"
     }
+
+    override fun state(id: Long): Boolean {
+        return true
+    }
 }

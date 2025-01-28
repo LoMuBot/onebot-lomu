@@ -1,10 +1,12 @@
 package cn.luorenmu.action.listenProcess
 
+import cn.luorenmu.action.commandProcess.botCommand.BilibiliEventListenCommand
 import cn.luorenmu.action.request.BilibiliRequestData
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.MatcherData
 import cn.luorenmu.common.utils.getVideoPath
 import cn.luorenmu.entiy.Request
+import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.BilibiliVideoRepository
 import cn.luorenmu.repository.entiy.BilibiliVideo
 import cn.luorenmu.request.RequestController
@@ -22,12 +24,18 @@ import kotlin.jvm.optionals.getOrNull
 class BilibiliEventListen(
     private val bilibiliRequestData: BilibiliRequestData,
     private val bilibiliVideoRepository: BilibiliVideoRepository,
+    private val bilibiliEventListen: BilibiliEventListenCommand,
 ) {
     private val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
     private val bilibiliVideoShortLink = "https://b23.tv/([a-zA-Z0-9]+)"
 
 
-    fun process(bot: Bot, groupId: Long, message: String) {
+    fun process(bot: Bot, sender: MessageSender) {
+        val groupId = sender.groupOrSenderId
+        val message = sender.message
+        if (!bilibiliEventListen.state(groupId) || !message.contains(MsgUtils.builder().at(bot.selfId).build())) {
+            return
+        }
         val correctMsg = message.replace("\\", "")
         findBilibiliLinkBvid(correctMsg)?.let { bvid ->
 

@@ -110,4 +110,8 @@ class EternalReturnFindCharacter(
         return "eternalReturnFindCharacter"
     }
 
+    override fun state(id: Long): Boolean {
+        return true
+    }
+
 }

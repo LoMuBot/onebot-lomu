@@ -45,4 +45,8 @@ class EternalReturnNewsEmailPush(
     override fun commandName(): String {
         return "eternalReturnEmailPush"
     }
+
+    override fun state(id: Long): Boolean {
+        return true
+    }
 }

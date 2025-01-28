@@ -1,5 +1,6 @@
-package cn.luorenmu.action
+package cn.luorenmu.action.disuse
 
+import cn.luorenmu.action.commandProcess.botCommand.KeywordSendCommand
 import cn.luorenmu.common.extensions.isAt
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
@@ -21,10 +22,14 @@ import kotlin.random.Random
 class OneBotKeywordReply(
     private val stringRedisTemplate: StringRedisTemplate,
     private var keywordReplyRepository: KeywordReplyRepository,
+    private val keywordSendCommand: KeywordSendCommand,
 ) {
 
     @Async("keywordProcessThreadPool")
     fun process(bot: Bot, messageSender: MessageSender) {
+        if (!keywordSendCommand.state(messageSender.groupOrSenderId)) {
+            return
+        }
         val atMe = messageSender.message.isAt(bot.selfId)
         if (atMe) {
             if (Random(System.currentTimeMillis()).nextInt(

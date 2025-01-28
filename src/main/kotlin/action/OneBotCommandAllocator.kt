@@ -53,6 +53,9 @@ class OneBotCommandAllocator(
         allCommands().firstOrNull { isCurrentCommand(botId, messageSender.message, it) }
             ?.let { oneBotCommand ->
                 val commandProcess = applicationContext.getBean(oneBotCommand.commandName) as CommandProcess
+                if (!commandProcess.state(messageSender.groupOrSenderId)) {
+                    return "${commandProcess.commandName()}已被禁用"
+                }
                 return commandProcess.process(oneBotCommand.keyword, messageSender)
             }
         return null
