@@ -28,7 +28,7 @@ class EternalReturnRequestData(
 
     // sync player
     fun findExistPlayers(nickname: String, counter: Int = 0): Boolean {
-        if (counter == 3) {
+        if (counter == 5) {
             return true
         }
         val requestController = RequestController("eternal_return_request.find_player")

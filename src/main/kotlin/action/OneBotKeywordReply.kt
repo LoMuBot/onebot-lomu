@@ -1,14 +1,11 @@
 package cn.luorenmu.action
 
-import cn.luorenmu.action.entiy.KeywordReplyJson
 import cn.luorenmu.common.extensions.isAt
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
-import cn.luorenmu.common.utils.JsonObjectUtils
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.entiy.KeywordReply
-import com.alibaba.fastjson2.JSONObject
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -25,36 +22,6 @@ class OneBotKeywordReply(
     private val stringRedisTemplate: StringRedisTemplate,
     private var keywordReplyRepository: KeywordReplyRepository,
 ) {
-    // 将json最为数据存储 (在数据量较大时无法做到像mongodb一样高效 且性能极其低下)
-    fun jsonKeyword(id: Long, message: String): String? {
-        JsonObjectUtils.getJsonObject("keyword")?.let { kf ->
-            for (value in kf.values) {
-                value as JSONObject
-                value.let { json ->
-                    json.getString("sender_id")?.let { senderId ->
-                        if (senderId.toLong() == id) {
-                            json.getList("keywords", KeywordReplyJson::class.java)?.let { keywords ->
-                                for (keyword in keywords) {
-                                    if (message.contains(keyword.message)) {
-                                        return keyword.reply
-                                    }
-                                }
-                            }
-                        }
-                    } ?: json.getList("keywords", KeywordReplyJson::class.java)?.let { keywords ->
-                        for (keyword in keywords) {
-                            if (message.contains(keyword.message)) {
-                                return keyword.reply
-                            }
-                        }
-                    }
-
-
-                }
-            }
-        }
-        return null
-    }
 
     @Async("keywordProcessThreadPool")
     fun process(bot: Bot, messageSender: MessageSender) {

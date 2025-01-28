@@ -22,29 +22,41 @@ tasks.withType<Test> {
 }
 dependencies {
 
-
+    // utils
     implementation("cn.hutool:hutool-all:5.8.29")
+    implementation(files("lib/MultifunctionalAutoHelper-Java.jar"))
+    implementation("com.alibaba.fastjson2:fastjson2-kotlin:2.0.52")
+    implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
+
+    //QRcode generate
     implementation("com.google.zxing:core:3.5.3")
+
+    // kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.mikuac:shiro:2.3.0")
+
+
+    // spring
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    implementation("com.alibaba.fastjson2:fastjson2-kotlin:2.0.52")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    implementation(files("lib/MultifunctionalAutoHelper-Java.jar"))
     implementation("org.springframework.boot:spring-boot-starter-aop")
+    // openai
+    implementation("org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M5")
 
-    // 分词
+
+    // chinese process
     implementation("org.ansj:ansj_seg:5.1.6")
-    // pinyin
+
+    // chinese pinyin
     implementation("com.github.promeg:tinypinyin:2.0.3")
 
-    // Kotlin test dependencies
+    // kotlin test dependencies
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+    // spirng test
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 tasks.test {

@@ -6,7 +6,6 @@ import cn.luorenmu.action.OneBotKeywordReply
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
 import cn.luorenmu.action.listenProcess.DeerListen
 import cn.luorenmu.action.listenProcess.GroupSpecialListen
-import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.ConfigId
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.listen.entity.MessageSender
@@ -45,7 +44,7 @@ class GroupEventListen(
     private val redisTemplate: StringRedisTemplate,
     private val bilibiliEventListen: BilibiliEventListen,
     private val groupSpecialListen: GroupSpecialListen,
-    private val deerListen: DeerListen
+    private val deerListen: DeerListen,
 ) {
 
     /**
@@ -108,7 +107,7 @@ class GroupEventListen(
 
 
         // strange function ?
-        deerListen.process(bot,messageSender)
+        deerListen.process(bot, messageSender)
 
         // 指令
         try {
@@ -121,23 +120,17 @@ class GroupEventListen(
                     )
                 }
             }
-
         } catch (e: Exception) {
-            bot.sendGroupMsgLimit(groupId, "服务器内部错误 请求的任务被迫中断")
+            bot.sendGroupMsg(
+                groupId,
+                MsgUtils.builder().reply(groupMessageEvent.messageId).text("服务器内部错误 请求的任务被迫中断:${e.message}").build(),
+                false
+            )
             log.error { "意外错误: ${e.stackTraceToString()} , 因: ${e.message}" }
         }
 
 
-        // 禁止该群学习
-        val banStudyList = redisTemplate.opsForValue()["banStudy"].to<ConfigId>() ?: run {
-            val list = oneBotConfigRepository.findAllByConfigName("banStudy").map { it.configContent.toLong() }
-            val configId = ConfigId(list)
-            redisTemplate.opsForValue()["banStudy", configId.toJSONString(), 1] = TimeUnit.DAYS
-            configId
-        }
-        banStudyList.list.firstOrNull { it == groupId } ?: run {
-            oneBotChatStudy.process(bot, groupMessageEvent)
-        }
+        oneBotChatStudy.reRead(bot, groupMessageEvent)
 
 
         // 同一个人在指定的20条中发了同一条消息 不入队列

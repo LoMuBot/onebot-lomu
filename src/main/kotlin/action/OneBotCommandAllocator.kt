@@ -1,6 +1,5 @@
 package cn.luorenmu.action
 
-import cn.luorenmu.action.commandProcess.eternalReturn.EternalReturnCommandProcess
 import cn.luorenmu.entiy.OneBotAllCommands
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.OneBotCommandRespository
@@ -20,9 +19,9 @@ import java.util.concurrent.TimeUnit
 @Component
 class OneBotCommandAllocator(
     private val oneBotCommandRespository: OneBotCommandRespository,
-    private val eternalReturnCommandProcess: EternalReturnCommandProcess,
     private val redisTemplate: StringRedisTemplate,
     private val permissionsManager: PermissionsManager,
+
 ) {
 
 
@@ -69,50 +68,7 @@ class OneBotCommandAllocator(
             ?.let { oneBotCommand ->
                 val command = messageSender.message.replace(MsgUtils.builder().at(botId).build(), "")
                 return when (oneBotCommand.commandName) {
-                    "eternalReturnFindPlayers" -> {
-                        val nickname =
-                            command.replace(Regex(oneBotCommand.keyword), "").trim().lowercase().replace(" ", "")
-                        if (nickname.isBlank()) "" else eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
-                    }
 
-                    "eternalReturnEmailPush" -> eternalReturnCommandProcess.eternalReturnEmailPush(
-                        messageSender.groupOrSenderId,
-                        messageSender
-                    )
-
-                    "eternalReturnLeaderboard" -> {
-                        Regex(oneBotCommand.keyword).find(command)?.let { match ->
-                            if (match.groupValues.size > 1) {
-                                eternalReturnCommandProcess.leaderboard(match.groupValues[1].toInt())
-                            } else {
-                                null
-                            }
-                        }
-                    }
-
-                    "eternalReturnReFindPlayers" -> {
-                        val nickname =
-                            command.replace(Regex(oneBotCommand.keyword), "").trim().lowercase().replace(" ", "")
-                        if (nickname.isBlank()) "" else {
-                            redisTemplate.delete("Eternal_Return_NickName:$nickname")
-                            eternalReturnCommandProcess.eternalReturnFindPlayers(nickname)
-                        }
-                    }
-
-                    "eternalReturnFindCharacter" -> {
-                        var characterName = command.replace(Regex(oneBotCommand.keyword), "").trim().replace(" ", "")
-                        val indexMatch = """[0-9]""".toRegex().find(characterName)?.let {
-                            val index = it.value.toInt()
-                            characterName = characterName.replace(it.value, "")
-                            index
-                        } ?: -1
-                        if (characterName.isBlank()) null else {
-                            eternalReturnCommandProcess.eternalReturnFindCharacter(characterName, indexMatch)
-                        }
-                    }
-
-
-                    "eternalReturnCutoffs" -> eternalReturnCommandProcess.cutoffs()
                     "botCommandBanStudy" -> permissionsManager.banStudy(
                         messageSender.groupOrSenderId,
                         messageSender.role,
