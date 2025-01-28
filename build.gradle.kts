@@ -11,9 +11,10 @@ group = "cn.luorenmu"
 version = "1.0-SNAPSHOT"
 
 repositories {
+    mavenLocal()
     maven(url = "https://maven.aliyun.com/repository/public/")
     maven(url = "https://maven.aliyun.com/repository/spring/")
-
+    maven(url = "https://repo.spring.io/milestone")
     mavenCentral()
 }
 
@@ -44,7 +45,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     // openai
-    implementation("org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M5")
+    //implementation("org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M5")
 
 
     // chinese process

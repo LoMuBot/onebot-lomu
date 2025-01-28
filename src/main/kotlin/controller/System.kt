@@ -9,7 +9,7 @@ import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
 import cn.luorenmu.repository.entiy.OneBotCommand
-import cn.luorenmu.repository.entiy.OneBotConfig
+import cn.luorenmu.repository.entity.OneBotConfig
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.web.bind.annotation.*
 

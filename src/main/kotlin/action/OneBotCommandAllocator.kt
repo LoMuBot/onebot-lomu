@@ -1,5 +1,7 @@
 package cn.luorenmu.action
 
+
+import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.entiy.OneBotAllCommands
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.OneBotCommandRespository
@@ -8,6 +10,7 @@ import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
+import org.springframework.context.ApplicationContext
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
@@ -20,15 +23,13 @@ import java.util.concurrent.TimeUnit
 class OneBotCommandAllocator(
     private val oneBotCommandRespository: OneBotCommandRespository,
     private val redisTemplate: StringRedisTemplate,
-    private val permissionsManager: PermissionsManager,
-
+    private val applicationContext: ApplicationContext,
 ) {
 
 
     private fun isCurrentCommand(
         botId: Long,
         command: String,
-        commandName: String,
         oneBotCommand: OneBotCommand,
     ): Boolean {
         val atMe = MsgUtils.builder().at(botId).build()
@@ -43,14 +44,23 @@ class OneBotCommandAllocator(
                 return false
             }
         }
-        return oneBotCommand.commandName == commandName && removeAtAndEmptyCharacterCommand.contains(Regex(oneBotCommand.keyword))
+        return removeAtAndEmptyCharacterCommand.contains(Regex(oneBotCommand.keyword))
     }
 
 
     fun process(bot: Bot, messageSender: MessageSender): String? {
         val botId = bot.selfId
-        val senderId = messageSender.senderId
-        val allCommands = redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
+        allCommands().firstOrNull { isCurrentCommand(botId, messageSender.message, it) }
+            ?.let { oneBotCommand ->
+                val commandProcess = applicationContext.getBean(oneBotCommand.commandName) as CommandProcess
+                return commandProcess.process(oneBotCommand.keyword, messageSender)
+            }
+        return null
+    }
+
+
+    fun allCommands(): List<OneBotCommand> =
+        redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
             synchronized(redisTemplate) {
                 // 二次安全检查
                 redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
@@ -62,55 +72,4 @@ class OneBotCommandAllocator(
                 }
             }
         }
-
-
-        allCommands.firstOrNull { isCurrentCommand(botId, messageSender.message, it.commandName, it) }
-            ?.let { oneBotCommand ->
-                val command = messageSender.message.replace(MsgUtils.builder().at(botId).build(), "")
-                return when (oneBotCommand.commandName) {
-
-                    "botCommandBanStudy" -> permissionsManager.banStudy(
-                        messageSender.groupOrSenderId,
-                        messageSender.role,
-                        senderId
-                    )
-
-                    "botCommandUnbanStudy" -> permissionsManager.unbanStudy(
-                        messageSender.groupOrSenderId,
-                        messageSender.role,
-                        senderId
-                    )
-
-                    "botCommandBanKeyword" -> permissionsManager.banKeyword(
-                        messageSender.groupOrSenderId,
-                        messageSender.role,
-                        senderId
-                    )
-
-                    "botCommandUnbanKeyword" -> permissionsManager.unbanKeyword(
-                        messageSender.groupOrSenderId,
-                        messageSender.role,
-                        senderId
-                    )
-
-                    "BilibiliEventListen" -> permissionsManager.bilibiliEventListen(
-                        messageSender.groupOrSenderId,
-                        messageSender.role,
-                        senderId
-                    )
-
-                    "banBilibiliEventListen" -> permissionsManager.banBilibiliEventListen(
-                        messageSender.groupOrSenderId,
-                        messageSender.role,
-                        senderId
-                    )
-
-                    else -> null
-                }
-            }
-
-        return null
-    }
-
-
 }

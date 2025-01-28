@@ -1,23 +1,29 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
+import action.commandProcess.eternalReturn.entity.EternalReturnCharacter
 import cn.luorenmu.action.commandProcess.CommandProcess
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacter
 import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
+import cn.luorenmu.common.extensions.replaceAtToEmpty
+import cn.luorenmu.common.extensions.replaceBlankToEmpty
 import cn.luorenmu.common.extensions.toPinYin
 import cn.luorenmu.listen.entity.MessageSender
+import org.springframework.stereotype.Component
 
 /**
  * @author LoMu
  * Date 2025.01.28 14:30
  */
+@Component("eternalReturnFindCharacter")
 class EternalReturnFindCharacter(
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
-        val keyword = ""
-        var characterName = command.replace(Regex(keyword), "").trim().replace(" ", "")
+        var characterName = sender.message.replaceAtToEmpty(sender.botId).trim()
+            .replace(Regex(command), "")
+            .replaceBlankToEmpty()
+            .lowercase()
         val indexMatch = """[0-9]""".toRegex().find(characterName)?.let {
             val index = it.value.toInt()
             characterName = characterName.replace(it.value, "")
@@ -76,10 +82,9 @@ class EternalReturnFindCharacter(
                 } else {
                     sortWeaponTypes[i].key
                 }
-
+            } ?: run {
+                weaponStr.append("角色详细动态链接已失效,需手动更新")
             }
-
-
             val returnMsg =
                 eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, weapon, weaponStr.toString())
             return returnMsg

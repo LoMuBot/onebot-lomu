@@ -2,10 +2,9 @@ package cn.luorenmu.listen
 
 import cn.luorenmu.action.OneBotChatStudy
 import cn.luorenmu.action.OneBotCommandAllocator
-import cn.luorenmu.action.OneBotKeywordReply
+import cn.luorenmu.action.PermissionsManager
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
 import cn.luorenmu.action.listenProcess.DeerListen
-import cn.luorenmu.action.listenProcess.GroupSpecialListen
 import cn.luorenmu.entiy.ConfigId
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.listen.entity.MessageSender
@@ -38,13 +37,12 @@ val log = KotlinLogging.logger { }
 @Shiro
 class GroupEventListen(
     private val oneBotCommandAllocator: OneBotCommandAllocator,
-    private val oneBotKeywordReply: OneBotKeywordReply,
     private val oneBotChatStudy: OneBotChatStudy,
     private val oneBotConfigRepository: OneBotConfigRepository,
     private val redisTemplate: StringRedisTemplate,
     private val bilibiliEventListen: BilibiliEventListen,
-    private val groupSpecialListen: GroupSpecialListen,
     private val deerListen: DeerListen,
+    private val permissionsManager: PermissionsManager,
 ) {
 
     /**
@@ -69,14 +67,16 @@ class GroupEventListen(
         // 替换掉群备注 [CQ:at,qq=141412312,name=群最帅] -> [CQ:at,qq=141412312)
         val message = groupMessageEvent.message.replace(Regex("""(\[CQ:at,qq=\d+),name=[^,\]]*"""), "$1")
 
+
         val messageSender = MessageSender(
             groupId,
             sender.nickname,
             senderId,
-            sender.role,
+            permissionsManager.botRole(senderId, sender.role),
             groupMessageEvent.messageId,
             message,
-            MessageType.GROUP
+            MessageType.GROUP,
+            bot.selfId
         )
 
 
@@ -88,22 +88,6 @@ class GroupEventListen(
                 LocalDateTime.now(),
                 groupMessageEvent
             )
-
-
-        // 关键词消息
-        if (idIsNotExistFunction("banKeywordGroup", groupId)) {
-            oneBotKeywordReply.process(bot, messageSender)
-        }
-
-
-        // 监听
-        if (!idIsNotExistFunction("BilibiliEventListen", groupId)) {
-            bilibiliEventListen.process(bot, groupId, message)
-        }
-
-        if (!idIsNotExistFunction("recordListenSender", senderId)) {
-            groupSpecialListen.recordMessageListen(bot, groupMessageEvent)
-        }
 
 
         // strange function ?
@@ -123,7 +107,8 @@ class GroupEventListen(
         } catch (e: Exception) {
             bot.sendGroupMsg(
                 groupId,
-                MsgUtils.builder().reply(groupMessageEvent.messageId).text("服务器内部错误 请求的任务被迫中断:${e.message}").build(),
+                MsgUtils.builder().reply(groupMessageEvent.messageId)
+                    .text("服务器内部错误 请求的任务被迫中断:${e.message}").build(),
                 false
             )
             log.error { "意外错误: ${e.stackTraceToString()} , 因: ${e.message}" }

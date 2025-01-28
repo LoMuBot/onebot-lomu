@@ -1,6 +1,6 @@
 package cn.luorenmu.repository
 
-import cn.luorenmu.repository.entiy.OneBotConfig
+import cn.luorenmu.repository.entity.OneBotConfig
 import org.springframework.data.mongodb.repository.MongoRepository
 
 /**

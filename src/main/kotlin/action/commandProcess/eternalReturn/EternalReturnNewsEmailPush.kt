@@ -5,12 +5,14 @@ import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.EternalReturnPushRepository
 import cn.luorenmu.repository.entiy.EternalReturnPush
 import cn.luorenmu.service.EmailPushService
+import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 /**
  * @author LoMu
  * Date 2025.01.28 13:18
  */
+@Component("eternalReturnEmailPush")
 class EternalReturnNewsEmailPush(
     private val eternalReturnPushRepository: EternalReturnPushRepository,
     private val emailPushService: EmailPushService,

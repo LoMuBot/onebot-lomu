@@ -8,6 +8,5 @@ import cn.luorenmu.listen.entity.MessageSender
  */
 interface CommandProcess {
     fun process(command: String, sender: MessageSender): String?
-
     fun commandName(): String
 }

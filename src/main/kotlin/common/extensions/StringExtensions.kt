@@ -15,6 +15,15 @@ fun String.firstPinYin(): String {
     return string.toString()
 }
 
+fun String.replaceAtToEmpty(id: Long): String {
+    return this.replace(MsgUtils.builder().at(id).build(), "")
+}
+
+fun String.replaceBlankToEmpty(): String {
+    return this.uppercase().replace(" ", "")
+}
+
+
 fun String.toPinYin(): String {
     val string = StringBuilder()
     for (i in this.indices) {

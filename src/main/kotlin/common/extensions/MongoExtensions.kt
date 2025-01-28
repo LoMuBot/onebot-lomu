@@ -5,7 +5,7 @@ import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
-import cn.luorenmu.repository.entiy.OneBotConfig
+import cn.luorenmu.repository.entity.OneBotConfig
 
 /**
  * @author LoMu

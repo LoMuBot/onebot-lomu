@@ -6,7 +6,7 @@ import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.Request
 import cn.luorenmu.repository.EternalReturnPushRepository
 import cn.luorenmu.repository.OneBotConfigRepository
-import cn.luorenmu.repository.entiy.OneBotConfig
+import cn.luorenmu.repository.entity.OneBotConfig
 import cn.luorenmu.request.RequestController
 import cn.luorenmu.service.EmailPushService
 import com.alibaba.fastjson2.to

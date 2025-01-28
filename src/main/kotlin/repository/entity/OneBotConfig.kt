@@ -1,4 +1,4 @@
-package cn.luorenmu.repository.entiy
+package cn.luorenmu.repository.entity
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed

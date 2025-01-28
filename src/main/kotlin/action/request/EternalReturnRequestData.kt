@@ -1,8 +1,9 @@
 package cn.luorenmu.action.request
 
+import action.commandProcess.eternalReturn.entity.EternalReturnCharacter
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.EternalReturnTierDistributions
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.*
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfile
+import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfile
 import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
 import cn.luorenmu.entiy.Request.RequestDetailed
@@ -121,9 +122,6 @@ class EternalReturnRequestData(
                     TimeUnit.DAYS
                 result
             } catch (e: JSONException) {
-                log.error {
-                    "characterInfoFind动态链接已失效,需手动更新"
-                }
                 return null
             }
 
