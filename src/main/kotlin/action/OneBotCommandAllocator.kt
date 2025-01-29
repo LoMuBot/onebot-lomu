@@ -2,6 +2,7 @@ package cn.luorenmu.action
 
 
 import cn.luorenmu.action.commandProcess.CommandProcess
+import cn.luorenmu.common.extensions.isCQReply
 import cn.luorenmu.entiy.OneBotAllCommands
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.OneBotCommandRespository
@@ -33,17 +34,17 @@ class OneBotCommandAllocator(
         oneBotCommand: OneBotCommand,
     ): Boolean {
         val atMe = MsgUtils.builder().at(botId).build()
-        val removeAtAndEmptyCharacterCommand = command.replace(atMe, "").replace(" ", "")
+        var removeAtAndEmptyCharacterCommand = command.replace(atMe, "").replace(" ", "")
         if (oneBotCommand.needAtMe) {
             if (!command.contains(atMe)) {
                 return false
             }
         }
-        oneBotCommand.needAdmin?.let {
-            if (!it) {
-                return false
-            }
+
+        if (removeAtAndEmptyCharacterCommand.isCQReply()) {
+            removeAtAndEmptyCharacterCommand = removeAtAndEmptyCharacterCommand.replace("\\[CQ:reply,id=\\d+]".toRegex(), "")
         }
+
         return removeAtAndEmptyCharacterCommand.contains(Regex(oneBotCommand.keyword))
     }
 

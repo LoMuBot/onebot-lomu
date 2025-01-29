@@ -4,9 +4,7 @@ import cn.luorenmu.entiy.WaitDeleteFile
 import cn.luorenmu.listen.log
 import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.OneBotConfigRepository
-import cn.luorenmu.repository.OverdueKeywordRepository
 import cn.luorenmu.repository.entiy.KeywordReply
-import cn.luorenmu.repository.entiy.OverdueKeyword
 import com.alibaba.fastjson2.to
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -20,7 +18,6 @@ import java.time.LocalDateTime
 @Component
 class DatabaseTask(
     private val keywordReplyRepository: KeywordReplyRepository,
-    private val overdueKeywordRepository: OverdueKeywordRepository,
     private val oneBotConfigRepository: OneBotConfigRepository,
 ) {
 

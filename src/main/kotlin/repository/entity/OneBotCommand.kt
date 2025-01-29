@@ -15,6 +15,6 @@ data class OneBotCommand(
     @Indexed
     var keyword: String,
     var commandName: String,
-    var needAdmin: Boolean?,
-    var needAtMe: Boolean
-    )
+    var needAtMe: Boolean,
+    var needReply: Boolean?,
+)
