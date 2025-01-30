@@ -2,6 +2,7 @@ package cn.luorenmu.task
 
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnArticle
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnNews
+import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.Request
 import cn.luorenmu.repository.EternalReturnPushRepository
@@ -85,7 +86,7 @@ class EternalReturnRewardPushTask(
             }
 
         } catch (e: Exception) {
-            log.error { e }
+            log.error { e.printStackTrace() }
             failed++
         }
         failed = 0
@@ -119,7 +120,7 @@ class EternalReturnRewardPushTask(
 
     @Async
     fun asyncPushGroup(groupList: List<Long>, msg: String) {
-        val bot = botContainer.robots.entries.first().value
+        val bot = botContainer.getFirstBot()
         for (group in groupList) {
             TimeUnit.SECONDS.sleep(10)
             bot.sendGroupMsgLimit(group, msg)
@@ -129,7 +130,7 @@ class EternalReturnRewardPushTask(
     fun pushGroupList(): List<Long> {
         val bot = botContainer.robots.entries.first().value
         val groups =
-            oneBotConfigRepository.findAllByConfigName("pushGroup").stream().map<Long> { it.configContent.toLong() }
+            oneBotConfigRepository.findAllByConfigName("pushGroup").stream().map { it.configContent.toLong() }
                 .toList()
         return bot.groupList.data.stream().filter {
             it.groupName.contains("永恒轮回") || groups.contains(it.groupId)

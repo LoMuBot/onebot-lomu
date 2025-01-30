@@ -11,6 +11,7 @@ import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.ApplicationContext
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
@@ -26,7 +27,7 @@ class OneBotCommandAllocator(
     private val redisTemplate: StringRedisTemplate,
     private val applicationContext: ApplicationContext,
 ) {
-
+    private val log = KotlinLogging.logger {}
 
     private fun isCurrentCommand(
         botId: Long,
@@ -42,7 +43,8 @@ class OneBotCommandAllocator(
         }
 
         if (removeAtAndEmptyCharacterCommand.isCQReply()) {
-            removeAtAndEmptyCharacterCommand = removeAtAndEmptyCharacterCommand.replace("\\[CQ:reply,id=\\d+]".toRegex(), "")
+            removeAtAndEmptyCharacterCommand =
+                removeAtAndEmptyCharacterCommand.replace("\\[CQ:reply,id=\\d+]".toRegex(), "")
         }
 
         return removeAtAndEmptyCharacterCommand.contains(Regex(oneBotCommand.keyword))
@@ -54,10 +56,12 @@ class OneBotCommandAllocator(
         allCommands().firstOrNull { isCurrentCommand(botId, messageSender.message, it) }
             ?.let { oneBotCommand ->
                 val commandProcess = applicationContext.getBean(oneBotCommand.commandName) as CommandProcess
-                if (!commandProcess.state(messageSender.groupOrSenderId)) {
-                    return "${commandProcess.commandName()}已被禁用"
+                try {
+                    return commandProcess.process(oneBotCommand.keyword, messageSender)
+                } catch (e: Exception) {
+                    log.error { e.stackTraceToString() }
+                    return "服务器内部发生错误来自功能${commandProcess.commandName()}\n Error: ${e.message}"
                 }
-                return commandProcess.process(oneBotCommand.keyword, messageSender)
             }
         return null
     }

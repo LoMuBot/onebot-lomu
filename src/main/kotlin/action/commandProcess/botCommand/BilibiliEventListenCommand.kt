@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component
  * @author LoMu
  * Date 2025.01.28 14:58
  */
-@Component("BilibiliEventListen")
+@Component("BilibiliEventListenCommand")
 class BilibiliEventListenCommand(
     private val botCommandControl: BotCommandControl,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
-        if (sender.role.roleNumber >= BotRole.GroupAdmin.roleNumber) {
+        if (sender.role.roleNumber < BotRole.GroupAdmin.roleNumber) {
             return "你没有权限使用这个命令 该命令至少需要群管理员权限"
         }
         return botCommandControl.changeCommandState(commandName(), sender)

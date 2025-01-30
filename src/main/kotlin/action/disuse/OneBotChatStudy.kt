@@ -115,8 +115,6 @@ class OneBotChatStudy(
             }
 
         }
-
-
     }
 
     fun reReadStudy(groupId: Long, message: String) {

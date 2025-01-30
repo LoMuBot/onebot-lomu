@@ -1,14 +1,15 @@
 package cn.luorenmu.action.request
 
 import action.commandProcess.eternalReturn.entity.EternalReturnCharacter
-import cn.luorenmu.action.commandHandle.entiy.eternalReturn.EternalReturnTierDistributions
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.*
 import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfile
+import cn.luorenmu.action.commandHandle.entiy.eternalReturn.EternalReturnTierDistributions
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalRetrunLeaderboard
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacterInfo
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCurrentSeason
 import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
 import cn.luorenmu.entiy.Request.RequestDetailed
 import cn.luorenmu.file.ReadWriteFile
-import cn.luorenmu.listen.log
 import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.JSONException
 import com.alibaba.fastjson2.to
@@ -107,9 +108,10 @@ class EternalReturnRequestData(
     }
 
 
-    fun characterInfoFind(character: String, weapon: String): EternalReturnCharacterInfo? {
+    fun characterInfoFind(character: String, weapon: String, token: String): EternalReturnCharacterInfo? {
         redisTemplate.opsForValue().get("Eternal_Return_Find:${character}")?.to<EternalReturnCharacterInfo>()
         val request = RequestController("eternal_return_request.find_character_info")
+        request.replaceUrl("token", token)
         request.replaceUrl("key", character)
         request.replaceUrl("key1", character)
         request.replaceUrl("weapon", weapon)

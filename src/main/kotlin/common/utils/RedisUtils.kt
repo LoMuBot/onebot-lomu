@@ -27,6 +27,9 @@ class RedisUtils(
         }
     }
 
+    fun deleteCache(key: String) {
+        redisTemplate.delete(key)
+    }
 
     fun cacheThenReturn(key: String, find: () -> String?): String? {
         redisTemplate.opsForValue()[key]?.let {

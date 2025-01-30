@@ -33,8 +33,10 @@ class BilibiliEventListen(
     fun process(bot: Bot, sender: MessageSender) {
         val groupId = sender.groupOrSenderId
         val message = sender.message
-        if (!bilibiliEventListen.state(groupId) || !message.contains(MsgUtils.builder().at(bot.selfId).build())) {
-            return
+        if (!bilibiliEventListen.state(groupId)) {
+            if (!message.contains(MsgUtils.builder().at(bot.selfId).build())) {
+                return
+            }
         }
         val correctMsg = message.replace("\\", "")
         findBilibiliLinkBvid(correctMsg)?.let { bvid ->

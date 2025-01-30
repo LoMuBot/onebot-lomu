@@ -17,8 +17,6 @@ class RandomActiveSendMessage(
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
 ) {
-
-
     @Async
     fun start() {
         val minute = 60 * 1000L // 1 minute in milliseconds
@@ -37,26 +35,13 @@ class RandomActiveSendMessage(
 
     fun executeActiveMessage() {
         val firstOrNull = botContainer.robots.entries.firstOrNull()
+        val banGroup = oneBotConfigRespository.findOneByConfigName("ban_group")!!.configContent
         firstOrNull?.run {
-            val groupList = value.groupList
-            val activeGroupName = oneBotConfigRespository.findOneByConfigName("active_group_name")
-            val groupIds = ArrayList<Long>()
+            val groupIds = value.groupList.data.filter {
+                !banGroup.contains(it.groupId.toString())
+            }
             val activeMessage = activeSendMessageRepository.findAll().random()
             log.info { "行动消息 -> $activeMessage.message " }
-            // 筛选合适的群
-            groupList?.let {
-                for (datum in groupList.data) {
-                    activeGroupName?.run {
-                        if (configContent.contains(datum.groupName)) {
-                            groupIds.add(datum.groupId)
-                        }
-                    }
-                }
-            } ?: run {
-                val lists = oneBotConfigRespository.findAllByConfigName("eternalReturnGroupId").stream().map{ oneBotConfig -> oneBotConfig.configContent.toLong()}.toList()
-                groupIds.addAll(lists)
-            }
-
 
             // 主动发送groupId不为-1时消息 (指定群)
             activeMessage?.run {
@@ -68,15 +53,12 @@ class RandomActiveSendMessage(
             }
 
             // 非指定群
-            if (groupIds.isNotEmpty()) {
-                val group = groupIds.random()
-                activeMessage?.run {
-                    log.info { "send active message to $group  message: $message" }
-                    value.sendGroupDeepMsgLimit(group, message, nextMessage)
-                    return
-                }
+            val group = groupIds.random().groupId
+            activeMessage?.run {
+                log.info { "send active message to $group  message: $message" }
+                value.sendGroupDeepMsgLimit(group, message, nextMessage)
+                return
             }
         }
     }
-
 }

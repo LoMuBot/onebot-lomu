@@ -4,10 +4,13 @@ import action.commandProcess.eternalReturn.entity.EternalReturnCharacter
 import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
+import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
 import cn.luorenmu.common.extensions.toPinYin
 import cn.luorenmu.listen.entity.MessageSender
+import com.mikuac.shiro.common.utils.MsgUtils
+import com.mikuac.shiro.core.BotContainer
 import org.springframework.stereotype.Component
 
 /**
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component
  */
 @Component("eternalReturnFindCharacter")
 class EternalReturnFindCharacter(
+    private val botContainer: BotContainer,
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
 ) : CommandProcess {
@@ -30,6 +34,12 @@ class EternalReturnFindCharacter(
             index
         } ?: -1
         return if (characterName.isBlank()) null else {
+            botContainer.getFirstBot().sendGroupMsg(
+                sender.groupOrSenderId,
+                MsgUtils.builder().reply(sender.messageId)
+                    .text("喵！螺母这就去帮主人查角色喵～稍等一下下哦，螺母会尽快把结果告诉主人的喵！(≧ω≦)/").build(),
+                false
+            )
             eternalReturnFindCharacter(characterName, indexMatch)
         }
 
@@ -65,24 +75,25 @@ class EternalReturnFindCharacter(
             weaponStr.append("武器选择:")
 
 
-            eternalReturnRequestData.characterInfoFind(characterKey, "")?.let { characterInfo ->
-                val weaponType =
-                    characterInfo.pageProps.dehydratedState.queries.first { it1 -> it1.state.data.weaponType != null }.state.data
+            eternalReturnRequestData.characterInfoFind(characterKey, "", "4D6jUl_L07EVrn13vm_g2")
+                ?.let { characterInfo ->
+                    val weaponType =
+                        characterInfo.pageProps.dehydratedState.queries.first { it1 -> it1.state.data.weaponType != null }.state.data
 
-                val sortWeaponTypes =
-                    weaponType.weaponTypes!!.sortedBy { weapon -> weapon.key }
-                if (sortWeaponTypes.isEmpty()) {
-                    weaponStr.append("不存在")
-                }
-                for ((index, type) in sortWeaponTypes.withIndex()) {
-                    weaponStr.append("${index}.${type.name}      ")
-                }
-                weapon = if (i == -1 || i >= sortWeaponTypes.size) {
-                    weaponType.weaponType!!.key
-                } else {
-                    sortWeaponTypes[i].key
-                }
-            } ?: run {
+                    val sortWeaponTypes =
+                        weaponType.weaponTypes!!.sortedBy { weapon -> weapon.key }
+                    if (sortWeaponTypes.isEmpty()) {
+                        weaponStr.append("不存在")
+                    }
+                    for ((index, type) in sortWeaponTypes.withIndex()) {
+                        weaponStr.append("${index}.${type.name}      ")
+                    }
+                    weapon = if (i == -1 || i >= sortWeaponTypes.size) {
+                        weaponType.weaponType!!.key
+                    } else {
+                        sortWeaponTypes[i].key
+                    }
+                } ?: run {
                 weaponStr.append("角色详细动态链接已失效,需手动更新")
             }
             val returnMsg =

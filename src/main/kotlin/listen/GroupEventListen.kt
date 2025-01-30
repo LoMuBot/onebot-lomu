@@ -39,26 +39,11 @@ val log = KotlinLogging.logger { }
 class GroupEventListen(
     private val oneBotCommandAllocator: OneBotCommandAllocator,
     private val oneBotChatStudy: OneBotChatStudy,
-    private val oneBotConfigRepository: OneBotConfigRepository,
-    private val redisTemplate: StringRedisTemplate,
     private val keywordReply: OneBotKeywordReply,
     private val bilibiliEventListen: BilibiliEventListen,
     private val deerListen: DeerListen,
     private val permissionsManager: PermissionsManager,
 ) {
-
-    /**
-     * false if the id exist else true not exist
-     */
-    fun idIsNotExistFunction(configName: String, id: Long): Boolean =
-        (redisTemplate.opsForValue()[configName]?.to<ConfigId>()
-            ?: run {
-                val list =
-                    oneBotConfigRepository.findAllByConfigName(configName).map { it.configContent.toLong() }
-                val configId = ConfigId(list)
-                redisTemplate.opsForValue()[configName, configId.toJSONString(), 1] = TimeUnit.DAYS
-                configId
-            }).list.firstOrNull { it == id } == null
 
 
     @GroupMessageHandler
@@ -93,34 +78,25 @@ class GroupEventListen(
 
 
         // 指令
-        try {
-            oneBotCommandAllocator.process(bot, messageSender)?.let {
-                if (it.isNotBlank()) {
-                    bot.sendGroupMsg(
-                        groupId,
-                        MsgUtils.builder().reply(groupMessageEvent.messageId).text(it).build(),
-                        false
-                    )
-                }
+
+        oneBotCommandAllocator.process(bot, messageSender)?.let {
+            if (it.isNotBlank()) {
+                bot.sendGroupMsg(
+                    groupId,
+                    MsgUtils.builder().reply(groupMessageEvent.messageId).text(it).build(),
+                    false
+                )
             }
-        } catch (e: Exception) {
-            bot.sendGroupMsg(
-                groupId,
-                MsgUtils.builder().reply(groupMessageEvent.messageId)
-                    .text("服务器内部错误 请求的任务被迫中断:${e.message}").build(),
-                false
-            )
-            log.error { "意外错误: ${e.stackTraceToString()} , 因: ${e.message}" }
         }
 
 
         // 监听类
         oneBotChatStudy.process(bot, groupMessageEvent)
+        oneBotChatStudy.reRead(bot,groupMessageEvent)
         keywordReply.process(bot, messageSender)
         bilibiliEventListen.process(bot, messageSender)
         // strange function ?
         deerListen.process(bot, messageSender)
-
 
         // 同一个人在指定的20条中发了同一条消息 不入队列
         groupMessageQueue.map[groupId]?.let {

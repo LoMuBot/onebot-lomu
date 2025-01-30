@@ -1,6 +1,7 @@
 package cn.luorenmu.action.commandProcess.botCommand
 
 import cn.luorenmu.action.commandProcess.CommandProcess
+import cn.luorenmu.listen.entity.BotRole
 import cn.luorenmu.listen.entity.MessageSender
 import org.springframework.stereotype.Component
 
@@ -13,7 +14,13 @@ class KeywordSendCommand(
     private val botCommandControl: BotCommandControl,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
-        return botCommandControl.changeCommandState(commandName(), sender)
+        if (sender.role.roleNumber < BotRole.GroupAdmin.roleNumber) {
+            return "你没有权限使用这个命令 该命令至少需要群管理员权限"
+        }
+        return botCommandControl.changeCommandState(
+            commandName(),
+            sender
+        ) + "\n如果启用该功能将会从其他群中的消息传播至该群"
     }
 
     override fun commandName(): String {

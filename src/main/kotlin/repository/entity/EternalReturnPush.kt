@@ -17,7 +17,6 @@ data class EternalReturnPush(
     var id: String?,
     @Indexed
     var email: String,
-    var sender: MessageSender?,
     var createdDate: LocalDateTime,
     var subscribeGroupId: Long,
     var send: Boolean,

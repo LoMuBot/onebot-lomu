@@ -2,9 +2,11 @@ package cn.luorenmu.common.extensions
 
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.entiy.SelfSendMsg
+import cn.luorenmu.listen.entity.MessageType
 import cn.luorenmu.repository.entiy.DeepMessage
 import cn.luorenmu.repository.entiy.KeywordReply
 import com.mikuac.shiro.core.Bot
+import com.mikuac.shiro.core.BotContainer
 import com.mikuac.shiro.dto.action.common.ActionData
 import com.mikuac.shiro.dto.action.common.MsgId
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -31,6 +33,22 @@ fun selfRecentlySent(id: Long, message: String): Boolean {
             }
         }
         return false
+    }
+}
+
+fun BotContainer.getFirstBot(): Bot {
+    return this.robots.values.first()
+}
+
+fun Bot.sendMsg(msgType: MessageType, id: Long, msg: String) {
+    when (msgType) {
+        MessageType.PRIVATE -> {
+            this.sendPrivateMsg(id, msg, false)
+        }
+
+        MessageType.GROUP -> {
+            this.sendGroupMsg(id, msg, false)
+        }
     }
 }
 

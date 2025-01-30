@@ -32,7 +32,6 @@ class EternalReturnNewsEmailPush(
             EternalReturnPush(
                 null,
                 email,
-                sender,
                 LocalDateTime.now(),
                 sender.groupOrSenderId,
                 true
