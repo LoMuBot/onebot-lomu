@@ -45,7 +45,25 @@ class DeerDraw(
         return "第${ranking}名与${rankingCount}人位于同一名次"
     }
 
-     fun drawDeerKing(deer: Deer, commandSender: MessageSender): String {
+    fun isLastMonthKing(senderId: Long): Int {
+        var year = LocalDateTime.now().year
+        var month = LocalDateTime.now().monthValue
+        if (month == 1) {
+            year -= 1
+            month = 12
+        } else {
+            month -= 1
+        }
+        val all = deerRepository.findByYearAndMonth(year, month)
+        val max = all.maxBy { it.days.count() }.days.count()
+        val deerKings = all.filter { max == it.days.count() }
+        deerKings.firstOrNull { it.senderId == senderId }?.let {
+            return it.days.count()
+        }
+        return -1
+    }
+
+    fun drawDeerKing(deer: Deer, commandSender: MessageSender): String {
         val avatarPath = ReadWriteFile.currentPathFileName("image/qq/avatar/${commandSender.senderId}.png")
         qqRequestData.downloadQQAvatar(commandSender.senderId.toString(), avatarPath)
 
@@ -61,12 +79,17 @@ class DeerDraw(
             30
         )
         drawImageUtils.drawImage(avatarPath, 450, 800, 200, 200, null)
-        drawImageUtils.drawString(commandSender.senderName, Color.black, 450, 780, 30)
+
+        if (isLastMonthKing(commandSender.senderId) > 0) {
+            drawImageUtils.drawString("${commandSender.senderName}[DeerKing]" , Color.red, 450, 780, 30)
+        } else {
+            drawImageUtils.drawString(commandSender.senderName, Color.black, 450, 780, 30)
+        }
 
         val deerSenderCount = deerRepository.count()
         drawImageUtils.drawString(
             "当月在${deerSenderCount}人中 排名${ranking(commandSender.senderId)}",
-            Color.red,
+            Color.black,
             250,
             1050,
             30

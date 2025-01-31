@@ -2,6 +2,7 @@ package cn.luorenmu.action.disuse
 
 import cn.luorenmu.action.commandProcess.botCommand.KeywordSendCommand
 import cn.luorenmu.common.extensions.isAt
+import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender
@@ -28,7 +29,9 @@ class OneBotKeywordReply(
     @Async("keywordProcessThreadPool")
     fun process(bot: Bot, messageSender: MessageSender) {
         if (!keywordSendCommand.state(messageSender.groupOrSenderId)) {
-            return
+            if (!messageSender.message.isAt(bot.selfId)) {
+                return
+            }
         }
         val atMe = messageSender.message.isAt(bot.selfId)
         if (atMe) {

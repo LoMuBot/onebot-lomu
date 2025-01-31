@@ -37,7 +37,7 @@ class EternalReturnFindCharacter(
             botContainer.getFirstBot().sendGroupMsg(
                 sender.groupOrSenderId,
                 MsgUtils.builder().reply(sender.messageId)
-                    .text("喵！螺母这就去帮主人查角色喵～稍等一下下哦，螺母会尽快把结果告诉主人的喵！(≧ω≦)/").build(),
+                    .text("喵！螺母这就去查角色～稍等一下下哦，螺母会尽快把结果告诉你的(≧ω≦)/").build(),
                 false
             )
             eternalReturnFindCharacter(characterName, indexMatch)
@@ -94,7 +94,7 @@ class EternalReturnFindCharacter(
                         sortWeaponTypes[i].key
                     }
                 } ?: run {
-                weaponStr.append("角色详细动态链接已失效,需手动更新")
+                weaponStr.append("待重构")
             }
             val returnMsg =
                 eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, weapon, weaponStr.toString())

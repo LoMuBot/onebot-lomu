@@ -41,10 +41,7 @@ class EternalReturnFindPlayer(
 
         // check cache
         opsForValue["Eternal_Return_NickName:$nickname"]?.let {
-            if (it.contains("不存在的玩家 -> ")) {
-                return "不存在的玩家 -> $nickname\n该数据由缓存命中 如果角色已存在请使用重新查询(重新查询玩家 xxx)"
-            }
-            return it
+            return "$it \n该数据由缓存命中"
         }
 
 
@@ -57,7 +54,7 @@ class EternalReturnFindPlayer(
         botContainer.getFirstBot().sendGroupMsg(
             sender.groupOrSenderId,
             MsgUtils.builder().reply(sender.messageId)
-                .text("喵！螺母这就去帮主人查角色喵～稍等一下下哦，螺母会尽快把结果告诉主人的喵！(≧ω≦)/").build(),
+                .text("喵！螺母这就去查战绩～稍等一下下哦，螺母会尽快把结果告诉你的(≧ω≦)/").build(),
             false
         )
         return eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)

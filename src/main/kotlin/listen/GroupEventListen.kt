@@ -14,6 +14,7 @@ import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.GroupMessage
 import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
+import com.github.houbb.opencc4j.util.ZhTwConverterUtil
 import com.mikuac.shiro.annotation.GroupMessageHandler
 import com.mikuac.shiro.annotation.common.Shiro
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -77,8 +78,15 @@ class GroupEventListen(
             )
 
 
-        // 指令
+        // 监听类
+        oneBotChatStudy.process(bot, groupMessageEvent)
+        oneBotChatStudy.reRead(bot, groupMessageEvent)
+        keywordReply.process(bot, messageSender)
+        bilibiliEventListen.process(bot, messageSender)
+        // strange function ?
+        deerListen.process(bot, messageSender)
 
+        // 指令
         oneBotCommandAllocator.process(bot, messageSender)?.let {
             if (it.isNotBlank()) {
                 bot.sendGroupMsg(
@@ -89,14 +97,6 @@ class GroupEventListen(
             }
         }
 
-
-        // 监听类
-        oneBotChatStudy.process(bot, groupMessageEvent)
-        oneBotChatStudy.reRead(bot,groupMessageEvent)
-        keywordReply.process(bot, messageSender)
-        bilibiliEventListen.process(bot, messageSender)
-        // strange function ?
-        deerListen.process(bot, messageSender)
 
         // 同一个人在指定的20条中发了同一条消息 不入队列
         groupMessageQueue.map[groupId]?.let {

@@ -16,12 +16,10 @@ import kotlin.random.Random
 class CallBotCommand(
     private val botContainer: BotContainer,
 ) : CommandProcess {
-    private val response = listOf("喵!", "(≧ω≦)~", "喵喵喵?")
+    private val response = listOf("螺母在哦~", "(≧ω≦)~", "嗯哼(#^.^#)")
     override fun process(command: String, sender: MessageSender): String? {
-        // %17
-        if (Random.nextInt(0, 17) > 3 || sender.message == command) {
-            botContainer.getFirstBot().sendMsg(sender.messageType, sender.groupOrSenderId, response.random())
-        }
+
+        botContainer.getFirstBot().sendMsg(sender.messageType, sender.groupOrSenderId, response.random())
         return null
     }
 

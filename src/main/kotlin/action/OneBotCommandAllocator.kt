@@ -9,6 +9,7 @@ import cn.luorenmu.repository.OneBotCommandRespository
 import cn.luorenmu.repository.entiy.OneBotCommand
 import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
+import com.github.houbb.opencc4j.util.ZhTwConverterUtil
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -53,14 +54,14 @@ class OneBotCommandAllocator(
 
     fun process(bot: Bot, messageSender: MessageSender): String? {
         val botId = bot.selfId
-        allCommands().firstOrNull { isCurrentCommand(botId, messageSender.message, it) }
+        allCommands().firstOrNull { isCurrentCommand(botId, ZhTwConverterUtil.toSimple(messageSender.message), it) }
             ?.let { oneBotCommand ->
                 val commandProcess = applicationContext.getBean(oneBotCommand.commandName) as CommandProcess
                 try {
                     return commandProcess.process(oneBotCommand.keyword, messageSender)
                 } catch (e: Exception) {
                     log.error { e.stackTraceToString() }
-                    return "服务器内部发生错误来自功能${commandProcess.commandName()}\n Error: ${e.message}"
+                    return "服务器内部发生错误来自功能${commandProcess.commandName()}\n ${e.javaClass.name}: ${e.message}"
                 }
             }
         return null

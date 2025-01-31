@@ -4,7 +4,7 @@ import action.commandProcess.eternalReturn.entity.EternalReturnCharacter
 import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfile
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.EternalReturnTierDistributions
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalRetrunLeaderboard
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCharacterInfo
+import action.commandProcess.eternalReturn.entity.EternalReturnCharacterInfo
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCurrentSeason
 import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
@@ -116,6 +116,7 @@ class EternalReturnRequestData(
         request.replaceUrl("key1", character)
         request.replaceUrl("weapon", weapon)
         val resp = request.request()
+        println(resp.body())
         return resp?.let {
             try {
                 val result = it.body().to<EternalReturnCharacterInfo>()
