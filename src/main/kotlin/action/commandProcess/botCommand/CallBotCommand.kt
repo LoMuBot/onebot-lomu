@@ -6,7 +6,6 @@ import cn.luorenmu.common.extensions.sendMsg
 import cn.luorenmu.listen.entity.MessageSender
 import com.mikuac.shiro.core.BotContainer
 import org.springframework.stereotype.Component
-import kotlin.random.Random
 
 /**
  * @author LoMu

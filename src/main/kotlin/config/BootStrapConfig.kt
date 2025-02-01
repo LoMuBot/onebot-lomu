@@ -38,6 +38,7 @@ class BootStrapConfig(
             "eternal_return_request" to "request/eternal_return_request.json",
         )
 
+        // 生成配置文件
         for (filePath in resourcesRequestJson) {
             var initJsonObj =
                 ResourceUtil.getResource(filePath.value).openStream().bufferedReader().readText().to<JSONObject>()

@@ -7,9 +7,28 @@ shiro:
       enable: true
       url: "ws://127.0.0.1:3001"
 spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps: false
   data:
     mongodb:
       auto-index-creation: true
       uri: mongodb://192.168.1.104/QQMessage
     redis:
       host: 192.168.1.104
+lomu-bot:
+  mail:
+    host: smtp.qq.com
+    port: 465
+    from: 3141298408@qq.com
+    user: 3141298408
+    pass: null
+    starttls: true
+    ssl: true
+  web-pool:
+    size: 4
+  deep-seek:
+    api-key: ""
+    base-url: "https://api.deepseek.com/chat/completions"

@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component
  * @author LoMu
  * Date 2024.09.01 15:46
  */
-@Component
-@ConfigurationProperties("mail")
 data class Mail(
     var host: String = "smtp.qq.com",
     var port: Int = 465,

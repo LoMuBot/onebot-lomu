@@ -37,7 +37,7 @@ class EternalReturnFindCharacter(
             botContainer.getFirstBot().sendGroupMsg(
                 sender.groupOrSenderId,
                 MsgUtils.builder().reply(sender.messageId)
-                    .text("喵！螺母这就去查角色～稍等一下下哦，螺母会尽快把结果告诉你的(≧ω≦)/").build(),
+                    .text("稍等一下下哦，螺母会尽快把结果告诉你的(≧ω≦)/").build(),
                 false
             )
             eternalReturnFindCharacter(characterName, indexMatch)

@@ -3,6 +3,7 @@ package cn.luorenmu.action.request
 import cn.luorenmu.entiy.Request.RequestDetailed
 import cn.luorenmu.entiy.Request.RequestParam
 import cn.luorenmu.request.RequestController
+import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 
 /**
@@ -15,21 +16,8 @@ class DeepSeekRequestData {
     private var requestHeader: MutableList<RequestParam> = mutableListOf()
 
 
-    fun chat() {
-        RequestController(RequestDetailed().apply {
-            url = baseUrl
-            method = "Post"
-            headers = requestHeader
-
-        })
-    }
-
-
-    @Synchronized
-    private fun buildDeepSeekRequestHeader(token: String) {
-        if (requestHeader.isNotEmpty()) {
-            return
-        }
+    @PostConstruct
+    fun init(){
         requestHeader.add(RequestParam().apply {
             name = "Content-Type"
             content = "application/json"
@@ -45,4 +33,15 @@ class DeepSeekRequestData {
             content = token
         })
     }
+
+    fun chat() {
+        RequestController(RequestDetailed().apply {
+            url = baseUrl
+            method = "Post"
+            headers = requestHeader
+
+        })
+    }
+
+
 }
