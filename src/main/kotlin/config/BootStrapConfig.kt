@@ -3,7 +3,7 @@ package cn.luorenmu.config
 import cn.hutool.core.io.resource.ResourceUtil
 import cn.luorenmu.MainApplication
 import cn.luorenmu.common.utils.JsonObjectUtils
-import cn.luorenmu.config.external.WebPool
+import cn.luorenmu.config.external.LoMuBotProperties
 import cn.luorenmu.file.InitializeFile
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.pool.WebPageScreenshotPool
@@ -20,9 +20,10 @@ import java.io.File
  */
 
 private val log = KotlinLogging.logger {}
+
 @Configuration
 class BootStrapConfig(
-    private val webPool: WebPool,
+    private val properties: LoMuBotProperties,
 ) {
     init {
         InitializeFile.run(MainApplication::class.java)
@@ -69,9 +70,9 @@ class BootStrapConfig(
     }
 
 
-    @Bean
+    @Bean(destroyMethod = "shutdown")
     fun getWebPageScreenshotPool(): WebPageScreenshotPool {
-        return WebPageScreenshotPool(webPool.size) {
+        return WebPageScreenshotPool(properties.webPool.size) {
             it.addArguments("--headless");
             it.addArguments("--window-size=1920,1080");
         }

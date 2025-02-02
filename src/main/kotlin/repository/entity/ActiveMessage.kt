@@ -1,10 +1,8 @@
 package cn.luorenmu.repository.entiy
 
-import com.mikuac.shiro.dto.event.message.GroupMessageEvent
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
-import java.time.LocalDateTime
 
 /**
  * @author LoMu
@@ -18,5 +16,5 @@ data class ActiveMessage(
     @Indexed
     var groupId: Long,
     var message: String,
-    var nextMessage: DeepMessage?
+    var nextMessage: DeepMessage?,
 )

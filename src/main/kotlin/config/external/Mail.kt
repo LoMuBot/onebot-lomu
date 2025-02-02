@@ -1,8 +1,5 @@
 package cn.luorenmu.config.external
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.stereotype.Component
-
 /**
  * @author LoMu
  * Date 2024.09.01 15:46
@@ -14,5 +11,5 @@ data class Mail(
     var user: String = "2842775752",
     var pass: String = "123456789",
     var starttls: Boolean = true,
-    var ssl: Boolean = false
+    var ssl: Boolean = false,
 )

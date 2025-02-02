@@ -1,6 +1,7 @@
 package cn.luorenmu.action.request.entiy
 
 import com.alibaba.fastjson2.annotation.JSONField
+import com.alibaba.fastjson2.toJSONString
 
 /**
  * @author LoMu
@@ -8,7 +9,7 @@ import com.alibaba.fastjson2.annotation.JSONField
  */
 object DeepSeekRequest {
     data class DeepSeekRequestBody(
-        val messages: MutableList<DeepSeekRequestMessage>,
+        val messages: MutableList<DeepSeekMessage>,
         // [deepseek-chat, deepseek-reasoner]
         val model: String = "deepseek-chat",
         // 介于 -2.0 和 2.0 之间的数字。如果该值为正，那么新 token 会根据其在已有文本中的出现频率受到相应的惩罚，降低模型重复相同内容的可能性。
@@ -29,13 +30,26 @@ object DeepSeekRequest {
         @JSONField(name = "stream_options")
         // 流式输出相关选项。只有在 stream 参数为 true 时，才可设置此参数。
         val streamOptions: Any? = null,
+        /**
+         * 采样温度，介于 0 和 2 之间。
+         * 更高的值，如 0.8，会使输出更随机，而更低的值，如 0.2，会使其更加集中和确定。
+         * 我们通常建议可以更改这个值或者更改 top_p，但不建议同时对两者进行修改。
+         * DeepSeek 官方建议
+         * 代码生成/数学解题	0.0
+         * 数据抽取/分析	1.0
+         * 通用对话	1.3
+         * 翻译	1.3
+         * 创意类写作/诗歌创作	1.5
+         */
+        val temperature: Double = 1.3,
+
         @JSONField(name = "top_p")
         /**
          * 作为调节采样温度的替代方案，模型会考虑前 top_p 概率的 token 的结果。
          * 所以 0.1 就意味着只有包括在最高 10% 概率中的 token 会被考虑。
          * 我们通常建议修改这个值或者更改 temperature，但不建议同时对两者进行修改。
          */
-        val top: Double? = 1.0,
+        val top: Double? = null,
 
         // 模型可能会调用的 tool 的列表。目前，仅支持 function 作为工具。使用此参数来提供以 JSON 作为输入参数的 function 列表。最多支持 128 个 function。
         val tools: Any? = null,
@@ -64,16 +78,12 @@ object DeepSeekRequest {
         val topLogprobs: Any? = null,
     ) {
         companion object {
-            fun builder(messages: MutableList<DeepSeekRequestMessage>): DeepSeekRequestBody {
-                return DeepSeekRequestBody(messages)
+            fun builder(messages: MutableList<DeepSeekMessage>): String {
+                return DeepSeekRequestBody(messages).toJSONString()
             }
         }
     }
 
-    data class DeepSeekRequestMessage(
-        var content: String,
-        var role: String,
-    )
 
     /**
      * 一个 object，指定模型必须输出的格式。
