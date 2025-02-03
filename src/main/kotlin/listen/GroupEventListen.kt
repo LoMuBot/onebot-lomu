@@ -6,25 +6,20 @@ import cn.luorenmu.action.disuse.OneBotChatStudy
 import cn.luorenmu.action.disuse.OneBotKeywordReply
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
 import cn.luorenmu.action.listenProcess.DeerListen
-import cn.luorenmu.entiy.ConfigId
+import cn.luorenmu.common.extensions.isAt
+import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.listen.entity.MessageType
-import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entiy.GroupMessage
-import com.alibaba.fastjson2.to
-import com.alibaba.fastjson2.toJSONString
-import com.github.houbb.opencc4j.util.ZhTwConverterUtil
+import cn.luorenmu.service.ChatService
 import com.mikuac.shiro.annotation.GroupMessageHandler
 import com.mikuac.shiro.annotation.common.Shiro
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
 
 
 /**
@@ -33,7 +28,7 @@ import java.util.concurrent.TimeUnit
  */
 
 val groupMessageQueue: RecentlyMessageQueue<GroupMessage> = RecentlyMessageQueue()
-val log = KotlinLogging.logger { }
+
 
 @Component
 @Shiro
@@ -45,7 +40,6 @@ class GroupEventListen(
     private val deerListen: DeerListen,
     private val permissionsManager: PermissionsManager,
 ) {
-
 
     @GroupMessageHandler
     fun groupMsgListen(bot: Bot, groupMessageEvent: GroupMessageEvent) {
@@ -91,12 +85,11 @@ class GroupEventListen(
             if (it.isNotBlank()) {
                 bot.sendGroupMsg(
                     groupId,
-                    MsgUtils.builder().reply(groupMessageEvent.messageId).text(it).build(),
-                    false
+                    MsgUtils.builder().reply(groupMessageEvent.messageId).text(it).build()
                 )
+                return
             }
         }
-
 
         // 同一个人在指定的20条中发了同一条消息 不入队列
         groupMessageQueue.map[groupId]?.let {

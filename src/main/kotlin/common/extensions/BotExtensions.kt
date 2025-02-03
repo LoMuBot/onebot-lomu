@@ -43,74 +43,57 @@ fun BotContainer.getFirstBot(): Bot {
 fun Bot.sendMsg(msgType: MessageType, id: Long, msg: String) {
     when (msgType) {
         MessageType.PRIVATE -> {
-            this.sendPrivateMsg(id, msg, false)
+            this.sendPrivateMsg(id, msg)
         }
 
         MessageType.GROUP -> {
-            this.sendGroupMsg(id, msg, false)
+            this.sendGroupMsg(id, msg)
         }
     }
 }
 
-fun Bot.sendGroupMsgLimit(groupId: Long, message: String): Boolean {
-    return sendMsgLimit(groupId, message) {
-        this.sendGroupMsg(groupId, message, false)
-    }
-}
 
-fun Bot.sendGroupMsgLimit(groupId: Long, message: String, msgLimit: String): Boolean {
-    return sendMsgLimit(groupId, message, msgLimit) {
-        this.sendGroupMsg(groupId, message, false)
-    }
+fun Bot.sendGroupMsgLimit(groupId: Long, message: String) {
+    sendMsgLimit(groupId, message, MessageType.GROUP)
 }
 
 fun Bot.sendPrivateMsgLimit(id: Long, message: String) {
-    sendMsgLimit(id, message) {
-        this.sendPrivateMsg(id, message, false)
-    }
+    sendMsgLimit(id, message, MessageType.PRIVATE)
 }
 
+@Synchronized
 fun Bot.sendGroupMsgKeywordLimit(id: Long, keywordReply: KeywordReply): Boolean {
     var send = false
-    synchronized(selfKeywordMessage) {
-        selfKeywordMessage.map[id]?.let {
-            for (kw in it) {
-                if ((keywordReply == kw || keywordReply.keyword == kw.keyword || keywordReply.reply == kw.reply)) {
-                    return false
-                }
+    selfKeywordMessage.map[id]?.let {
+        for (kw in it) {
+            if ((keywordReply == kw || keywordReply.keyword == kw.keyword || keywordReply.reply == kw.reply)) {
+                return false
             }
-        } ?: run {
-            send = true
         }
-        if (!selfRecentlySent(id, keywordReply.reply.replaceCqToFileStr() ?: keywordReply.reply)) {
-            send = true
-        }
+    } ?: run {
+        send = true
+    }
 
-        if (send) {
-            selfKeywordMessage.addMessageToQueue(id, keywordReply)
-            val sendList: ArrayList<String> = arrayListOf()
-            sendList.add(keywordReply.reply)
-            keywordReply.deepMessage(sendList, keywordReply.nextMessage)
-            for (s in sendList) {
-                sendGroupMsgLimit(id, s, s.replaceCqToFileStr() ?: "none")
-                TimeUnit.SECONDS.sleep(1)
-            }
+    if (send) {
+        val sendList: ArrayList<String> = arrayListOf()
+        sendList.add(keywordReply.reply)
+        keywordReply.deepMessage(sendList, keywordReply.nextMessage)
+        for (s in sendList) {
+            sendGroupMsgLimit(id, s)
+            TimeUnit.SECONDS.sleep(1)
         }
     }
     return send
 }
 
-fun Bot.addMsgLimit(id: Long, message: String, msgLimit: String = "none") {
+fun Bot.addMsgLimit(id: Long, message: String) {
     synchronized(selfRecentlySendMessage) {
-        var msgLimit1 = message
-        if (msgLimit != "none") {
-            msgLimit1 = msgLimit
-        }
-        if (selfRecentlySent(id, msgLimit1)) {
+
+        if (selfRecentlySent(id, message)) {
             return
         }
 
-        selfRecentlySendMessage.addMessageToQueue(id, SelfSendMsg(msgLimit1))
+        selfRecentlySendMessage.addMessageToQueue(id, SelfSendMsg(message))
     }
 }
 
@@ -121,27 +104,56 @@ fun Bot.addMsgLimit(id: Long, message: String, msgLimit: String = "none") {
 private fun Bot.sendMsgLimit(
     id: Long,
     message: String,
-    msgLimit: String = "none",
-    send: () -> ActionData<MsgId>?,
+    messageType: MessageType,
 ): Boolean {
     synchronized(selfRecentlySendMessage) {
-        var msgLimit1 = message
-        if (msgLimit != "none") {
-            msgLimit1 = msgLimit
-        }
-        if (selfRecentlySent(id, msgLimit1)) {
+        if (selfRecentlySent(id, message)) {
             return false
         }
-        val sendMsg = send()
-        val selfSendMsg: SelfSendMsg = if (sendMsg != null && sendMsg.data != null) {
-            SelfSendMsg(sendMsg.data.messageId.toLong(), msgLimit1)
-        } else {
-            SelfSendMsg(msgLimit1)
+        when (messageType) {
+            MessageType.PRIVATE -> {
+                sendPrivateMsg(id, message)
+            }
+
+            MessageType.GROUP -> {
+                sendGroupMsg(id, message)
+            }
         }
-        selfRecentlySendMessage.addMessageToQueue(id, selfSendMsg)
-        log.info { "send message $id -> $message" }
         return true
     }
+}
+
+/**
+ *  添加日志记录 发送群消息
+ */
+fun Bot.sendGroupMsg(groupId: Long, message: String) {
+    log.info { "send message $groupId -> $message" }
+    val sendGroupMsg = this.sendGroupMsg(groupId, message, false)
+    addToSelfSendMessage(groupId, message, sendGroupMsg)
+
+}
+
+private fun Bot.addToSelfSendMessage(
+    id: Long,
+    message: String,
+    sendMsg: ActionData<MsgId>?,
+) {
+    val selfSendMsg: SelfSendMsg = if (sendMsg != null && sendMsg.data != null) {
+        SelfSendMsg(sendMsg.data.messageId.toLong(), message)
+    } else {
+        log.error { "发送至${id}-${message}返回为null" }
+        SelfSendMsg(message)
+    }
+    selfRecentlySendMessage.addMessageToQueue(id, selfSendMsg)
+}
+
+/**
+ *  添加日志记录 发送私聊消息
+ */
+fun Bot.sendPrivateMsg(id: Long, message: String) {
+    log.info { "send message $id -> $message" }
+    val sendPrivateMsg = this.sendPrivateMsg(id, message, false)
+    addToSelfSendMessage(id, message, sendPrivateMsg)
 }
 
 
@@ -155,26 +167,18 @@ fun Bot.sendGroupDeepMsgLimit(groupId: Long, message: String, deepMessage: DeepM
                 return false
             }
         }
-        val sendGroupMsg = this.sendGroupMsg(groupId, message, false)
+        this.sendGroupMsg(groupId, message)
 
         // 连续发送多条消息
         deepMessage1?.let {
             while (true) {
                 TimeUnit.SECONDS.sleep(1)
-                this.sendGroupMsg(groupId, it.reply, false)
+                this.sendGroupMsg(groupId, it.reply)
                 it.next?.let { it1 ->
                     deepMessage1 = it1
                 } ?: break
             }
         }
-        val selfSendMsg: SelfSendMsg = if (sendGroupMsg != null) {
-            SelfSendMsg(sendGroupMsg.data.messageId.toLong(), message1)
-        } else {
-            SelfSendMsg(message1)
-        }
-
-
-        selfRecentlySendMessage.addMessageToQueue(groupId, selfSendMsg)
         return true
     }
 }

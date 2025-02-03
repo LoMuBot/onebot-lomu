@@ -53,11 +53,11 @@ fun String.getCQFileStr(): String? {
     return null
 }
 
-fun String.replaceCqToFileStr(): String? {
+fun String.replaceImgCqToFileStr(): String {
     if (this.isImage()) {
-        return this.getCQFileStr()
+        return this.getCQFileStr() ?: this
     }
-    return null
+    return this
 }
 
 fun String.isCQAt(): Boolean {

@@ -1,6 +1,7 @@
 package cn.luorenmu.entiy
 
-import cn.luorenmu.listen.log
+
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 
@@ -10,6 +11,7 @@ import org.springframework.util.MultiValueMap
  */
 
 class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
+    private val log = KotlinLogging.logger {}
 
     /**
      *  存储近maxSize条最新消息
@@ -17,8 +19,6 @@ class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
      *  value为List<GroupMessage>
      */
     val map: MultiValueMap<Long, T> = LinkedMultiValueMap()
-
-
 
 
     /**

@@ -25,13 +25,13 @@ class OneBotChatStudy(
     private val keywordReplyRepository: KeywordReplyRepository,
     private val redisTemplate: RedisTemplate<String, String>,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
-    private val chatStudyCommand: ChatStudyCommand
+    private val chatStudyCommand: ChatStudyCommand,
 ) {
     // 复读数 size + 1
     private val size = 3
 
     fun process(bot: Bot, groupMessageEvent: GroupMessageEvent) {
-        if (!chatStudyCommand.state(groupMessageEvent.groupId)){
+        if (!chatStudyCommand.state(groupMessageEvent.groupId)) {
             return
         }
         val groupId = groupMessageEvent.groupId
@@ -128,15 +128,13 @@ class OneBotChatStudy(
         val lastMessageListSize5 = groupMessageQueue.lastMessages(groupId, size + 5)
         if (lastMessageListSize5.isNotEmpty()) {
             var keyword: String? = null
-            val currentMessage = message.replaceCqToFileStr() ?: message
-            val currentMessagePinYin = currentMessage.toPinYin()
+            val currentMessagePinYin = message.toPinYin()
 
             // 遍历查找
             for (lastGroupMessage in lastMessageListSize5) {
                 // 如果为图片获取图片名
-                val lastMessage = lastGroupMessage!!.groupEventObject.message.replaceCqToFileStr()
-                    ?: lastGroupMessage.groupEventObject.message
-                if (lastMessage != currentMessage) {
+                val lastMessage = lastGroupMessage!!.groupEventObject.message
+                if (lastMessage != message) {
                     // 限制保存
                     if (lastMessage.isCQReply()) {
                         continue
@@ -161,9 +159,9 @@ class OneBotChatStudy(
 
                     // 遍历查找
                     for (lastGroupMessage in lastMessageListSize5) {
-                        val lastMessage = lastGroupMessage!!.groupEventObject.message.replaceCqToFileStr()
+                        val lastMessage = lastGroupMessage!!.groupEventObject.message.replaceImgCqToFileStr()
                             ?: lastGroupMessage.groupEventObject.message
-                        if (lastMessage != currentMessage) {
+                        if (lastMessage != message) {
                             if (lastMessage.isImage() || !lastMessage.isCQReply() || lastMessage.isMface()) {
                                 keyword = lastMessage
                                 break
@@ -236,22 +234,21 @@ class OneBotChatStudy(
                 }
             }
             if (repeatNum == lastMessages.size) {
-                if (!selfRecentlySent(groupId, message.replaceCqToFileStr() ?: message)) {
+                if (!selfRecentlySent(groupId, message)) {
                     isReRead = true
                 } else {
                     return false
                 }
-                val msgLimit = message.replaceCqToFileStr() ?: "none"
 
                 //复读
                 redisTemplate.opsForValue()["isReRead"]?.let {
                     if (Random(System.currentTimeMillis()).nextInt(0, 10) <= 3) {
-                        bot.sendGroupMsgLimit(groupId, message, msgLimit)
+                        bot.sendGroupMsgLimit(groupId, message)
                     } else {
-                        bot.addMsgLimit(groupId, message, msgLimit)
+                        bot.addMsgLimit(groupId, message)
                     }
                 } ?: run {
-                    bot.addMsgLimit(groupId, message, msgLimit)
+                    bot.addMsgLimit(groupId, message)
                 }
 
             }
