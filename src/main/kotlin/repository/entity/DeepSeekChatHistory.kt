@@ -1,5 +1,6 @@
 package cn.luorenmu.repository.entity
 
+import cn.luorenmu.action.request.entiy.DeepSeekResponse
 import cn.luorenmu.listen.entity.MessageSender
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
@@ -18,5 +19,6 @@ data class DeepSeekChatHistory(
     val messageSender: MessageSender,
     val deepSeekReply: String,
     val totalTokens: Long,
+    val deepSeekResponse: DeepSeekResponse,
     val date: LocalDateTime = LocalDateTime.now(),
 )

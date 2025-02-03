@@ -6,6 +6,7 @@ import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
 import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
+import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.listen.entity.MessageSender
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.BotContainer
@@ -22,10 +23,8 @@ class EternalReturnFindPlayer(
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
     private val redisTemplate: StringRedisTemplate,
-    private val botContainer: BotContainer,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
-        println(sender.message)
         val nickname =
             sender.message.replaceAtToEmpty(sender.botId).trim()
                 .replace(Regex(command), "")
@@ -51,12 +50,7 @@ class EternalReturnFindPlayer(
             opsForValue["Eternal_Return_NickName:$nickname", notFound, 7L] = TimeUnit.DAYS
             return notFound
         }
-        botContainer.getFirstBot().sendGroupMsg(
-            sender.groupOrSenderId,
-            MsgUtils.builder().reply(sender.messageId)
-                .text("稍等一下下哦，螺母会尽快把结果告诉你的(≧ω≦)/").build(),
-            false
-        )
+
         return eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)
     }
 

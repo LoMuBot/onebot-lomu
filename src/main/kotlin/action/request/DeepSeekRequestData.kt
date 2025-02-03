@@ -52,7 +52,7 @@ class DeepSeekRequestData(
             url = properties.deepSeek.baseUrl
             method = "Post"
             headers = requestHeader
-            bodyJson = DeepSeekRequest.DeepSeekRequestBody.builder(messages)
+            bodyJson = DeepSeekRequest.DeepSeekRequestBody.builder(messages,properties.deepSeek.model)
         }).request()
     }
 

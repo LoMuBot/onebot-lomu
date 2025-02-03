@@ -78,8 +78,8 @@ object DeepSeekRequest {
         val topLogprobs: Any? = null,
     ) {
         companion object {
-            fun builder(messages: MutableList<DeepSeekMessage>): String {
-                return DeepSeekRequestBody(messages).toJSONString()
+            fun builder(messages: MutableList<DeepSeekMessage>, model: String): String {
+                return DeepSeekRequestBody(messages, model = model).toJSONString()
             }
         }
     }

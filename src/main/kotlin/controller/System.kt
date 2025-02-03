@@ -1,7 +1,6 @@
 package cn.luorenmu.controller
 
 import cn.luorenmu.file.ReadWriteFile
-import cn.luorenmu.listen.log
 import cn.luorenmu.repository.ActiveSendMessageRepository
 import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.OneBotCommandRespository
@@ -10,6 +9,7 @@ import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
 import cn.luorenmu.repository.entiy.OneBotCommand
 import cn.luorenmu.repository.entity.OneBotConfig
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.web.bind.annotation.*
 
@@ -28,6 +28,7 @@ class System(
     private val oneBotCommandRespository: OneBotCommandRespository,
     private val redisTemplate: StringRedisTemplate,
 ) {
+    private val log = KotlinLogging.logger {}
     @PostMapping("/")
     fun hello(@RequestBody body: String) {
         redisTemplate.opsForValue()["log"]?.let {

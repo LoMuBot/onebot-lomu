@@ -1,10 +1,10 @@
 package cn.luorenmu.action.request
 
 import action.commandProcess.eternalReturn.entity.EternalReturnCharacter
+import action.commandProcess.eternalReturn.entity.EternalReturnCharacterInfo
 import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfile
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.EternalReturnTierDistributions
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalRetrunLeaderboard
-import action.commandProcess.eternalReturn.entity.EternalReturnCharacterInfo
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCurrentSeason
 import cn.luorenmu.common.utils.dakggCdnUrl
 import cn.luorenmu.common.utils.getEternalReturnDataImagePath
@@ -116,21 +116,19 @@ class EternalReturnRequestData(
         request.replaceUrl("key1", character)
         request.replaceUrl("weapon", weapon)
         val resp = request.request()
-        println(resp.body())
-        return resp?.let {
-            try {
-                val result = it.body().to<EternalReturnCharacterInfo>()
-
-                redisTemplate.opsForValue()["Eternal_Return_Find:${character}", it.body(), 1L] =
-                    TimeUnit.DAYS
-                result
-            } catch (e: JSONException) {
-                return null
-            }
-
+        if (resp.status != 200) {
+            return null
         }
-
+        try {
+            val result = resp.body().to<EternalReturnCharacterInfo>()
+            redisTemplate.opsForValue()["Eternal_Return_Find:${character}", resp.body(), 2L] =
+                TimeUnit.DAYS
+            return result
+        } catch (e: JSONException) {
+            return null
+        }
     }
+
 
     fun characterFind(): EternalReturnCharacter? {
         redisTemplate.opsForValue().get("Eternal_Return_Find: characters")?.let {

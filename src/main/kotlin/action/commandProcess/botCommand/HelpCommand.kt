@@ -1,9 +1,7 @@
 package cn.luorenmu.action.commandProcess.botCommand
 
 import cn.luorenmu.action.commandProcess.CommandProcess
-import cn.luorenmu.common.utils.getImagePath
 import cn.luorenmu.listen.entity.MessageSender
-import com.mikuac.shiro.common.utils.MsgUtils
 import org.springframework.stereotype.Component
 
 /**
@@ -13,10 +11,12 @@ import org.springframework.stereotype.Component
 @Component("HelpCommand")
 class HelpCommand : CommandProcess {
 
+    companion object{
+        const val HELP_WORD = "LoMu-Bot使用教程 https://docs.qq.com/doc/DQnpKbnhsRkx5UFd4"
+    }
 
     override fun process(command: String, sender: MessageSender): String? {
-        val imagePath = getImagePath("help")
-        return MsgUtils.builder().img(imagePath).build()
+        return HELP_WORD
     }
 
     override fun commandName() = "HelpCommand"

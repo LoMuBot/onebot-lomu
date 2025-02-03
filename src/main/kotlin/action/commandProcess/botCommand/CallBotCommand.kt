@@ -15,10 +15,11 @@ import org.springframework.stereotype.Component
 class CallBotCommand(
     private val botContainer: BotContainer,
 ) : CommandProcess {
-    private val response = listOf("螺母在哦~", "(≧ω≦)~", "嗯哼(#^.^#)")
+    companion object{
+        private val CALL_WORDS = listOf("螺母在哦~", "(≧ω≦)~", "嗯哼(#^.^#)")
+    }
     override fun process(command: String, sender: MessageSender): String? {
-
-        botContainer.getFirstBot().sendMsg(sender.messageType, sender.groupOrSenderId, response.random())
+        botContainer.getFirstBot().sendMsg(sender.messageType, sender.groupOrSenderId, CALL_WORDS.random())
         return null
     }
 

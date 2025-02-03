@@ -2,7 +2,6 @@ package cn.luorenmu.action.disuse
 
 import cn.luorenmu.action.commandProcess.botCommand.KeywordSendCommand
 import cn.luorenmu.common.extensions.isAt
-import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.sendGroupMsgKeywordLimit
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender

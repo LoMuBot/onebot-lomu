@@ -20,7 +20,7 @@ class KeywordSendCommand(
         return botCommandControl.changeCommandState(
             commandName(),
             sender
-        ) + "\n如果启用该功能将会从其他群中的消息传播至该群"
+        )
     }
 
     override fun commandName(): String {

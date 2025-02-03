@@ -20,7 +20,7 @@ class ChatStudyCommand(
         return botCommandControl.changeCommandState(
             commandName(),
             sender
-        ) + "\n如果启用该将会从该群的聊天消息传播至其他群"
+        )
     }
 
     override fun commandName(): String {
