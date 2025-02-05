@@ -6,13 +6,12 @@ import cn.luorenmu.action.disuse.OneBotChatStudy
 import cn.luorenmu.action.disuse.OneBotKeywordReply
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
 import cn.luorenmu.action.listenProcess.DeerListen
-import cn.luorenmu.common.extensions.isAt
+import cn.luorenmu.action.listenProcess.PetpetListen
 import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.listen.entity.MessageType
 import cn.luorenmu.repository.entiy.GroupMessage
-import cn.luorenmu.service.ChatService
 import com.mikuac.shiro.annotation.GroupMessageHandler
 import com.mikuac.shiro.annotation.common.Shiro
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -39,6 +38,7 @@ class GroupEventListen(
     private val bilibiliEventListen: BilibiliEventListen,
     private val deerListen: DeerListen,
     private val permissionsManager: PermissionsManager,
+    private val petpetListen: PetpetListen,
 ) {
 
     @GroupMessageHandler
@@ -79,6 +79,15 @@ class GroupEventListen(
         bilibiliEventListen.process(bot, messageSender)
         // strange function ?
         deerListen.process(bot, messageSender)
+        petpetListen.process(messageSender)?.let {
+            if (it.isNotBlank()) {
+                bot.sendGroupMsg(
+                    groupId,
+                    it
+                )
+                return
+            }
+        }
 
         // 指令
         oneBotCommandAllocator.process(bot, messageSender)?.let {

@@ -10,9 +10,16 @@ Bot并没有接入NLP所以无法理解自然语言 它的所有回复相当于�
 1.spring websocket   
 2.redis   
 3.mongodb   
-4.kotlin 2.0(java 21)    
-如果你想要了解项目你可以从package cn.luorenmu.listen.GroupEventListen.kt开始了解    
-如果你想要运行本项目需要将src/main/resources/request/移动到jar目录下的request中
+4.kotlin 2.0(java 17)    
+
+
+项目结构   
+* listen -> QQ消息监听
+* action ->   
+    commandProcess -> 命令处理   
+    draw -> 绘图    
+    webPageScreenshot -> 调用浏览器进行截图    
+    request -> http请求    
 
 ## 技术介绍   
 以目前的查询功能来说 都是基于selenium自动化打开浏览器并且截图完成的  

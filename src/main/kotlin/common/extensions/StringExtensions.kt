@@ -15,8 +15,16 @@ fun String.firstPinYin(): String {
     return string.toString()
 }
 
-fun String.replaceAtToEmpty(id: Long): String {
+fun String.replaceAtToBlank(id: Long): String {
     return this.replace(MsgUtils.builder().at(id).build(), "")
+}
+
+fun String.replaceAtToBlank(): String {
+    return this.replace("\\[CQ:at,qq=(\\d+)]".toRegex(), "")
+}
+
+fun String.getAtQQ(): String? {
+    return "\\[CQ:at,qq=(\\d+)?+]".toRegex().find(this)?.groups?.get(1)?.value
 }
 
 fun String.replaceBlankToEmpty(): String {

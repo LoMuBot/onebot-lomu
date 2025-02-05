@@ -64,8 +64,8 @@ class DeerDraw(
     }
 
     fun drawDeerKing(deer: Deer, commandSender: MessageSender): String {
-        val avatarPath = ReadWriteFile.currentPathFileName("image/qq/avatar/${commandSender.senderId}.png")
-        qqRequestData.downloadQQAvatar(commandSender.senderId.toString(), avatarPath)
+
+        val avatarPath = qqRequestData.downloadQQAvatar(commandSender.senderId.toString())
 
         val drawImageUtils = DrawImageUtils.builder()
         drawImageUtils.setTemplate(ReadWriteFile.currentPathFileName("image/deerTemplate.jpg"))
@@ -81,7 +81,7 @@ class DeerDraw(
         drawImageUtils.drawImage(avatarPath, 450, 800, 200, 200, null)
 
         if (isLastMonthKing(commandSender.senderId) > 0) {
-            drawImageUtils.drawString("${commandSender.senderName}[DeerKing]" , Color.red, 450, 780, 30)
+            drawImageUtils.drawString("${commandSender.senderName}[DeerKing]", Color.red, 450, 780, 30)
         } else {
             drawImageUtils.drawString(commandSender.senderName, Color.black, 450, 780, 30)
         }

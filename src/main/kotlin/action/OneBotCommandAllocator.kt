@@ -9,7 +9,6 @@ import cn.luorenmu.repository.OneBotCommandRespository
 import cn.luorenmu.repository.entiy.OneBotCommand
 import com.alibaba.fastjson2.to
 import com.alibaba.fastjson2.toJSONString
-import com.github.houbb.opencc4j.util.ZhTwConverterUtil
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -24,7 +23,7 @@ import java.util.concurrent.TimeUnit
  */
 @Component
 class OneBotCommandAllocator(
-    private val oneBotCommandRespository: OneBotCommandRespository,
+    private val oneBotCommandRepository: OneBotCommandRespository,
     private val redisTemplate: StringRedisTemplate,
     private val applicationContext: ApplicationContext,
 ) {
@@ -54,7 +53,7 @@ class OneBotCommandAllocator(
 
     fun process(bot: Bot, messageSender: MessageSender): String? {
         val botId = bot.selfId
-        allCommands().firstOrNull { isCurrentCommand(botId, ZhTwConverterUtil.toSimple(messageSender.message), it) }
+        allCommands().firstOrNull { isCurrentCommand(botId, messageSender.message, it) }
             ?.let { oneBotCommand ->
                 val commandProcess = applicationContext.getBean(oneBotCommand.commandName) as CommandProcess
                 try {
@@ -68,12 +67,12 @@ class OneBotCommandAllocator(
     }
 
 
-    fun allCommands(): List<OneBotCommand> =
+    private fun allCommands(): List<OneBotCommand> =
         redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
             synchronized(redisTemplate) {
                 // 二次安全检查
                 redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
-                    val allCommands = oneBotCommandRespository.findAll()
+                    val allCommands = oneBotCommandRepository.findAll()
                     val oneBotCommands = OneBotAllCommands(allCommands)
                     redisTemplate.opsForValue()["allCommands", oneBotCommands.toJSONString(), 1L] =
                         TimeUnit.DAYS

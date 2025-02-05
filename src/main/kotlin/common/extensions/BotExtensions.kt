@@ -141,7 +141,7 @@ private fun Bot.addToSelfSendMessage(
     val selfSendMsg: SelfSendMsg = if (sendMsg != null && sendMsg.data != null) {
         SelfSendMsg(sendMsg.data.messageId.toLong(), message)
     } else {
-        log.error { "发送至${id}-${message}返回为null" }
+        log.warn { "发送至${id}-${message}返回为null" }
         SelfSendMsg(message)
     }
     selfRecentlySendMessage.addMessageToQueue(id, selfSendMsg)

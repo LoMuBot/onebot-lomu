@@ -39,6 +39,5 @@ class PermissionsManager(
                 else -> BotRole.Member
             }
         }
-
     }
 }

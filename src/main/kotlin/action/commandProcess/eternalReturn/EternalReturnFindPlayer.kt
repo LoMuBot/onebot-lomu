@@ -3,13 +3,10 @@ package cn.luorenmu.action.commandProcess.eternalReturn
 import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
-import cn.luorenmu.common.extensions.getFirstBot
-import cn.luorenmu.common.extensions.replaceAtToEmpty
+import cn.luorenmu.common.extensions.replaceAtToBlank
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
-import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.listen.entity.MessageSender
 import com.mikuac.shiro.common.utils.MsgUtils
-import com.mikuac.shiro.core.BotContainer
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
@@ -26,7 +23,7 @@ class EternalReturnFindPlayer(
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
         val nickname =
-            sender.message.replaceAtToEmpty(sender.botId).trim()
+            sender.message.replaceAtToBlank(sender.botId).trim()
                 .replace(Regex(command), "")
                 .replaceBlankToEmpty()
                 .lowercase()

@@ -6,8 +6,6 @@ import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
 import cn.luorenmu.common.extensions.*
 import cn.luorenmu.listen.entity.MessageSender
-import com.mikuac.shiro.common.utils.MsgUtils
-import com.mikuac.shiro.core.BotContainer
 import org.springframework.stereotype.Component
 
 /**
@@ -20,7 +18,7 @@ class EternalReturnFindCharacter(
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
-        var characterName = sender.message.replaceAtToEmpty(sender.botId).trim()
+        var characterName = sender.message.replaceAtToBlank(sender.botId).trim()
             .replace(Regex(command), "")
             .replaceBlankToEmpty()
             .lowercase()

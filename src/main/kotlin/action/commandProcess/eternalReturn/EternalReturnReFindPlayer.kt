@@ -1,7 +1,7 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
 import cn.luorenmu.action.commandProcess.CommandProcess
-import cn.luorenmu.common.extensions.replaceAtToEmpty
+import cn.luorenmu.common.extensions.replaceAtToBlank
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
 import cn.luorenmu.listen.entity.MessageSender
 import org.springframework.context.ApplicationContext
@@ -19,7 +19,7 @@ class EternalReturnReFindPlayer(
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
         val nickname =
-            sender.message.replaceAtToEmpty(sender.botId).trim()
+            sender.message.replaceAtToBlank(sender.botId).trim()
                 .replace(Regex(command), "")
                 .replaceBlankToEmpty()
                 .lowercase()

@@ -11,10 +11,11 @@ group = "cn.luorenmu"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    mavenLocal()
+
+
+    maven(url = "https://jitpack.io")
     maven(url = "https://maven.aliyun.com/repository/public/")
     maven(url = "https://maven.aliyun.com/repository/spring/")
-    maven(url = "https://repo.spring.io/milestone")
     mavenCentral()
 }
 
@@ -23,10 +24,20 @@ tasks.withType<Test> {
 }
 dependencies {
 
+   // implementation ("com.github.dituon:petpet:1.0.0-beta2")
+    // 为petpet提供的包支持
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.0")
+    implementation("net.objecthunter:exp4j:0.4.8")
+    implementation("net.coobird:thumbnailator:0.4.20")
+    implementation("com.jhlabs:filters:2.0.235-1")
+    implementation("com.madgag:animated-gif-lib:1.4")
+    implementation("com.pngencoder:pngencoder:0.15.0")
+
     // hutool工具包
     implementation("cn.hutool:hutool-all:5.8.29")
     // 个人开发工具包
-    implementation(files("lib/MultifunctionalAutoHelper-Java.jar"))
+    implementation(files("lib/MultifunctionalAutoHelper-Java.jar","lib/petpet-core-1.0.0-beta2.jar"))
     // 阿里巴巴高效json转换
     implementation("com.alibaba.fastjson2:fastjson2-kotlin:2.0.52")
     // 日志

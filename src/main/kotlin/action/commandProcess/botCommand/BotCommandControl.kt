@@ -40,7 +40,7 @@ class BotCommandControl(
                     }
                     return "$commandName 已禁用 更改该权限至少需要${sender.role}"
                 } else {
-                    return "你没有权限使用这个命令 因为禁用了该功能的人权限为${config.role} " +
+                    return "你没有权限使用这个命令 因为上次更改了该功能的人权限为${config.role} " +
                             "你的权限为${sender.role}"
                 }
             } ?: run {
