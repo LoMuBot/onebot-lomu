@@ -23,8 +23,8 @@ fun String.replaceAtToBlank(): String {
     return this.replace("\\[CQ:at,qq=(\\d+)]".toRegex(), "")
 }
 
-fun String.getAtQQ(): String? {
-    return "\\[CQ:at,qq=(\\d+)?+]".toRegex().find(this)?.groups?.get(1)?.value
+fun String.getAtQQ(i: Int = 0): String? {
+    return "\\[CQ:at,qq=(\\d+)?+]".toRegex().findAll(this).toMutableList().getOrNull(i)?.groups?.get(1)?.value
 }
 
 fun String.replaceBlankToEmpty(): String {
@@ -48,6 +48,13 @@ fun String.isImage(): Boolean {
 // QQ表情包
 fun String.isMface(): Boolean {
     return this.startsWith("[CQ:mface") && this.endsWith("]")
+}
+
+fun String.getCQReplyMessageId(): String? {
+    if (this.isCQReply()) {
+        return "\\[CQ:reply,id=(\\d+)?+]".toRegex().find(this)?.groups?.get(1)?.value
+    }
+    return null
 }
 
 fun String.getCQFileStr(): String? {

@@ -1,3 +1,6 @@
+import org.gradle.internal.os.OperatingSystem
+
+
 plugins {
     kotlin("jvm") version "2.0.0"
     id("org.springframework.boot") version "3.3.2"
@@ -12,19 +15,33 @@ version = "1.0-SNAPSHOT"
 
 repositories {
 
-
-    maven(url = "https://jitpack.io")
     maven(url = "https://maven.aliyun.com/repository/public/")
     maven(url = "https://maven.aliyun.com/repository/spring/")
+    maven(url = "https://jitpack.io")
     mavenCentral()
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
 }
-dependencies {
 
-   // implementation ("com.github.dituon:petpet:1.0.0-beta2")
+val os = OperatingSystem.current()!!
+
+val skijaPackage = "io.github.humbleui"
+val skijaVersion = "0.116.3"
+
+
+dependencies {
+    // skia
+    when {
+        os.isWindows -> implementation("${skijaPackage}:skija-windows-x64:${skijaVersion}")
+        os.isLinux -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
+        os.isMacOsX -> implementation("${skijaPackage}:skija-macos-x64:${skijaVersion}")
+        // 找不到 默认引用linux x64
+        else -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
+    }
+
+
     // 为petpet提供的包支持
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.0")
@@ -37,7 +54,7 @@ dependencies {
     // hutool工具包
     implementation("cn.hutool:hutool-all:5.8.29")
     // 个人开发工具包
-    implementation(files("lib/MultifunctionalAutoHelper-Java.jar","lib/petpet-core-1.0.0-beta2.jar"))
+    implementation(files("lib/MultifunctionalAutoHelper-Java.jar", "lib/petpet-core-1.0.0-beta2.jar"))
     // 阿里巴巴高效json转换
     implementation("com.alibaba.fastjson2:fastjson2-kotlin:2.0.52")
     // 日志

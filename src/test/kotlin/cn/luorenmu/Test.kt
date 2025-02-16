@@ -1,13 +1,13 @@
 package cn.luorenmu
 
-import cn.luorenmu.listen.entity.BotRole
-import cn.luorenmu.repository.OneBotCommandConfigRepository
-import cn.luorenmu.repository.OneBotConfigRepository
-import cn.luorenmu.repository.entity.OneBotCommandConfig
+import cn.luorenmu.action.request.QQRequestData
+import cn.luorenmu.common.extensions.getFirstBot
+import cn.luorenmu.common.extensions.sendPrivateMsg
+import com.mikuac.shiro.common.utils.MsgUtils
+import com.mikuac.shiro.core.BotContainer
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import java.time.LocalDateTime
 
 /**
  * @author LoMu
@@ -15,51 +15,15 @@ import java.time.LocalDateTime
  */
 
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Test(
-    @Autowired val oneBotConfigRepository: OneBotConfigRepository,
-    @Autowired val oneBotCommandConfigRepository: OneBotCommandConfigRepository,
+    @Autowired val qqRequestData: QQRequestData,
+    @Autowired val botContainer: BotContainer,
 ) {
 
-
-    fun configConvert() {
-        val all = oneBotConfigRepository.findAll()
-        val list: MutableList<OneBotCommandConfig> = mutableListOf()
-        for (oneBotConfig in all) {
-            val configName = oneBotConfig.configName
-            val configContent = oneBotConfig.configContent
-            when (configName) {
-                "BilibiliEventListen" -> {
-                    list.add(
-                        initCommandConfig(true, "BilibiliEventListenCommand", configContent)
-                    )
-                }
-
-                "banKeywordGroup" -> {
-                    list.add(
-                        initCommandConfig(false, "KeywordSend", configContent)
-                    )
-                }
-
-                "banStudy" -> {
-                    list.add(
-                        initCommandConfig(false, "ChatStudy", configContent)
-                    )
-                }
-            }
-
-        }
-        oneBotCommandConfigRepository.saveAll(list)
-    }
-
-    fun initCommandConfig(state: Boolean, commandConfigName: String, configContent: String): OneBotCommandConfig {
-        return OneBotCommandConfig(
-            null,
-            commandConfigName,
-            state,
-            BotRole.GroupAdmin,
-            configContent.toLong(),
-            configContent.toLong(),
-            LocalDateTime.now()
-        )
+    fun testQQAvatar() {
+        botContainer.getFirstBot().sendPrivateMsg(
+            2842775752L,
+            MsgUtils.builder().img(qqRequestData.downloadQQAvatar(3141298408.toString()).substring(1)).build())
     }
 }

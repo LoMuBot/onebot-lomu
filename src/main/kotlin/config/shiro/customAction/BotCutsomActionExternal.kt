@@ -19,6 +19,23 @@ fun Bot.setMsgEmojiLike(msgid: String, face: String): ActionData<*> {
 
 }
 
+fun Bot.getGroupMsgHistory(groupId: Long, messageSeq: Int, count: Int): ActionData<*> {
+    val action = GetGroupMsgHistoryActionPath.GetGroupMsgHistory
+    // 构建请求参数
+    val map = hashMapOf<String, Any>("group_id" to groupId, "message_seq" to messageSeq, "count" to count)
+    // 参考 Bot 类对响应结果进行处理
+    return this.customRequest(action, map)
+}
+
+
+fun Bot.getMsg(messageId: Long): ActionData<*> {
+    val action = GetMessageActionPath.GetMsg
+    // 构建请求参数
+    val map = hashMapOf<String, Any>("message_id" to messageId)
+    // 参考 Bot 类对响应结果进行处理
+    return this.customRequest(action, map)
+}
+
 
 /**
  *  @param file filename

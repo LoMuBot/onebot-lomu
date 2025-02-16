@@ -79,15 +79,7 @@ class GroupEventListen(
         bilibiliEventListen.process(bot, messageSender)
         // strange function ?
         deerListen.process(bot, messageSender)
-        petpetListen.process(messageSender)?.let {
-            if (it.isNotBlank()) {
-                bot.sendGroupMsg(
-                    groupId,
-                    it
-                )
-                return
-            }
-        }
+        petpetListen.process(messageSender)
 
         // 指令
         oneBotCommandAllocator.process(bot, messageSender)?.let {

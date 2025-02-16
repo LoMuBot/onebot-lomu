@@ -1,9 +1,6 @@
 package cn.luorenmu.action.request
 
-import cn.luorenmu.action.request.entiy.BilibiliPageInfoData
-import cn.luorenmu.action.request.entiy.BilibiliPageListInfo
-import cn.luorenmu.action.request.entiy.BilibiliVideoInfo
-import cn.luorenmu.action.request.entiy.BilibiliVideoInfoData
+import cn.luorenmu.action.request.entiy.bilibili.*
 import cn.luorenmu.entiy.Request
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.request.RequestController
@@ -41,18 +38,29 @@ class BilibiliRequestData {
     }
 
 
-    fun getVideoInfo(bvid: String, cid: Long): BilibiliVideoInfoData? {
-        val requestController = RequestController("bilibili_request.get_video_info")
+    fun getVideoInfo(bvid: String, cid: Long): BilibiliVideoInfoStreamData? {
+        val requestController = RequestController("bilibili_request.video_stream")
         requestController.setWaitTime(1L)
         requestController.replaceUrl("bvid", bvid)
         requestController.replaceUrl("cid", cid.toString())
         val resp = requestController.request()
         resp?.let {
             val body = it.body()
-            val result = body.to<BilibiliVideoInfo>()
+            val result = body.to<BilibiliVideoStreamInfo>()
             if (result.code == 0) {
                 return result.data.firstOrNull()
             }
+        }
+        return null
+    }
+
+    fun info(bvid: String): BilibiliVideoInfoData? {
+        val requestController = RequestController("bilibili_request.info")
+        requestController.replaceUrl("bvid", bvid)
+        val resp = requestController.request()
+        resp?.let {
+            val result = it.body().to<BilibiliVideoInfoResponse>()
+            return result.data.firstOrNull()
         }
         return null
     }

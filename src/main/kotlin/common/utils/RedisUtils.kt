@@ -57,7 +57,14 @@ class RedisUtils(
         redisTemplate.opsForValue()[key, json, timeout] = unit
     }
 
-    fun <T> getCache(key: String, valueType: Class<T>, onMiss: (() -> T)?, timeout: Long, timeUnit: TimeUnit): T? {
+    fun <T> getCache(
+        key: String,
+        valueType: Class<T>,
+        onMiss: (() -> T)?,
+        timeout: Long,
+        timeUnit: TimeUnit,
+        lock: Class<*> = RedisUtils::class.java,
+    ): T? {
         try {
             var json = redisTemplate.opsForValue()[key]
             if (StringUtils.isEmpty(json)) {
@@ -65,7 +72,7 @@ class RedisUtils(
                     return null
                 }
                 // 上锁
-                synchronized(RedisUtils::class.java) {
+                synchronized(lock::class) {
                     // 再次查询缓存，目的是判断是否前面的线程已经set过了
                     json = redisTemplate.opsForValue()[key]
                     // 第二次校验缓存是否存在

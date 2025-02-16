@@ -1,7 +1,5 @@
 package cn.luorenmu.listen.entity
 
-import com.mikuac.shiro.core.Bot
-
 /**
  * @author LoMu
  * Date 2024.12.12 17:00
@@ -31,8 +29,15 @@ enum class BotRole(val role: String, val roleNumber: Int) {
     Member("member", 0);
 
     override fun toString(): String {
-        return "$role:$roleNumber"
+        return when (this) {
+            OWNER -> "Bot主人:权限等级${this.roleNumber}"
+            ADMIN -> "Bot管理者:权限等级${this.roleNumber}"
+            GroupAdmin -> "群管理员:权限等级${this.roleNumber}"
+            GroupOwner -> "群主:权限等级${this.roleNumber}"
+            Member -> "群成员:权限等级${this.roleNumber}"
+        }
     }
+
     companion object {
         fun convert(role: String): BotRole {
             return entries.first { it.role == role }

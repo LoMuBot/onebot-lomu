@@ -36,17 +36,17 @@ class BotCommandControl(
                     config.senderId = sender.senderId
                     configRepository.save(config)
                     if (config.state) {
-                        return "$commandName 已启用 更改该权限至少需要${sender.role}"
+                        return "$commandName 已启用 更改该权限至少需要\n${sender.role}"
                     }
-                    return "$commandName 已禁用 更改该权限至少需要${sender.role}"
+                    return "$commandName 已禁用 更改该权限至少需要\n${sender.role}"
                 } else {
-                    return "你没有权限使用这个命令 因为上次更改了该功能的人权限为${config.role} " +
+                    return "你没有权限使用这个命令 因为上次更改了该功能的人权限为\n${config.role}\n" +
                             "你的权限为${sender.role}"
                 }
             } ?: run {
                 // 配置不存在 生成配置
                 initConfig(commandName, sender, true)
-                return "配置初始化成功 已为该群启用$commandName 更改该功能权限至少需要和${sender.senderName}同等级权限${sender.role}"
+                return "配置初始化成功 已为该群启用$commandName 更改该功能权限至少需要和[${sender.senderName}]同等级权限\n${sender.role}"
             }
         } finally {
             redisUtils.deleteCache("${commandName}State:${sender.groupOrSenderId}")

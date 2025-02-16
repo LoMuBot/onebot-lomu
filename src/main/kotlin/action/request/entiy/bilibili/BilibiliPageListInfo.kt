@@ -1,4 +1,4 @@
-package cn.luorenmu.action.request.entiy
+package cn.luorenmu.action.request.entiy.bilibili
 
 import com.alibaba.fastjson2.annotation.JSONField
 

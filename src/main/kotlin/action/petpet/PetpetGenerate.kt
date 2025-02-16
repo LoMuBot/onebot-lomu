@@ -32,7 +32,7 @@ class PetpetGenerate(
                     "from" to fromQQAvatar
                 ),
                 mapOf(
-                    "text1" to "L"
+                    "to" to ""
                 )
             )
         )

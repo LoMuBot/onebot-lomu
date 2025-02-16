@@ -176,9 +176,7 @@ class OneBotChatStudy(
                 return
             }
 
-            var needProcess = false
             keyword = if (keyword!!.isImage()) {
-                needProcess = true
                 keyword!!.getCQFileStr()!!
             } else {
                 keyword
@@ -194,7 +192,7 @@ class OneBotChatStudy(
                 null, -1L,
                 keyword!!,
                 message1,
-                needProcess,
+                false,
                 atMe = false,
                 groupId = groupId,
                 createdDate = LocalDateTime.now(),

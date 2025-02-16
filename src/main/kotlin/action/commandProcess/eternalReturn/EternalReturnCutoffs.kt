@@ -1,7 +1,7 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
 import cn.luorenmu.action.commandProcess.CommandProcess
-import cn.luorenmu.action.draw.EternalReturnDraw
+import cn.luorenmu.action.draw.EternalReturnCutoffsDraw
 import cn.luorenmu.listen.entity.MessageSender
 import org.springframework.stereotype.Component
 
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
  */
 @Component("eternalReturnCutoffs")
 class EternalReturnCutoffs(
-    private val eternalReturnDraw: EternalReturnDraw,
+    private val eternalReturnDraw: EternalReturnCutoffsDraw,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
         return eternalReturnDraw.cutoffs()
