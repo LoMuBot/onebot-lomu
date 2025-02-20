@@ -5,13 +5,13 @@ import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnNews
 import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.Request
-import cn.luorenmu.repository.EternalReturnPushRepository
+import cn.luorenmu.repository.OneBotCommandConfigRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entity.OneBotConfig
 import cn.luorenmu.request.RequestController
-import cn.luorenmu.service.EmailPushService
 import com.alibaba.fastjson2.to
 import com.mikuac.shiro.common.utils.MsgUtils
+import com.mikuac.shiro.common.utils.OneBotMedia
 import com.mikuac.shiro.core.BotContainer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Async
@@ -29,8 +29,7 @@ import java.util.concurrent.TimeUnit
 @Component
 class EternalReturnRewardPushTask(
     private val oneBotConfigRepository: OneBotConfigRepository,
-    private val eternalReturnPushRepository: EternalReturnPushRepository,
-    private val emailPushService: EmailPushService,
+    private val commandConfigRepository: OneBotCommandConfigRepository,
     val botContainer: BotContainer,
 ) {
     private var failed = 0
@@ -102,16 +101,10 @@ class EternalReturnRewardPushTask(
                 return
             }
             if (article.i18ns.zhCN.title.contains(filterNews.toRegex())) {
-                emailPushService.emailPush(
-                    eternalReturnPushRepository.findBySendIsTrue().stream().map { it.email }.toList(),
-                    "永恒轮回活动推送:${article.i18ns.zhCN.title}",
-                    "<img src=\"${article.thumbnailUrl}\" alt=\"img\">" +
-                            "<a href=\"${article.url}?hl=zh-CN\">访问原链接</a>",
-
-                    )
                 asyncPushGroup(
                     groupList,
-                    MsgUtils.builder().text("永恒轮回活动推送:${article.i18ns.zhCN.title}").img(article.thumbnailUrl)
+                    MsgUtils.builder().text("永恒轮回活动推送:${article.i18ns.zhCN.title}")
+                        .img(OneBotMedia().cache(true).file(article.thumbnailUrl))
                         .text("${article.url}?hl=zh-CN").build()
                 )
             }
@@ -122,7 +115,7 @@ class EternalReturnRewardPushTask(
     fun asyncPushGroup(groupList: List<Long>, msg: String) {
         val bot = botContainer.getFirstBot()
         for (group in groupList) {
-            TimeUnit.SECONDS.sleep(10)
+            TimeUnit.SECONDS.sleep(1)
             bot.sendGroupMsgLimit(group, msg)
         }
     }
@@ -130,8 +123,7 @@ class EternalReturnRewardPushTask(
     fun pushGroupList(): List<Long> {
         val bot = botContainer.robots.entries.first().value
         val groups =
-            oneBotConfigRepository.findAllByConfigName("pushGroup").stream().map { it.configContent.toLong() }
-                .toList()
+            commandConfigRepository.findByCommandNameAndState("eternalReturnGroupPush", true).map { it.groupId }
         return bot.groupList.data.stream().filter {
             it.groupName.contains("永恒轮回") || groups.contains(it.groupId)
         }.map { it.groupId }.toList()

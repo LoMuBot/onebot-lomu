@@ -9,4 +9,6 @@ import org.springframework.data.mongodb.repository.MongoRepository
  */
 interface OneBotCommandConfigRepository : MongoRepository<OneBotCommandConfig, String> {
     fun findByCommandNameAndGroupId(commandName: String, groupId: Long): OneBotCommandConfig?
+
+    fun findByCommandNameAndState(commandName: String, state: Boolean): MutableList<OneBotCommandConfig>
 }
