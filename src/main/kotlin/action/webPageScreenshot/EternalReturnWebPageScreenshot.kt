@@ -39,7 +39,7 @@ class EternalReturnWebPageScreenshot(
         val msgCQ = MsgUtils.builder().img(path).text(cacheMsg).build()
         val f = syncWebPageScreenshot(cacheName, msgCQ, 1L, TimeUnit.DAYS) {
             it.setHttpUrl(url)
-                .screenshotAllCrop(660, 235, 835, -500, 2000).outputImageFile(path)
+                .screenshotAllCrop(660, 235, 835, -500, 50).outputImageFile(path)
         }
         f?.get() ?: run {
             nickNameMap.remove(cacheName)
@@ -62,7 +62,7 @@ class EternalReturnWebPageScreenshot(
 
 
         syncWebPageScreenshot(cacheName, returnMsg, 20L, TimeUnit.MINUTES) {
-            it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -300, 3000).outputImageFile(path)
+            it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -300, 50).outputImageFile(path)
         }?.get(2, TimeUnit.MINUTES) ?: run {
             nickNameMap.remove(cacheName)
         }

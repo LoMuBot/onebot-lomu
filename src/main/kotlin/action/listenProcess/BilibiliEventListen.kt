@@ -29,7 +29,7 @@ class BilibiliEventListen(
     private val bilibiliEventListen: BilibiliEventListenCommand,
 ) {
     private val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
-    private val bilibiliVideoShortLink = "((https://bili2233.cn/([a-zA-Z0-9]+))|(https://b23.tv/([a-zA-Z0-9]+)))|"
+    private val bilibiliVideoShortLink = "((https://bili2233.cn/([a-zA-Z0-9]+))|(https://b23.tv/([a-zA-Z0-9]+)))"
 
 
     fun process(bot: Bot, sender: MessageSender) {

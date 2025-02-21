@@ -157,4 +157,14 @@ class EternalReturnRequestData(
         val resp = requestProfile.request()
         return resp?.body().to<EternalReturnProfile>()
     }
+
+    fun news(id: String): String? {
+        val requestProfile = RequestController("eternal_return_request.news")
+        requestProfile.replaceUrl("id", id)
+        val resp = requestProfile.request()
+        if (resp.status != 200) {
+            return null
+        }
+        return resp?.body()
+    }
 }

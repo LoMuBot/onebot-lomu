@@ -5,6 +5,7 @@ import cn.luorenmu.entiy.SelfSendMsg
 import cn.luorenmu.listen.entity.MessageType
 import cn.luorenmu.repository.entiy.DeepMessage
 import cn.luorenmu.repository.entiy.KeywordReply
+import com.mikuac.shiro.common.utils.ShiroUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.core.BotContainer
 import com.mikuac.shiro.dto.action.common.ActionData
@@ -181,4 +182,9 @@ fun Bot.sendGroupDeepMsgLimit(groupId: Long, message: String, deepMessage: DeepM
         }
         return true
     }
+}
+
+
+fun Bot.sendGroupForwardMsg(groupId: Long, list: MutableList<String>) {
+    this.sendGroupForwardMsg(groupId, ShiroUtils.generateForwardMsg(this.selfId, "LoMu-Bot", list))
 }

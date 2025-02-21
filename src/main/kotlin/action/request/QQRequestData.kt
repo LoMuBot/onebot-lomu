@@ -25,6 +25,7 @@ class QQRequestData(
         redisUtils.getCache("qqAvatar:$qq", String::class.java, null, 1L, TimeUnit.DAYS)?.let {
             return it
         } ?: run {
+            // 保证图片为最新
             synchronized(QQRequestData::class.java) {
                 try {
                     val file = File(avatarPath)

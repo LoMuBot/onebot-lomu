@@ -60,9 +60,9 @@ class RedisUtils(
     fun <T> getCache(
         key: String,
         valueType: Class<T>,
-        onMiss: (() -> T)?,
-        timeout: Long,
-        timeUnit: TimeUnit,
+        onMiss: (() -> T)? = null,
+        timeout: Long = 1L,
+        timeUnit: TimeUnit = TimeUnit.DAYS,
         lock: Class<*> = RedisUtils::class.java,
     ): T? {
         try {
@@ -87,7 +87,7 @@ class RedisUtils(
 
             return JSON.parseObject(json, valueType)
         } catch (e: Exception) {
-            log.error(e) { e.message }
+            log.error(e) { e.printStackTrace() }
             return null
         }
     }

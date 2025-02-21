@@ -1,6 +1,5 @@
 package cn.luorenmu.config
 
-import cn.luorenmu.config.external.WebPool
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.task.AsyncTaskExecutor

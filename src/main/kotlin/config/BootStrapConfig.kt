@@ -9,6 +9,7 @@ import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.pool.WebPageScreenshotPool
 import com.alibaba.fastjson2.JSONObject
 import com.alibaba.fastjson2.to
+import io.github.bonigarcia.wdm.WebDriverManager
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -52,7 +53,7 @@ class BootStrapConfig(
                         log.warn { "${filePath.value}-> ${mutableEntry.key} not exists!  try fix" }
                         fix = true
                         jsonObj[mutableEntry.key] = mutableEntry.value
-                        log.info { "try success" }
+                        log.info { "fix success" }
                     }
                 }
                 if (fix) {
@@ -72,6 +73,7 @@ class BootStrapConfig(
 
     @Bean(destroyMethod = "shutdown")
     fun getWebPageScreenshotPool(): WebPageScreenshotPool {
+        WebDriverManager.chromedriver().setup();
         return WebPageScreenshotPool(properties.webPool.size) {
             it.addArguments("--headless");
             it.addArguments("--window-size=1920,1080");

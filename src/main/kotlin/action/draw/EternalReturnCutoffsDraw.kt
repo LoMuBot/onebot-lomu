@@ -34,12 +34,8 @@ class EternalReturnCutoffsDraw(
             eternalReturnRequestData.leaderboardFind()?.let { leaderboard ->
                 // 段位
                 val tierTypes = td.distributions.stream().map { ds -> ds.tierType }.distinct().sorted { o1, o2 ->
-                    var i1 = if (o1 > 10) o1 / 10 else o1
-                    var i2 = if (o2 > 10) o2 / 10 else o2
-                    if (i1 == i2) {
-                        i1 = o1 % 10
-                        i2 = o2 % 10
-                    }
+                    val i1 = if (o1 < 10) o1 * 10 else o1
+                    val i2 = if (o2 < 10) o2 * 10 else o2
                     i1 - i2
                 }.collect(Collectors.toList())
 

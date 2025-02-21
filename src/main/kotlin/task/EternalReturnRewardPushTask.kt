@@ -105,7 +105,8 @@ class EternalReturnRewardPushTask(
                     groupList,
                     MsgUtils.builder().text("永恒轮回活动推送:${article.i18ns.zhCN.title}")
                         .img(OneBotMedia().cache(true).file(article.thumbnailUrl))
-                        .text("${article.url}?hl=zh-CN").build()
+                        .text("${article.url}?hl=zh-CN\n如需LoMu-Bot发送详细信息 需要你发送该链接")
+                        .build()
                 )
             }
         }

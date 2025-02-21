@@ -34,5 +34,9 @@
     "url": "https://dak.gg/er/_next/data/${token}/characters/${key}.json?teamMode=SQUAD&weaponType=${weapon}&period=3day&tier=diamond_plus&character=${key1}&hl=zh_CN",
     "method": "get"
   },
+  "news": {
+    "url": "https://playeternalreturn.com/posts/news/${id}",
+    "method": "get"
+  },
   "find_character":"https://dak.gg/er/characters/${characterName}?teamMode=SQUAD&weaponType=${weapon}&period=3day&tier=diamond_plus"
 }

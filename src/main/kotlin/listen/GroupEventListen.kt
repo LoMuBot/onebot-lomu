@@ -5,7 +5,6 @@ import cn.luorenmu.action.PermissionsManager
 import cn.luorenmu.action.disuse.OneBotChatStudy
 import cn.luorenmu.action.disuse.OneBotKeywordReply
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
-import cn.luorenmu.action.listenProcess.DeerListen
 import cn.luorenmu.action.listenProcess.PetpetListen
 import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.entiy.RecentlyMessageQueue
@@ -36,7 +35,6 @@ class GroupEventListen(
     private val oneBotChatStudy: OneBotChatStudy,
     private val keywordReply: OneBotKeywordReply,
     private val bilibiliEventListen: BilibiliEventListen,
-    private val deerListen: DeerListen,
     private val permissionsManager: PermissionsManager,
     private val petpetListen: PetpetListen,
 ) {
@@ -77,8 +75,6 @@ class GroupEventListen(
         oneBotChatStudy.reRead(bot, groupMessageEvent)
         keywordReply.process(bot, messageSender)
         bilibiliEventListen.process(bot, messageSender)
-        // strange function ?
-        deerListen.process(bot, messageSender)
         petpetListen.process(messageSender)
 
         // 指令
