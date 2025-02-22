@@ -6,11 +6,11 @@ import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.action.request.RequestData
 import cn.luorenmu.action.webPageScreenshot.EternalReturnOfficialWebsiteScreenshot
 import cn.luorenmu.common.extensions.getFirstBot
-import cn.luorenmu.common.extensions.sendGroupForwardMsg
 import cn.luorenmu.common.utils.RedisUtils
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.listen.entity.MessageSender
 import com.mikuac.shiro.common.utils.MsgUtils
+import com.mikuac.shiro.common.utils.ShiroUtils
 import com.mikuac.shiro.core.BotContainer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
@@ -70,7 +70,7 @@ class EternalReturnNews(
             }
             val messagesConvertCQ =
                 forwardMessages.map { MsgUtils.builder().img(it).build() }.toMutableList()
-            EternalReturnNewsCache(messagesConvertCQ)
+            EternalReturnNewsCache(ShiroUtils.generateForwardMsg(sender.botId, "LoMu-Bot", messagesConvertCQ))
         }, 30L, TimeUnit.DAYS)
         messages?.let {
             botContainer.getFirstBot().sendGroupForwardMsg(sender.groupOrSenderId, it.messages)

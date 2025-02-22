@@ -184,7 +184,3 @@ fun Bot.sendGroupDeepMsgLimit(groupId: Long, message: String, deepMessage: DeepM
     }
 }
 
-
-fun Bot.sendGroupForwardMsg(groupId: Long, list: MutableList<String>) {
-    this.sendGroupForwardMsg(groupId, ShiroUtils.generateForwardMsg(this.selfId, "LoMu-Bot", list))
-}

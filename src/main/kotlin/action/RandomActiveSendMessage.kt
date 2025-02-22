@@ -14,15 +14,15 @@ private val log = KotlinLogging.logger { }
 @Component
 class RandomActiveSendMessage(
     val botContainer: BotContainer,
-    private val oneBotConfigRespository: OneBotConfigRepository,
+    private val oneBotConfigRepository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
 ) {
     @Async
     fun start() {
         val minute = 60 * 1000L // 1 minute in milliseconds
         while (true) {
-            val minDelay = oneBotConfigRespository.findOneByConfigName("min_delay")!!.configContent.toLong()
-            val maxDelay = oneBotConfigRespository.findOneByConfigName("max_delay")!!.configContent.toLong()
+            val minDelay = oneBotConfigRepository.findOneByConfigName("min_delay")!!.configContent.toLong()
+            val maxDelay = oneBotConfigRepository.findOneByConfigName("max_delay")!!.configContent.toLong()
 
             val delayTime = Random.nextLong(minDelay * minute, maxDelay * minute)
             log.info { "Next active message will execute after ${delayTime / minute} minutes" }
@@ -35,7 +35,7 @@ class RandomActiveSendMessage(
 
     fun executeActiveMessage() {
         val firstOrNull = botContainer.robots.entries.firstOrNull()
-        val banGroup = oneBotConfigRespository.findOneByConfigName("ban_group")!!.configContent
+        val banGroup = oneBotConfigRepository.findOneByConfigName("ban_group")!!.configContent
         firstOrNull?.run {
             val groupIds = value.groupList.data.filter {
                 !banGroup.contains(it.groupId.toString())

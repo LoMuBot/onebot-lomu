@@ -1,5 +1,6 @@
 package cn.luorenmu.action.draw
 
+import cn.luorenmu.action.draw.entity.DeerRank
 import cn.luorenmu.action.listenProcess.entity.DeerSender
 import cn.luorenmu.action.request.QQRequestData
 import cn.luorenmu.common.utils.DrawImageUtils
@@ -22,7 +23,7 @@ class DeerDraw(
     private val deerRepository: DeerRepository,
     private val qqRequestData: QQRequestData,
 ) {
-    private fun ranking(senderId: Long): String {
+    private fun ranking(senderId: Long): DeerRank {
         val nowYear = LocalDateTime.now().year
         val nowMonth = LocalDateTime.now().monthValue
         val all = deerRepository.findByYearAndMonth(nowYear, nowMonth)
@@ -42,7 +43,7 @@ class DeerDraw(
             listDeer.remove(it)
         }
         val ranking = listDeer.indexOfFirst { it.id == senderId } + 1
-        return "第${ranking}名与${rankingCount}人位于同一名次"
+        return DeerRank(ranking, rankingCount)
     }
 
     fun isLastMonthKing(senderId: Long): Int {
@@ -87,8 +88,9 @@ class DeerDraw(
         }
 
         val deerSenderCount = deerRepository.count()
+        val ranking = ranking(commandSender.senderId)
         drawImageUtils.drawString(
-            "当月在${deerSenderCount}人中 排名${ranking(commandSender.senderId)}",
+            "当月在${deerSenderCount}人中 排名第${ranking.ranking}名与${ranking.rankingCount}人位于同一名次",
             Color.black,
             250,
             1050,

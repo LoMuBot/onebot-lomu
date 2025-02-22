@@ -42,6 +42,7 @@ class OneBotCommandAllocator(
             }
         }
 
+        // 移除回复
         if (removeAtAndEmptyCharacterCommand.isCQReply()) {
             removeAtAndEmptyCharacterCommand =
                 removeAtAndEmptyCharacterCommand.replace("\\[CQ:reply,id=\\d+]".toRegex(), "")

@@ -36,9 +36,7 @@ class BilibiliEventListen(
         val groupId = sender.groupOrSenderId
         val message = sender.message
         if (!bilibiliEventListen.state(groupId)) {
-            if (!message.contains(MsgUtils.builder().at(bot.selfId).build())) {
-                return
-            }
+            return
         }
         val correctMsg = message.replace("\\", "")
         findBilibiliLinkBvid(correctMsg)?.let { bvid ->
@@ -73,7 +71,7 @@ class BilibiliEventListen(
 
                 val videoInfoStr = """
                     ${MsgUtils.builder().img(info.pic).build()} 
-                    作者:< ${info.owner.name} >
+                    up:< ${info.owner.name} >
                     ${info.title}
                     https://www.bilibili.com/video/$bvid
                 """.trimIndent()
@@ -153,7 +151,7 @@ class BilibiliEventListen(
         val videoInfos = bilibiliRequestData.getVideoInfo(bvid, cid)
         videoInfos?.let {
             val minute = videoInfos.timelength / 1000 / 60
-            if (limitTime > 5) {
+            if (minute > limitTime) {
                 return false
             }
             videoInfos.durl.firstOrNull()?.let { videoInfo ->

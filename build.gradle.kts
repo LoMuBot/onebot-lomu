@@ -25,20 +25,24 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-val os = OperatingSystem.current()!!
-
+val compileOs: String? = null
+val currentOs = OperatingSystem.current()!!
 val skijaPackage = "io.github.humbleui"
 val skijaVersion = "0.116.3"
 
 
 dependencies {
     // skia
-    when {
-        os.isWindows -> implementation("${skijaPackage}:skija-windows-x64:${skijaVersion}")
-        os.isLinux -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
-        os.isMacOsX -> implementation("${skijaPackage}:skija-macos-x64:${skijaVersion}")
-        // 找不到 默认引用linux x64
-        else -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
+    compileOs?.let {
+        implementation("${skijaPackage}:skija-${it}:${skijaVersion}")
+    } ?: run {
+        when {
+            currentOs.isWindows -> implementation("${skijaPackage}:skija-windows-x64:${skijaVersion}")
+            currentOs.isLinux -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
+            currentOs.isMacOsX -> implementation("${skijaPackage}:skija-macos-x64:${skijaVersion}")
+            // 找不到 默认引用linux x64
+            else -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
+        }
     }
 
 
