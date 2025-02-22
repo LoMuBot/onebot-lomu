@@ -16,7 +16,7 @@ class ThreadPoolConfig {
     @Bean
     fun keywordProcessThreadPool(): AsyncTaskExecutor {
         return ThreadPoolTaskExecutor().apply {
-            corePoolSize = Runtime.getRuntime().availableProcessors()
+            corePoolSize = 5
             threadNamePrefix = "keyword-process-thread-"
             setAllowCoreThreadTimeOut(true)
         }
@@ -25,7 +25,7 @@ class ThreadPoolConfig {
     @Bean
     fun asyncProcessThreadPool(): AsyncTaskExecutor {
         return ThreadPoolTaskExecutor().apply {
-            corePoolSize = 5
+            corePoolSize = Runtime.getRuntime().availableProcessors() / 2
             threadNamePrefix = "async-process-thread-"
             setAllowCoreThreadTimeOut(true)
         }

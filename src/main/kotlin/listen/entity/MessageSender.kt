@@ -17,8 +17,13 @@ data class MessageSender(
     var unlimited: Boolean = false,
 )
 
-enum class MessageType {
-    PRIVATE, GROUP
+enum class MessageType(val type: String) {
+    PRIVATE("private"), GROUP("group");
+    companion object {
+        fun convert(type: String): MessageType {
+            return MessageType.entries.first { it.type == type }
+        }
+    }
 }
 
 enum class BotRole(val role: String, val roleNumber: Int) {

@@ -21,7 +21,11 @@ class TemplateRegister {
         val jsonAll = readDirsAllJson(ReadWriteFile.currentDirs("templates"))
         val petpetTemplates = hashMapOf<String, PetpetTemplate>()
         jsonAll.forEach {
-            val petpetTemplate = OldPetpetTemplate.fromJsonFile(it).toTemplate()
+            val petpetTemplate = if (it.name.contains("template")) {
+                PetpetTemplate.fromJsonFile(it)
+            } else {
+                OldPetpetTemplate.fromJsonFile(it).toTemplate()
+            }
 
             for (petpetName in petpetTemplate.metadata.alias) {
                 petpetTemplates[petpetName] = petpetTemplate
@@ -39,6 +43,9 @@ class TemplateRegister {
                 readDirsAllJson(File(file.path).listFiles()!!, jsonFiles)
             }
             if (file.name.endsWith("data.json")) {
+                jsonFiles.add(file)
+            }
+            if (file.name.endsWith("template.json")) {
                 jsonFiles.add(file)
             }
         }

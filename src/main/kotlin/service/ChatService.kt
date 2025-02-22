@@ -4,7 +4,7 @@ import cn.luorenmu.action.request.DeepSeekRequestData
 import cn.luorenmu.action.request.entiy.DeepSeekMessage
 import cn.luorenmu.action.request.entiy.DeepSeekResponse
 import cn.luorenmu.action.request.entiy.DeepSeekStatus
-import cn.luorenmu.common.extensions.replaceAtToBlank
+import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.ChatContextRepository
 import cn.luorenmu.repository.DeepSeekChatHistoryRepository
@@ -70,10 +70,10 @@ class ChatService(
     private fun requestMessageStorage(messageSender: MessageSender, role: ChatRole): String {
         val message = when (role) {
             ChatRole.USER -> "[${messageSender.messageId}|${messageSender.senderId}-${messageSender.senderName}]: ${
-                messageSender.message.replaceAtToBlank(messageSender.botId)
+                messageSender.message.replaceAtToEmpty(messageSender.botId)
             }"
 
-            else -> messageSender.message.replaceAtToBlank(messageSender.botId)
+            else -> messageSender.message.replaceAtToEmpty(messageSender.botId)
         }
         val groupHistory = chatHistory[messageSender.groupOrSenderId] ?: run {
             chatHistory[messageSender.groupOrSenderId] =
@@ -134,7 +134,7 @@ class ChatService(
         if (messageSender.message.length > 250) {
             return "字太多了 看的好累 哼!"
         }
-        if (messageSender.message.replaceAtToBlank(messageSender.botId).isBlank()) {
+        if (messageSender.message.replaceAtToEmpty(messageSender.botId).isBlank()) {
             return null
         }
         return requestMessageStorage(messageSender, ChatRole.USER)

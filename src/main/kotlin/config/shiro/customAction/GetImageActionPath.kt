@@ -4,9 +4,10 @@ import com.mikuac.shiro.enums.ActionPath
 
 /**
  * @author LoMu
- * Date 2025.02.13 14:54
+ * Date 2025.02.22 14:36
  */
-enum class GetMessageActionPath(private val path: String) : ActionPath {
-    GetMsg("get_msg");
+enum class GetImageActionPath(private val path: String ): ActionPath {
+    GetImage("get_image");
+
     override fun getPath(): String = path
 }

@@ -15,22 +15,29 @@ fun String.firstPinYin(): String {
     return string.toString()
 }
 
-fun String.replaceAtToBlank(id: Long): String {
+fun String.replaceAtToEmpty(id: Long): String {
     return this.replace(MsgUtils.builder().at(id).build(), "")
 }
 
-fun String.replaceAtToBlank(): String {
+fun String.replaceAtToEmpty(): String {
     return this.replace("\\[CQ:at,qq=(\\d+)]".toRegex(), "")
 }
 
 fun String.getAtQQ(i: Int = 0): String? {
-    return "\\[CQ:at,qq=(\\d+)?+]".toRegex().findAll(this).toMutableList().getOrNull(i)?.groups?.get(1)?.value
+    return "\\[CQ:at,qq=(\\d+)?+]".toRegex().findAll(this).toMutableList().getOrNull(i)?.groupValues?.get(1)
 }
 
 fun String.replaceBlankToEmpty(): String {
-    return this.uppercase().replace(" ", "")
+    return this.replace(" ", "")
 }
 
+fun String.replaceReplyToEmpty(): String {
+    return this.replace("\\[CQ:reply,id=(\\d+)]".toRegex(), "")
+}
+
+fun String.replaceImageToEmpty(): String {
+    return this.replace("\\[CQ:image,.*?]".toRegex(), "")
+}
 
 fun String.toPinYin(): String {
     val string = StringBuilder()
@@ -57,13 +64,31 @@ fun String.getCQReplyMessageId(): String? {
     return null
 }
 
-fun String.getCQFileStr(): String? {
+fun String.getCQUrlStr(index: Int = 0): String? {
     if (isImage()) {
-        val regex = """file=([^,]+)""".toRegex()
-        val matchResult = regex.find(this)
-        if (matchResult != null) {
-            return matchResult.groupValues[1]
+        val regex = """url=([^,]+)""".toRegex()
+        val matchResult = regex.findAll(this).toList()
+        if (matchResult.isNotEmpty()) {
+            return matchResult.getOrNull(index)?.groupValues?.get(1)
         }
+    }
+    return null
+}
+
+fun String.getCQFileStr(index: Int = 0): String? {
+    val regex = """file=([^,]+)""".toRegex()
+    val matchResult = regex.findAll(this).toList()
+    if (matchResult.isNotEmpty()) {
+        return matchResult.getOrNull(index)?.groupValues?.get(1)
+    }
+    return null
+}
+
+fun String.getFileStr(index: Int = 0): String? {
+    val regex = """"file"\s*:\s*"([^"]+)"""".toRegex()
+    val matchResult = regex.findAll(this).toList()
+    if (matchResult.isNotEmpty()) {
+        return matchResult.getOrNull(index)?.groupValues?.get(1)
     }
     return null
 }

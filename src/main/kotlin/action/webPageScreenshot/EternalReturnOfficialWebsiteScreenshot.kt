@@ -26,7 +26,7 @@ class EternalReturnOfficialWebsiteScreenshot(
     @Synchronized
     fun screenshotNews(id: String, outputPath: String): String {
         webPageScreenshot.execute {
-            it.setHttpUrl(WEBSITE_URL + id).screenshotAllCrop(450, 140, -920, -1500, 50) { webDriver ->
+            it.setHttpUrl(WEBSITE_URL + id).screenshotAllCrop(420, 140, -920, -1470, 50) { webDriver ->
                 val gnbElement: WebElement = webDriver.findElement(By.id("gnb"))
                 val js = webDriver as JavascriptExecutor
                 js.executeScript("arguments[0].remove();", gnbElement)

@@ -1,6 +1,7 @@
 package cn.luorenmu.config.shiro.customAction
 
 
+import cn.luorenmu.config.shiro.customAction.response.GetImageResponse
 import cn.luorenmu.config.shiro.customAction.response.RecordResponse
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.action.common.ActionData
@@ -9,7 +10,6 @@ import com.mikuac.shiro.dto.action.common.ActionData
  * @author LoMu
  * Date 2024.09.10 04:51
  */
-
 
 
 fun Bot.setMsgEmojiLike(msgId: String, face: String): ActionData<*> {
@@ -31,14 +31,12 @@ fun Bot.getGroupMsgHistory(groupId: Long, messageSeq: Int, count: Int): ActionDa
 }
 
 
-fun Bot.getMsg(messageId: Long): ActionData<*> {
-    val action = GetMessageActionPath.GetMsg
-    // 构建请求参数
-    val map = hashMapOf<String, Any>("message_id" to messageId)
+fun Bot.getImage(file: String): ActionData<GetImageResponse> {
+    val action = GetImageActionPath.GetImage
+    val map = hashMapOf<String, Any>("file" to file)
     // 参考 Bot 类对响应结果进行处理
-    return this.customRequest(action, map)
+    return this.customRequest(action, map, GetImageResponse::class.java)
 }
-
 
 
 fun Bot.getRecord(file: String, outFormat: String): ActionData<RecordResponse> {

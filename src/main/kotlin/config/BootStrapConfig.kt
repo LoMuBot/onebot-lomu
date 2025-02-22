@@ -30,9 +30,11 @@ class BootStrapConfig(
         InitializeFile.run(MainApplication::class.java)
         ReadWriteFile.createCurrentDirs("image/qq/avatar")
         ReadWriteFile.createCurrentDirs("image/qq/deer")
+        ReadWriteFile.createCurrentDirs("image/qq/petpet")
         ReadWriteFile.createCurrentDirs("qrcode/")
         ReadWriteFile.createCurrentDirs("request/")
         ReadWriteFile.createCurrentDirs("crx/")
+
         ReadWriteFile.readDirJsonToRunStore("keyword")
 
         val resourcesRequestJson = mapOf(

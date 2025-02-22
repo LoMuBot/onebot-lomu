@@ -1,45 +1,37 @@
 package cn.luorenmu.action.petpet
 
-import cn.luorenmu.action.request.QQRequestData
 import cn.luorenmu.file.ReadWriteFile
 import moe.dituon.petpet.core.context.RequestContext
 import moe.dituon.petpet.core.element.PetpetTemplateModel
 import moe.dituon.petpet.template.PetpetTemplate
 import org.springframework.stereotype.Component
+import java.io.File
+import java.util.*
 
 /**
  * @author LoMu
  * Date 2025.02.05 11:30
  */
 @Component
-class PetpetGenerate(
-    private val qqRequestData: QQRequestData,
-) {
-    fun generate(template: PetpetTemplate, to: String, from: String): String? {
-        val toQQAvatar: String
-        val fromQQAvatar: String
-        try {
-            toQQAvatar = qqRequestData.downloadQQAvatar(to)
-            fromQQAvatar = qqRequestData.downloadQQAvatar(from)
-        } catch (e: IllegalStateException) {
-            return e.message
-        }
+class PetpetGenerate {
+    fun generate(template: PetpetTemplate, to: String, from: String, toText: String = ""): String? {
         val model = PetpetTemplateModel(template)
         val resultImage = model.draw(
             RequestContext( // 传入图像数据
                 mapOf(
-                    "to" to toQQAvatar,
-                    "from" to fromQQAvatar
+                    "to" to to,
+                    "from" to from
                 ),
                 mapOf(
-                    "to" to ""
+                    "to" to toText
                 )
             )
         )
-        val savePath = "${ReadWriteFile.CURRENT_PATH.substring(1)}/image/qq/${model.metadata.alias.first()}-$to-$from.${resultImage.format}"
+        val localPath = "${ReadWriteFile.CURRENT_PATH.substring(1)}/image/qq/petpet"
+        val savePath = "$localPath/${UUID.randomUUID()}.${resultImage.format}"
         resultImage.save(savePath)
-
-
         return savePath
     }
+
+
 }

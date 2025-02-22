@@ -18,7 +18,7 @@ class EternalReturnFindCharacter(
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
-        var characterName = sender.message.replaceAtToBlank(sender.botId).trim()
+        var characterName = sender.message.replaceAtToEmpty(sender.botId).trim()
             .replace(Regex(command), "")
             .replaceBlankToEmpty()
             .lowercase()
@@ -62,11 +62,12 @@ class EternalReturnFindCharacter(
 
             var weapon = ""
             val weaponStr = StringBuilder()
-            weaponStr.append("武器选择:")
 
 
-            eternalReturnRequestData.characterInfoFind(characterKey, "", "")
+
+            eternalReturnRequestData.characterInfoFind(characterKey, "", "WBqQEY6MRy7FD3WJ6lG9q")
                 ?.let { characterInfo ->
+                    weaponStr.append("武器选择:")
                     val weaponType =
                         characterInfo.pageProps.dehydratedState.queries.first { it1 -> it1.state.data.weaponType != null }.state.data
 
@@ -84,7 +85,7 @@ class EternalReturnFindCharacter(
                         sortWeaponTypes[i].key
                     }
                 } ?: run {
-                weaponStr.append("待重构")
+                weaponStr.append("暂不支持查询武器")
             }
             val returnMsg =
                 eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, weapon, weaponStr.toString())
