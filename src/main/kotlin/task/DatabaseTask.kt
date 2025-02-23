@@ -22,7 +22,7 @@ class DatabaseTask(
     private val oneBotConfigRepository: OneBotConfigRepository,
 ) {
     private val log = KotlinLogging.logger {}
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 0 4 * * ?")
     fun timingDeleteFile() {
         val deleteFiles = oneBotConfigRepository.findAllByConfigName("waitDeleteFile")
         for (config in deleteFiles) {

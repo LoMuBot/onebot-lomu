@@ -5,7 +5,6 @@ import cn.luorenmu.entiy.SelfSendMsg
 import cn.luorenmu.listen.entity.MessageType
 import cn.luorenmu.repository.entiy.DeepMessage
 import cn.luorenmu.repository.entiy.KeywordReply
-import com.mikuac.shiro.common.utils.ShiroUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.core.BotContainer
 import com.mikuac.shiro.dto.action.common.ActionData

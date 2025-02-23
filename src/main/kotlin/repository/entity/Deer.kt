@@ -13,5 +13,6 @@ data class Deer(
     val senderId: Long,
     val year: Int,
     val month: Int,
+    var count: Int?,
     val days: MutableList<Int>,
 )

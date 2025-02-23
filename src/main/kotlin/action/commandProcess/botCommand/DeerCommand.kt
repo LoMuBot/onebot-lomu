@@ -27,6 +27,7 @@ class DeerCommand(
             deerRepository.findBySenderIdAndYearAndMonth(sender.senderId, nowYear, nowMonth)?.let {
                 if (!it.days.contains(nowDay)) {
                     it.days.add(nowDay)
+                    it.count = it.count?.plus(1) ?: it.days.size
                     deerRepository.save(it)
                 }
                 it
@@ -36,6 +37,7 @@ class DeerCommand(
                     sender.senderId,
                     nowYear,
                     nowMonth,
+                    1,
                     mutableListOf(nowDay)
                 )
                 deerRepository.save(deer)

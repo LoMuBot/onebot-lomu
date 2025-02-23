@@ -28,21 +28,15 @@ class DeerDraw(
         val nowMonth = LocalDateTime.now().monthValue
         val all = deerRepository.findByYearAndMonth(nowYear, nowMonth)
         val listDeer = all.map {
-            DeerSender(it.senderId, it.days.count())
+            DeerSender(it.senderId, it.count!!)
         }.toMutableList()
         listDeer.sortByDescending { it.count }
-        val senderIndex = listDeer.indexOfFirst { it.id == senderId }
-        val rankingCount = listDeer.count { it.count == listDeer[senderIndex].count } - 1
-        val removeList = mutableListOf<DeerSender>()
-        for (i in 0 until senderIndex) {
-            if (listDeer[i].count == listDeer[senderIndex].count) {
-                removeList.add(listDeer[i])
-            }
-        }
-        removeList.forEach {
-            listDeer.remove(it)
-        }
-        val ranking = listDeer.indexOfFirst { it.id == senderId } + 1
+        val sender = listDeer.firstOrNull { it.id == senderId }
+        // 去除自己
+        val rankingCount = listDeer.count { it.count == sender!!.count } - 1
+        // 移除所有同一排名
+        listDeer.removeAll { it.count == sender!!.count }
+        val ranking = listDeer.count { it.count > sender!!.count }
         return DeerRank(ranking, rankingCount)
     }
 
@@ -71,7 +65,7 @@ class DeerDraw(
         val drawImageUtils = DrawImageUtils.builder()
         drawImageUtils.setTemplate(ReadWriteFile.currentPathFileName("image/deerTemplate.jpg"))
 
-        val list = deer.days
+        val deerDate = deer.days
         drawImageUtils.drawString(
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy年MM月")),
             Color.black,
@@ -96,11 +90,11 @@ class DeerDraw(
             1050,
             30
         )
-        val month = YearMonth.now().lengthOfMonth()
-        var count = 1
+        val monthDays = YearMonth.now().lengthOfMonth()
+        var dateDay = 1
         for (i in 0..4) {
             for (j in 0..6) {
-                if (list.contains(count)) {
+                if (deerDate.contains(dateDay)) {
                     drawImageUtils.drawImage(
                         ReadWriteFile.currentPathFileName("image/fuckdeer.jpg"),
                         50 + 150 * j,
@@ -120,13 +114,13 @@ class DeerDraw(
                     )
                 }
 
-                drawImageUtils.drawString("$count.", Color.black, 50 + 150 * j, 100 + 130 * i, 20)
-                count++
-                if (count > month) {
+                drawImageUtils.drawString("$dateDay.", Color.black, 50 + 150 * j, 100 + 130 * i, 20)
+                dateDay++
+                if (dateDay > monthDays) {
                     break
                 }
             }
-            if (count > month) {
+            if (dateDay > monthDays) {
                 break
             }
         }

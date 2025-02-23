@@ -62,7 +62,7 @@ class EternalReturnWebPageScreenshot(
 
 
         syncWebPageScreenshot(cacheName, returnMsg, 20L, TimeUnit.MINUTES) {
-            it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -300, 50).outputImageFile(path)
+            it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -300, 80).outputImageFile(path)
         }?.get(2, TimeUnit.MINUTES) ?: run {
             nickNameMap.remove(cacheName)
         }

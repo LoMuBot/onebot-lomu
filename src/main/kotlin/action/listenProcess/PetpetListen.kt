@@ -50,11 +50,9 @@ class PetpetListen(
                 return
             }
             val existsFrom = it.elements.toString().contains("from")
-            val triggerTo = triggerObj(messageSender, 0, existsFrom) ?: run {
-                reflectionTarget(messageSender)
-                return
-            }
-            val triggerFrom = triggerObj(messageSender, 1, existsFrom) ?: run {
+            val triggerTo = triggerObj(messageSender, 0, existsFrom)
+            val triggerFrom = triggerObj(messageSender, 1, existsFrom)
+            if (triggerTo == null || triggerFrom == null) {
                 reflectionTarget(messageSender)
                 return
             }
@@ -76,8 +74,8 @@ class PetpetListen(
             val path =
                 petpetGenerate.generate(
                     lash,
-                    messageSender.senderId.toString(),
-                    messageSender.botId.toString(),
+                    qqRequestData.downloadQQAvatar(messageSender.senderId.toString()),
+                    qqRequestData.downloadQQAvatar(messageSender.botId.toString()),
                 )
             botContainer.getFirstBot()
                 .sendGroupMsg(messageSender.groupOrSenderId, MsgUtils.builder().img(path).build())
@@ -87,6 +85,7 @@ class PetpetListen(
 
     /**
      *  @param index to表示0 from表示1
+     *  @return 如果为null表示触发对象为机器人
      */
     private fun triggerObj(
         messageSender: MessageSender,
@@ -98,14 +97,10 @@ class PetpetListen(
             return null
         }
 
-        // 模版存在from并且当前为from的情况下 则是第一条at或第二天at
+        // 模版存在from并且当前为from的情况下 则是第一条at或第二条at
         if (existsFrom && index == 1) {
             messageSender.message.getAtQQ(1)?.let {
                 return qqRequestData.downloadQQAvatar(it)
-            } ?: run {
-                messageSender.message.getAtQQ(0)?.let {
-                    return qqRequestData.downloadQQAvatar(it)
-                }
             }
             return qqRequestData.downloadQQAvatar(messageSender.senderId.toString())
         }
@@ -126,11 +121,11 @@ class PetpetListen(
         }
 
         // 当前消息为to为at的目标或自己
-        if (index == 0){
-            messageSender.message.getAtQQ(0)?.let {
-                return qqRequestData.downloadQQAvatar(it)
-            }
+
+        messageSender.message.getAtQQ(0)?.let {
+            return qqRequestData.downloadQQAvatar(it)
         }
+
         return qqRequestData.downloadQQAvatar(messageSender.senderId.toString())
     }
 

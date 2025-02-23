@@ -11,7 +11,7 @@ plugins {
 
 
 group = "cn.luorenmu"
-version = "1.0-SNAPSHOT"
+version = ""
 
 repositories {
 
@@ -40,7 +40,6 @@ dependencies {
             currentOs.isWindows -> implementation("${skijaPackage}:skija-windows-x64:${skijaVersion}")
             currentOs.isLinux -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
             currentOs.isMacOsX -> implementation("${skijaPackage}:skija-macos-x64:${skijaVersion}")
-            // 找不到 默认引用linux x64
             else -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
         }
     }

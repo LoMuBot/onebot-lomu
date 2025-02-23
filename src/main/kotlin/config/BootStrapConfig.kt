@@ -75,7 +75,7 @@ class BootStrapConfig(
 
     @Bean(destroyMethod = "shutdown")
     fun getWebPageScreenshotPool(): WebPageScreenshotPool {
-        WebDriverManager.chromedriver().setup();
+        WebDriverManager.chromedriver().browserVersion("133.0.6943.126").setup();
         return WebPageScreenshotPool(properties.webPool.size) {
             it.addArguments("--headless");
             it.addArguments("--window-size=1920,1080");
