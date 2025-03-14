@@ -61,9 +61,6 @@ class GroupEventListen(
             bot.selfId
         )
 
-        if(senderId == 2842775752){
-            log.info { "${groupId}|${messageSender.senderName}|${sender.role}: $messageSender " }
-        }
         val groupMessage =
             GroupMessage(
                 null,
