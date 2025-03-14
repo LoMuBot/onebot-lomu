@@ -19,7 +19,7 @@ class RandomActiveSendMessage(
 ) {
     @Async
     fun start() {
-        val minute = 60 * 1000L // 1 minute in milliseconds
+        val minute = 60 * 1000L // 60 minute
         while (true) {
             val minDelay = oneBotConfigRepository.findOneByConfigName("min_delay")!!.configContent.toLong()
             val maxDelay = oneBotConfigRepository.findOneByConfigName("max_delay")!!.configContent.toLong()

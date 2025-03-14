@@ -27,19 +27,19 @@ enum class MessageType(val type: String) {
 }
 
 enum class BotRole(val role: String, val roleNumber: Int) {
-    OWNER("owner", 10),
-    ADMIN("admin", 5),
-    GroupOwner("group_owner", 4),
-    GroupAdmin("group_admin", 3),
+    OWNER("bot_owner", 999),
+    ADMIN("bot_admin", 10),
+    GroupOwner("owner", 4),
+    GroupAdmin("admin", 3),
     Member("member", 0);
 
     override fun toString(): String {
         return when (this) {
-            OWNER -> "Bot主人:权限等级${this.roleNumber}"
-            ADMIN -> "Bot管理者:权限等级${this.roleNumber}"
-            GroupAdmin -> "群管理员:权限等级${this.roleNumber}"
-            GroupOwner -> "群主:权限等级${this.roleNumber}"
-            Member -> "群成员:权限等级${this.roleNumber}"
+            OWNER -> "¿?"
+            ADMIN -> "Bot管理者"
+            GroupAdmin -> "群管理员"
+            GroupOwner -> "群主"
+            Member -> "群成员"
         }
     }
 

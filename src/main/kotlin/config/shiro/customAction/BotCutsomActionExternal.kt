@@ -11,7 +11,9 @@ import com.mikuac.shiro.dto.action.common.ActionData
  * Date 2024.09.10 04:51
  */
 
-
+/**
+ * https://bot.q.qq.com/wiki/develop/api-v2/openapi/emoji/model.html#EmojiType
+ */
 fun Bot.setMsgEmojiLike(msgId: String, face: String): ActionData<*> {
     val action = SetEmojiLikeActionPath.SetMsgEmojiLike
     // 构建请求参数

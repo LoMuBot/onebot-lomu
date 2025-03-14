@@ -13,8 +13,10 @@ import cn.luorenmu.listen.entity.MessageType
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.BotContainer
 import com.mikuac.shiro.dto.action.response.GetMsgResp
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
+import kotlin.math.log
 
 /**
  * @author LoMu
@@ -65,7 +67,6 @@ class PetpetListen(
                 )
             botContainer.getFirstBot()
                 .sendGroupMsg(messageSender.groupOrSenderId, MsgUtils.builder().img(path).build())
-
         }
     }
 

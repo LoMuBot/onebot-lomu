@@ -35,7 +35,7 @@ data class EternalReturnArticle(
     val categoryId: Int,
 
     @JSONField(name = "thumbnail_url")
-    val thumbnailUrl: String,
+    val thumbnailUrl: String?,
 
     @JSONField(name = "view_count")
     val viewCount: Int,

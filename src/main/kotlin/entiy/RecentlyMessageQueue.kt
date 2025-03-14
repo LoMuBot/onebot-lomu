@@ -16,7 +16,7 @@ class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
     /**
      *  存储近maxSize条最新消息
      *  key为addMessageToQueue中传入的形参Id
-     *  value为List<GroupMessage>
+     *  value为List<T>
      */
     val map: MultiValueMap<Long, T> = LinkedMultiValueMap()
 
@@ -41,42 +41,34 @@ class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
      * @param id id
      * @param num 消息数
      */
-    fun lastMessages(id: Long, num: Int): ArrayList<T?> {
-        if (map[id] == null) {
-            return ArrayList()
-        }
-        var num1 = num
-        if (num1 > map[id]!!.size) {
-            num1 = map[id]!!.size
-        }
-        val list = arrayListOf<T?>()
-        mapCurrentPoint[id]?.let {
+    fun lastMessages(id: Long, num: Int): ArrayList<T> {
+        val messages = map[id] ?: return ArrayList()
 
+        val num1 = if (num > messages.size) messages.size else num
+        val list = arrayListOf<T>()
+
+        mapCurrentPoint[id]?.let { currentPoint ->
             for (i in 1..num1) {
-                var index = it - i
-                if (index < 0) {
-                    index += maxSize
+                val index = (currentPoint - i + maxSize) % maxSize
+                messages.getOrNull(index)?.let {
+                    list.add(it)
+                } ?: run {
+                    log.warn { "$index 消息队列为空" }
                 }
-                try {
-                    list.add(map[id]?.get(index))
-                } catch (e: IndexOutOfBoundsException) {
-                    log.error {
-                        "IndexOutOfBoundsException -> ${e.message}  \n " +
-                                "-> size : ${map[id]!!.size} \n" +
-                                "-> queue.toString() : ${map[id]!!.joinToString { queue -> queue.toString() }} \n" +
-                                "-> id: Long, num: Int : ${id},${num}}"
+            }
+        } ?: run {
+            if (messages.isNotEmpty()) {
+                var index = messages.size
+                for (i in 0 until num1) {
+                    messages.getOrNull(--index)?.let {
+                        list.add(it)
+                    } ?: run {
+                        log.warn { "$index 消息队列为空" }
                     }
                 }
-
-            }
-        } ?: let {
-            if (it.map.isNotEmpty()) {
-                var index = map[id]!!.size
-                for (i in 0..<num1) {
-                    list.add(map[id]?.get(--index))
-                }
             }
         }
+
         list.reverse()
         return list
     }

@@ -28,16 +28,15 @@ class DeerDraw(
         val nowMonth = LocalDateTime.now().monthValue
         val all = deerRepository.findByYearAndMonth(nowYear, nowMonth)
         val listDeer = all.map {
-            DeerSender(it.senderId, it.count!!)
+            DeerSender(it.senderId, it.days.size)
         }.toMutableList()
-        listDeer.sortByDescending { it.count }
-        val sender = listDeer.firstOrNull { it.id == senderId }
-        // 去除自己
-        val rankingCount = listDeer.count { it.count == sender!!.count } - 1
+        val sender = listDeer.first { it.id == senderId }
+        // 同排名数量的人数
+        val rankingCount = listDeer.count { it.count == sender.count } - 1
         // 移除所有同一排名
-        listDeer.removeAll { it.count == sender!!.count }
-        val ranking = listDeer.count { it.count > sender!!.count }
-        return DeerRank(ranking, rankingCount)
+        listDeer.removeAll { it.count == sender.count }
+        val ranking = listDeer.count { it.count > sender.count }
+        return DeerRank(ranking + 1, rankingCount)
     }
 
     fun isLastMonthKing(senderId: Long): Int {
@@ -84,7 +83,7 @@ class DeerDraw(
         val deerSenderCount = deerRepository.count()
         val ranking = ranking(commandSender.senderId)
         drawImageUtils.drawString(
-            "当月在${deerSenderCount}人中 排名第${ranking.ranking}名与${ranking.rankingCount}人位于同一名次",
+            "当月在${deerSenderCount}人中 排名第${ranking.ranking} 名与${ranking.rankingCount}人位于同一名次",
             Color.black,
             250,
             1050,

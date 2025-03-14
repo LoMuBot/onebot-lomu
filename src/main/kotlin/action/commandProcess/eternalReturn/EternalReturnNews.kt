@@ -92,7 +92,7 @@ class EternalReturnNews(
 
 
     /**
-     * 判断图片是否需要分隔 这里约定 所有分隔的图片为原名称-1 原名称-2
+     * 判断图片是否需要对半切割 这里约定 所有切割的图片为原名称-1 原名称-2
      * @param imgPath 图片路径
      * @param outputPath 输出的路径没有标明文件类型
      * @return 是否进行了分隔

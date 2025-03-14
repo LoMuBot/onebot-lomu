@@ -65,7 +65,7 @@ class OneBotChatStudy(
 
         if (lastMessages.isNotEmpty()) {
             for (groupMessage in lastMessages) {
-                val keyword = groupMessage!!.groupEventObject.message
+                val keyword = groupMessage.groupEventObject.message
 
                 // 不处理
                 if (keyword.isBlank() || keyword.isImage() || keyword.isCQReply() || keyword.length < 2
@@ -133,7 +133,7 @@ class OneBotChatStudy(
             // 遍历查找
             for (lastGroupMessage in lastMessageListSize5) {
                 // 如果为图片获取图片名
-                val lastMessage = lastGroupMessage!!.groupEventObject.message
+                val lastMessage = lastGroupMessage.groupEventObject.message
                 if (lastMessage != message) {
                     // 限制保存
                     if (lastMessage.isCQReply()) {
@@ -159,8 +159,7 @@ class OneBotChatStudy(
 
                     // 遍历查找
                     for (lastGroupMessage in lastMessageListSize5) {
-                        val lastMessage = lastGroupMessage!!.groupEventObject.message.replaceImgCqToFileStr()
-                            ?: lastGroupMessage.groupEventObject.message
+                        val lastMessage = lastGroupMessage.groupEventObject.message.replaceImgCqToFileStr()
                         if (lastMessage != message) {
                             if (lastMessage.isImage() || !lastMessage.isCQReply() || lastMessage.isMface()) {
                                 keyword = lastMessage
@@ -219,8 +218,8 @@ class OneBotChatStudy(
             var repeatNum = 0
 
             lastMessages.forEach {
-                val userId = it?.groupEventObject?.sender?.userId
-                var lastMsg = it!!.groupEventObject.message
+                val userId = it.groupEventObject.sender.userId
+                var lastMsg = it.groupEventObject.message
                 var currentMsg = message
                 if (lastMsg.isImage() && currentMsg.isImage()) {
                     currentMsg = currentMsg.getCQFileStr() ?: currentMsg

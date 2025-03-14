@@ -16,6 +16,7 @@ import com.mikuac.shiro.annotation.common.Shiro
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -38,6 +39,7 @@ class GroupEventListen(
     private val permissionsManager: PermissionsManager,
     private val petpetListen: PetpetListen,
 ) {
+    private val log = KotlinLogging.logger { }
 
     @GroupMessageHandler
     fun groupMsgListen(bot: Bot, groupMessageEvent: GroupMessageEvent) {
@@ -59,7 +61,9 @@ class GroupEventListen(
             bot.selfId
         )
 
-
+        if(senderId == 2842775752){
+            log.info { "${groupId}|${messageSender.senderName}|${sender.role}: $messageSender " }
+        }
         val groupMessage =
             GroupMessage(
                 null,

@@ -1,6 +1,7 @@
 package cn.luorenmu
 
 import cn.luorenmu.action.petpet.TemplateRegister
+import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.file.InitializeFile
 import moe.dituon.petpet.template.PetpetTemplate
 
@@ -9,6 +10,9 @@ import moe.dituon.petpet.template.PetpetTemplate
  * Date 2025.02.23 20:54
  */
 fun main() {
-    InitializeFile.run(MainApplication::class.java)
-    println(TemplateRegister.petpetTemplates)
+    val recentlyMessageQueue = RecentlyMessageQueue<Int>(20)
+    for (i in 0 until 77) {
+        recentlyMessageQueue.addMessageToQueue(1, i)
+    }
+    println(recentlyMessageQueue.lastMessages(1, 3))
 }

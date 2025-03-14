@@ -3,10 +3,13 @@ package cn.luorenmu.action.commandProcess.eternalReturn
 import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
+import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
+import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender
 import com.mikuac.shiro.common.utils.MsgUtils
+import com.mikuac.shiro.core.BotContainer
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
@@ -19,6 +22,7 @@ import java.util.concurrent.TimeUnit
 class EternalReturnFindPlayer(
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
+    private val botContainer: BotContainer,
     private val redisTemplate: StringRedisTemplate,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
@@ -48,6 +52,7 @@ class EternalReturnFindPlayer(
             return notFound
         }
 
+        botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
         return eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)
     }
 

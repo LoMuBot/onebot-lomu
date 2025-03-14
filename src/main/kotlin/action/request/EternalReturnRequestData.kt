@@ -116,7 +116,7 @@ class EternalReturnRequestData(
         request.replaceUrl("key1", character)
         request.replaceUrl("weapon", weapon)
         val resp = request.request()
-        if (resp.status != 200) {
+        if ((resp?.status ?: 500) != 200) {
             return null
         }
         try {

@@ -18,8 +18,14 @@ Bot并没有接入NLP所以无法理解自然语言 它的所有回复相当于�
 * action ->   
     commandProcess -> 命令处理   
     draw -> 绘图    
+    disuse -> 待废弃
+    petpet -> petpet core的服务
     webPageScreenshot -> 调用浏览器进行截图    
     request -> http请求    
+* service -> 远程调用服务
+* repository -> 数据持久化
+* controller -> http服务
+* task -> 定时任务
 
 ## 技术介绍   
 以目前的查询功能来说 都是基于selenium自动化打开浏览器并且截图完成的  

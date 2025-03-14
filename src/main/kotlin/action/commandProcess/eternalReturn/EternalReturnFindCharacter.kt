@@ -5,7 +5,9 @@ import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
 import cn.luorenmu.common.extensions.*
+import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender
+import com.mikuac.shiro.core.BotContainer
 import org.springframework.stereotype.Component
 
 /**
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component
 class EternalReturnFindCharacter(
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
+    private val botContainer: BotContainer,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
         var characterName = sender.message.replaceAtToEmpty(sender.botId).trim()
@@ -28,14 +31,13 @@ class EternalReturnFindCharacter(
             index
         } ?: -1
         return if (characterName.isBlank()) null else {
-            eternalReturnFindCharacter(characterName, indexMatch)
+            eternalReturnFindCharacter(characterName, indexMatch,sender.messageId.toString())
         }
 
     }
 
 
-
-    private fun eternalReturnFindCharacter(characterName: String, i: Int): String? {
+    private fun eternalReturnFindCharacter(characterName: String, i: Int, messageId: String): String? {
         val characterList = eternalReturnRequestData.characterFind()
         var characterKey = ""
 
@@ -84,9 +86,9 @@ class EternalReturnFindCharacter(
                     } else {
                         sortWeaponTypes[i].key
                     }
-                } ?: run {
-                weaponStr.append("暂不支持查询武器")
-            }
+                }
+
+            botContainer.getFirstBot().setMsgEmojiLike(messageId, "124")
             val returnMsg =
                 eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, weapon, weaponStr.toString())
             return returnMsg

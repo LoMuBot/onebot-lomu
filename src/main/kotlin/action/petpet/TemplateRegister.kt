@@ -1,6 +1,7 @@
 package cn.luorenmu.action.petpet
 
 import cn.luorenmu.file.ReadWriteFile
+import io.github.oshai.kotlinlogging.KotlinLogging
 import moe.dituon.petpet.old_template.OldPetpetTemplate
 import moe.dituon.petpet.template.PetpetTemplate
 import java.io.File
@@ -10,6 +11,7 @@ import java.io.File
  * Date 2025.02.04 20:39
  */
 class TemplateRegister {
+    private val log = KotlinLogging.logger {}
     companion object {
         val petpetTemplates: HashMap<String, PetpetTemplate> by lazy { TemplateRegister().register() }
         fun getTemplate(id: String): PetpetTemplate? {
@@ -31,6 +33,7 @@ class TemplateRegister {
                 petpetTemplates[petpetName] = petpetTemplate
             }
         }
+        log.info { "已加载模版${petpetTemplates.keys.joinToString("|") { it }}" }
         return petpetTemplates
     }
 

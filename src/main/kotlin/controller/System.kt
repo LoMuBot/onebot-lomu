@@ -40,7 +40,7 @@ class System(
         oneBotCommandRespository.insert(body)
         map["save_data"] = simple
         map["status"] = "ok"
-        return map;
+        return map
     }
 
     @PostMapping("/active_message")
@@ -48,7 +48,7 @@ class System(
         val map = HashMap<String, String>()
         map["save_data"] = activeSendMessageRepository.save(body).toString()
         map["status"] = "ok"
-        return map;
+        return map
     }
 
     @PostMapping("/save")
