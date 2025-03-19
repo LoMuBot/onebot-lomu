@@ -71,12 +71,7 @@ class GroupEventListen(
             )
 
 
-        // 监听类
-        oneBotChatStudy.process(bot, groupMessageEvent)
-        oneBotChatStudy.reRead(bot, groupMessageEvent)
-        keywordReply.process(bot, messageSender)
-        bilibiliEventListen.process(bot, messageSender)
-        petpetListen.process(messageSender)
+
 
         // 指令
         oneBotCommandAllocator.process(bot, messageSender)?.let {
@@ -88,6 +83,13 @@ class GroupEventListen(
                 return
             }
         }
+        // 监听类
+        oneBotChatStudy.process(bot, groupMessageEvent)
+        oneBotChatStudy.reRead(bot, groupMessageEvent)
+        keywordReply.process(bot, messageSender)
+        bilibiliEventListen.process(bot, messageSender)
+        petpetListen.process(messageSender)
+
 
         // 同一个人在指定的20条中发了同一条消息 不入队列
         groupMessageQueue.map[groupId]?.let {

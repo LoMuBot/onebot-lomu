@@ -9,6 +9,10 @@ import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
 import cn.luorenmu.repository.entiy.OneBotCommand
 import com.github.houbb.opencc4j.util.ZhConverterUtil
+import org.springframework.core.io.Resource
+import org.springframework.core.io.ResourceLoader
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 
@@ -24,6 +28,7 @@ class System(
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
     private val oneBotCommandRespository: OneBotCommandRespository,
+
 ) {
 
     @GetMapping("/")
@@ -66,5 +71,8 @@ class System(
         map["status"] = "ok"
         return map
     }
+
+
+
 
 }

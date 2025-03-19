@@ -25,26 +25,8 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-val compileOs: String? = null
-val currentOs = OperatingSystem.current()!!
-val skijaPackage = "io.github.humbleui"
-val skijaVersion = "0.116.3"
-
-
 dependencies {
-    // skia
-    compileOs?.let {
-        implementation("${skijaPackage}:skija-${it}:${skijaVersion}")
-    } ?: run {
-        when {
-            currentOs.isWindows -> implementation("${skijaPackage}:skija-windows-x64:${skijaVersion}")
-            currentOs.isLinux -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
-            currentOs.isMacOsX -> implementation("${skijaPackage}:skija-macos-x64:${skijaVersion}")
-            else -> implementation("${skijaPackage}:skija-linux-x64:${skijaVersion}")
-        }
-    }
-
-
+    implementation("org.freemarker:freemarker:2.3.34")
     // 为petpet提供的包支持
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.0")
@@ -72,7 +54,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
 
     // onebot协议库
-    implementation("com.mikuac:shiro:2.3.0")
+    implementation("com.mikuac:shiro:2.3.6")
 
 
     // spring
@@ -87,10 +69,13 @@ dependencies {
     implementation("com.github.houbb:opencc4j:1.8.1")
     implementation("com.github.promeg:tinypinyin:2.0.3")
 
-    // kotlin 异步测试
+    // kotlin 协程
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+
     // spirng 测试
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
 }
 
 tasks.test {

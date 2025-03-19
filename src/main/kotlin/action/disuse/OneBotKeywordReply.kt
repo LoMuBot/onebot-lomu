@@ -9,6 +9,7 @@ import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.entiy.KeywordReply
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
+import kotlinx.coroutines.runBlocking
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
@@ -26,10 +27,10 @@ class OneBotKeywordReply(
 ) {
 
     @Async("keywordProcessThreadPool")
-    fun process(bot: Bot, messageSender: MessageSender) {
-        if (!keywordSendCommand.state(messageSender.groupOrSenderId)) {
+    fun process(bot: Bot, messageSender: MessageSender) = runBlocking {
+    if (!keywordSendCommand.state(messageSender.groupOrSenderId)) {
             if (!messageSender.message.isAt(bot.selfId)) {
-                return
+                return@runBlocking
             }
         }
         val atMe = messageSender.message.isAt(bot.selfId)
@@ -47,8 +48,7 @@ class OneBotKeywordReply(
         if (Random(System.currentTimeMillis()).nextDouble(
                 0.0,
                 1.0
-            ) <= (stringRedisTemplate.opsForValue()["probability"]?.toDouble() ?: 0.1) || atMe
-        ) {
+            ) <= (stringRedisTemplate.opsForValue()["probability"]?.toDouble() ?: 0.1)) {
             val mongodbKeyword = mongodbKeyword(bot.selfId, messageSender.senderId, messageSender.message)
             mongodbKeyword?.let {
                 if (bot.sendGroupMsgKeywordLimit(messageSender.groupOrSenderId, it)) {
@@ -110,7 +110,7 @@ class OneBotKeywordReply(
         return found
     }
 
-    fun mongodbKeyword(botId: Long, id: Long, message: String): KeywordReply? {
+    suspend fun mongodbKeyword(botId: Long, id: Long, message: String): KeywordReply? {
         val random = ArrayList<KeywordReply>()
 
         // 没有at机器人指定senderId 为 id

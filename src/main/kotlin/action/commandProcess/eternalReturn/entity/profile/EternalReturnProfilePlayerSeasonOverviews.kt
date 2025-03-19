@@ -1,4 +1,9 @@
-package cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile
+package action.commandProcess.eternalReturn.entity.profile
+
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileDuoStat
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileRank
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileStat
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnServerStat
 
 /**
  * @author LoMu

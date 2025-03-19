@@ -38,8 +38,8 @@ class BootStrapConfig(
         ReadWriteFile.readDirJsonToRunStore("keyword")
 
         val resourcesRequestJson = mapOf(
-            "bilibili_request" to "request/bilibili_request.json",
-            "eternal_return_request" to "request/eternal_return_request.json",
+            "bilibili_request" to "static/request/bilibili_request.json",
+            "eternal_return_request" to "static/request/eternal_return_request.json",
         )
 
         // 生成配置文件

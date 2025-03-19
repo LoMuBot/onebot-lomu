@@ -2,20 +2,27 @@ package cn.luorenmu.action.listenProcess
 
 import cn.luorenmu.action.commandProcess.botCommand.BilibiliEventListenCommand
 import cn.luorenmu.action.request.BilibiliRequestData
+import cn.luorenmu.action.request.RequestData
+import cn.luorenmu.action.request.entiy.bilibili.BilibiliVideoInfoData
 import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
-import cn.luorenmu.common.utils.MatcherData
-import cn.luorenmu.common.utils.getVideoPath
+import cn.luorenmu.common.utils.*
 import cn.luorenmu.entiy.Request
 import cn.luorenmu.listen.entity.BotRole
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.BilibiliVideoRepository
 import cn.luorenmu.repository.entiy.BilibiliVideo
 import cn.luorenmu.request.RequestController
+import cn.luorenmu.service.entity.BilibiliInfoFreeMarker
+import com.alibaba.fastjson2.JSON
+import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.File
+import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -27,10 +34,14 @@ class BilibiliEventListen(
     private val bilibiliRequestData: BilibiliRequestData,
     private val bilibiliVideoRepository: BilibiliVideoRepository,
     private val bilibiliEventListen: BilibiliEventListenCommand,
+    private val requestData: RequestData,
+    private val redisUtils: RedisUtils,
+    @Value("\${server.port}")
+    private val port: String,
 ) {
     private val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
     private val bilibiliVideoShortLink = "((https://bili2233.cn/([a-zA-Z0-9]+))|(https://b23.tv/([a-zA-Z0-9]+)))"
-
+    private val prefixImagesUrl = "http://localhost:$port/local_images/bilibili/"
 
     fun process(bot: Bot, sender: MessageSender) {
         val groupId = sender.groupOrSenderId
@@ -40,21 +51,19 @@ class BilibiliEventListen(
         }
         val correctMsg = message.replace("\\", "")
         findBilibiliLinkBvid(correctMsg)?.let { bvid ->
-
             // 视频信息
             val info = bilibiliRequestData.info(bvid) ?: run {
                 bot.sendGroupMsg(groupId, "视频信息获取失败")
                 return
             }
 
-
-            val videoPath = getVideoPath("bilibili/$bvid.flv")
+            val videoPath = PathUtils.getVideoPath("bilibili/$bvid.flv")
             val videoPathCQ = MsgUtils.builder().video(videoPath, "").build()
-
+            // 视频限制时长 只有在首次监听到该视频 管理员时长发送才生效 否则不发送
+            val limitTime = if (sender.role.roleNumber >= BotRole.ADMIN.roleNumber) 15 else 5
             bilibiliVideoRepository.findFirstBybvid(bvid)?.let { bilibili ->
                 bot.sendGroupMsgLimit(groupId, bilibili.info)
                 bilibili.videoPathCQ?.let { videoPathCQ ->
-
                     // 不为null 但是文件不存在 应当重新下载文件
                     if (File(bilibili.path!!).exists()) {
                         bot.sendGroupMsgLimit(groupId, videoPathCQ)
@@ -62,28 +71,19 @@ class BilibiliEventListen(
                     }
 
                 } ?: run {
+                    //数据库中没有存储视频地址
                     return
                 }
 
             }
+            val videoInfoStr = MsgUtils.builder().img(getVideoInfoImage(info)).build()
+            bot.sendGroupMsgLimit(
+                groupId,
+                videoInfoStr
+            )
 
+            // 下载视频并发送
             bilibiliRequestData.bvidToCid(bvid)?.let { videoStreamInfo ->
-
-                val videoInfoStr = """
-                    ${MsgUtils.builder().img(info.pic).build()} 
-                    up:< ${info.owner.name} >
-                    ${info.title}
-                    https://www.bilibili.com/video/$bvid
-                """.trimIndent()
-
-
-                bot.sendGroupMsgLimit(
-                    groupId,
-                    videoInfoStr
-                )
-
-                val limitTime = if (sender.role.roleNumber >= BotRole.ADMIN.roleNumber) 15 else 5
-
                 downloadVideo(bvid, videoStreamInfo.cid, videoPath, limitTime)?.let { success ->
                     if (success) {
                         bilibiliVideoRepository.save(
@@ -112,9 +112,38 @@ class BilibiliEventListen(
                 }
             }
         }
-
     }
 
+    private fun getVideoInfoImage(info: BilibiliVideoInfoData): String {
+        val path = PathUtils.getImagePath("bilibili/video_info/${info.bvid}")
+        WkhtmltoimageUtils.convertUrlToImage(
+            "http://localhost:$port/ftlh/${freeMarkerBuild(info)}", path, mapOf("zoom" to "2")
+        )
+        return path
+    }
+
+
+    private fun freeMarkerBuild(info: BilibiliVideoInfoData): String {
+        val localPic = "${info.bvid}-pic"
+        val localAvatarName = UUID.randomUUID()
+        requestData.downloadStream(info.pic, PathUtils.getImagePath("bilibili/${localPic}"))
+        requestData.downloadStream(info.owner.face, PathUtils.getImagePath("bilibili/${localAvatarName}"))
+        val content = FreeMarkerUtils.parseData(
+            "bilibili_info.ftlh",
+            JSON.parseObject(
+                BilibiliInfoFreeMarker(
+                    "$prefixImagesUrl$localPic",
+                    "$prefixImagesUrl$localAvatarName",
+                    port,
+                    info.owner.name,
+                    info.title,
+                    info.desc
+                ).toJSONString()
+            )
+        )
+        redisUtils.setCache("ftlh:${info.bvid}", content, 1, TimeUnit.DAYS)
+        return info.bvid
+    }
 
     private fun findBilibiliLinkBvid(message: String): String? {
         if (message.contains(bilibiliVideoLongLink.toRegex())) {

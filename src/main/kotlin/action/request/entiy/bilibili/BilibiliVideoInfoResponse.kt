@@ -18,7 +18,9 @@ data class BilibiliVideoOwner(
 )
 
 data class BilibiliVideoInfoData(
+    val bvid:String,
     val title: String,
     val pic: String,
     val owner: BilibiliVideoOwner,
+    val desc:String
 )

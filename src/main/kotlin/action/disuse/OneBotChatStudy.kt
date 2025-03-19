@@ -30,6 +30,7 @@ class OneBotChatStudy(
     // 复读数 size + 1
     private val size = 3
 
+    @Async("asyncProcessThreadPool")
     fun process(bot: Bot, groupMessageEvent: GroupMessageEvent) {
         if (!chatStudyCommand.state(groupMessageEvent.groupId)) {
             return
@@ -40,8 +41,6 @@ class OneBotChatStudy(
             synchronized(groupMessageQueue.map[groupMessageEvent.groupId]!!) {
                 reReadStudy(groupId, originMessage)
             }
-        } else {
-            autoStudy(bot, groupMessageEvent)
         }
     }
 

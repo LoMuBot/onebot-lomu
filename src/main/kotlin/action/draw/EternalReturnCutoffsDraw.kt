@@ -3,9 +3,8 @@ package cn.luorenmu.action.draw
 
 import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.common.utils.DrawImageUtils
+import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.common.utils.RedisUtils
-import cn.luorenmu.common.utils.getEternalReturnDataImagePath
-import cn.luorenmu.common.utils.getEternalReturnImagePath
 import com.mikuac.shiro.common.utils.MsgUtils
 import org.springframework.stereotype.Component
 import java.awt.Color
@@ -66,7 +65,7 @@ class EternalReturnCutoffsDraw(
 
                 val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日HH时mm分ss"))
                 val draw = DrawImageUtils.builder()
-                draw.setTemplate(getEternalReturnDataImagePath("bg-character.jpg"))
+                draw.setTemplate(PathUtils.getEternalReturnDataImagePath("bg-character.jpg"))
                 draw.setFont("微软雅黑", Font.BOLD)
                 draw.drawString(
                     "${leaderboard.currentSeason?.currentSeason?.name ?: "正式赛季 unknown"}排名",
@@ -129,7 +128,7 @@ class EternalReturnCutoffsDraw(
                     )
                     num++
                 }
-                val url = getEternalReturnImagePath("cutoffs.png")
+                val url = PathUtils.getEternalReturnImagePath("cutoffs.png")
                 draw.saveImage(url)
                 val cqImg = MsgUtils.builder().img(url).build()
                 return cqImg

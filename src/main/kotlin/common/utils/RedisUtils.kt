@@ -18,20 +18,6 @@ class RedisUtils(
 ) {
     private val log = KotlinLogging.logger {}
 
-    fun cacheThenReturn(key: String, find: () -> String, timeout: Long = 1L, unit: TimeUnit = TimeUnit.DAYS): String {
-        redisTemplate.opsForValue()[key]?.let {
-            return it
-        } ?: run {
-            synchronized(RedisUtils::class.java) {
-                if (redisTemplate.opsForValue()[key] == null) {
-                    redisTemplate.opsForValue()[key, find(), timeout] = unit
-                    return find()
-                } else {
-                    return redisTemplate.opsForValue()[key]!!
-                }
-            }
-        }
-    }
 
     fun deleteCache(key: String) {
         redisTemplate.delete(key)

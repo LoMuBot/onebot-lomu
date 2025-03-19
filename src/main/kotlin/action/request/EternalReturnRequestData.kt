@@ -1,13 +1,12 @@
 package cn.luorenmu.action.request
 
+import action.commandProcess.eternalReturn.entity.EternalRetrunLeaderboard
 import action.commandProcess.eternalReturn.entity.EternalReturnCharacter
 import action.commandProcess.eternalReturn.entity.EternalReturnCharacterInfo
+import action.commandProcess.eternalReturn.entity.EternalReturnCurrentSeason
 import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfile
 import cn.luorenmu.action.commandHandle.entiy.eternalReturn.EternalReturnTierDistributions
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalRetrunLeaderboard
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnCurrentSeason
-import cn.luorenmu.common.utils.dakggCdnUrl
-import cn.luorenmu.common.utils.getEternalReturnDataImagePath
+import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.entiy.Request.RequestDetailed
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.request.RequestController
@@ -29,7 +28,7 @@ class EternalReturnRequestData(
 ) {
 
     // sync player
-    fun findExistPlayers(nickname: String, counter: Int = 0): Boolean {
+    fun syncPlayers(nickname: String, counter: Int = 0): Boolean {
         if (counter == 5) {
             return true
         }
@@ -40,7 +39,7 @@ class EternalReturnRequestData(
             request?.let {
                 val body = request.body()
                 if (body.contains("retry_after")) {
-                    return findExistPlayers(nickname, counter + 1)
+                    return syncPlayers(nickname, counter + 1)
                 }
                 if (body.contains("invalid name")) {
                     return false
@@ -50,7 +49,7 @@ class EternalReturnRequestData(
         } catch (e: SocketException) {
             return true
         } catch (e: Exception) {
-            return findExistPlayers(nickname, counter + 1)
+            return syncPlayers(nickname, counter + 1)
         }
         return true
     }
@@ -77,7 +76,7 @@ class EternalReturnRequestData(
     }
 
     private fun dakGGDownloadStreamFile(streamUrl: String, outputPath: String) {
-        val dakGGCdnUrl = dakggCdnUrl(streamUrl)
+        val dakGGCdnUrl = PathUtils.dakggCdnUrl(streamUrl)
         val requestDetailed = RequestDetailed()
         requestDetailed.url = dakGGCdnUrl
         requestDetailed.method = "get"
@@ -87,7 +86,7 @@ class EternalReturnRequestData(
     }
 
     fun checkTierIconExistThenGetPathOrDownload(id: Int): String {
-        val eternalReturnDataImagePath = getEternalReturnDataImagePath("tier/${id}.png")
+        val eternalReturnDataImagePath = PathUtils.getEternalReturnDataImagePath("tier/${id}.png")
         if (!File(eternalReturnDataImagePath).exists()) {
             dakGGDownloadStreamFile("/er/images/tier/round/$id.png", eternalReturnDataImagePath)
         }
@@ -95,7 +94,7 @@ class EternalReturnRequestData(
     }
 
     fun checkCharacterImgExistThenGetPathOrDownload(name: String): String {
-        val eternalReturnDataImagePath = getEternalReturnDataImagePath("character/${name}.png")
+        val eternalReturnDataImagePath = PathUtils.getEternalReturnDataImagePath("character/${name}.png")
         val fileExists = File(eternalReturnDataImagePath).exists()
         if (!fileExists) {
             characterFind().let {
@@ -104,7 +103,7 @@ class EternalReturnRequestData(
                 dakGGDownloadStreamFile(communityImageUrl, eternalReturnDataImagePath)
             }
         }
-        return getEternalReturnDataImagePath("character/${name}.png")
+        return PathUtils.getEternalReturnDataImagePath("character/${name}.png")
     }
 
 
@@ -151,11 +150,17 @@ class EternalReturnRequestData(
         return respCurrentSeason?.body().to<EternalReturnCurrentSeason>()
     }
 
-    fun profile(season: String): EternalReturnProfile? {
+    fun profile(name: String, season: String = currentSeason()?.currentSeason?.name ?: ""): EternalReturnProfile? {
         val requestProfile = RequestController("eternal_return_request.profile")
         requestProfile.replaceUrl("season", season)
+        requestProfile.replaceUrl("name", name)
         val resp = requestProfile.request()
-        return resp?.body().to<EternalReturnProfile>()
+        return try {
+            resp?.body().to<EternalReturnProfile>()
+        } catch (e: JSONException) {
+            null
+        }
+
     }
 
     fun news(id: String): String? {

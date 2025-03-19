@@ -46,15 +46,13 @@ class PetpetListen(
             return
         }
         TemplateRegister.getTemplate(replaceCQMessage)?.let {
-            // bot反射表情
-            if (messageSender.message.isAt(messageSender.botId)) {
-                reflectionTarget(messageSender)
-                return
-            }
+
             val existsFrom = it.elements.toString().contains("from")
             val triggerTo = triggerObj(messageSender, 0, existsFrom)
             val triggerFrom = triggerObj(messageSender, 1, existsFrom)
-            if (triggerTo == null || triggerFrom == null) {
+
+            // bot反射表情
+            if (triggerTo.contains(messageSender.botId.toString()) || triggerFrom.contains(messageSender.botId.toString())) {
                 reflectionTarget(messageSender)
                 return
             }
@@ -92,12 +90,7 @@ class PetpetListen(
         messageSender: MessageSender,
         index: Int,
         existsFrom: Boolean,
-    ): String? {
-        // 就是不允许对bot使用表情
-        if (messageSender.senderId == messageSender.botId || messageSender.message.isAt(messageSender.botId)) {
-            return null
-        }
-
+    ): String {
         // 模版存在from并且当前为from的情况下 则是第一条at或第二条at
         if (existsFrom && index == 1) {
             messageSender.message.getAtQQ(1)?.let {
@@ -122,7 +115,6 @@ class PetpetListen(
         }
 
         // 当前消息为to为at的目标或自己
-
         messageSender.message.getAtQQ(0)?.let {
             return qqRequestData.downloadQQAvatar(it)
         }

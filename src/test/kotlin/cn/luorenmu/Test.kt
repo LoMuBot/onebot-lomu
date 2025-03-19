@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest
  */
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class Test(
     @Autowired val qqRequestData: QQRequestData,
     @Autowired val botContainer: BotContainer,

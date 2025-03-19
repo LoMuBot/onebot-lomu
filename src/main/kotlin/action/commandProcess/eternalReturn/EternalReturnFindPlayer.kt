@@ -44,9 +44,10 @@ class EternalReturnFindPlayer(
             return "$it \n该数据由缓存命中"
         }
 
-
         // check name exist and sync data
-        if (!eternalReturnRequestData.findExistPlayers(nickname)) {
+        eternalReturnRequestData.profile(nickname)?.let {
+            eternalReturnRequestData.syncPlayers(nickname)
+        } ?: run {
             val notFound = MsgUtils.builder().text("不存在的玩家 -> $nickname").build()
             opsForValue["Eternal_Return_NickName:$nickname", notFound, 7L] = TimeUnit.DAYS
             return notFound
@@ -54,6 +55,7 @@ class EternalReturnFindPlayer(
 
         botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
         return eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)
+
     }
 
     override fun commandName(): String {

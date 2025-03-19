@@ -27,7 +27,7 @@
     "method": "get"
   },
   "profile": {
-    "url": "https://er.dakgg.io/api/v1/players/%E7%A5%9E%E5%9C%A3%E5%AE%A1%E5%88%A4/profile?season=${season}",
+    "url": "https://er.dakgg.io/api/v1/players/${name}/profile?season=${season}",
     "method": "get"
   },
   "find_character_info": {

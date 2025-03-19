@@ -2,8 +2,7 @@ package cn.luorenmu.action.webPageScreenshot
 
 import cn.luorenmu.common.utils.JsonObjectUtils
 import cn.luorenmu.common.utils.MatcherData
-import cn.luorenmu.common.utils.getEternalReturnImagePath
-import cn.luorenmu.common.utils.getEternalReturnNicknameImagePath
+import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.pool.WebPageScreenshotPool
 import cn.luorenmu.web.WebPageScreenshot
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * @author LoMu
@@ -35,11 +35,13 @@ class EternalReturnWebPageScreenshot(
         var url = JsonObjectUtils.getString("request.eternal_return_request.find_character")
         url = MatcherData.replaceDollardName(url, "characterName", character)
         url = MatcherData.replaceDollardName(url, "weapon", weapon)
-        val path = getEternalReturnImagePath("character/${character}-${weapon}.png")
+        val path = PathUtils.getEternalReturnImagePath("character/${character}-${weapon}.png")
         val msgCQ = MsgUtils.builder().img(path).text(cacheMsg).build()
         val f = syncWebPageScreenshot(cacheName, msgCQ, 1L, TimeUnit.DAYS) {
             it.setHttpUrl(url)
-                .screenshotAllCrop(660, 235, 835, -500, 500).outputImageFile(path)
+                .screenshotAllCrop(660, 235, 835, -500, 50) {
+                    TimeUnit.SECONDS.sleep(2)
+                }.outputImageFile(path)
         }
         f?.get() ?: run {
             nickNameMap.remove(cacheName)
@@ -56,15 +58,19 @@ class EternalReturnWebPageScreenshot(
 
         var url = JsonObjectUtils.getString("request.eternal_return_request.players")
         url = MatcherData.replaceDollardName(url, "nickname", nickname)
-        val path = getEternalReturnNicknameImagePath(nickname)
+        val path = PathUtils.getEternalReturnNicknameImagePath(nickname)
         val returnMsg = MsgUtils.builder().img(OneBotMedia().file(path).cache(false).proxy(false)).build()
-
-
-
-        syncWebPageScreenshot(cacheName, returnMsg, 20L, TimeUnit.MINUTES) {
-            it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -300, 500).outputImageFile(path)
-        }?.get(2, TimeUnit.MINUTES) ?: run {
-            nickNameMap.remove(cacheName)
+        try {
+            syncWebPageScreenshot(cacheName, returnMsg, 20L, TimeUnit.MINUTES) {
+                it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -600, 50) {
+                    TimeUnit.SECONDS.sleep(4)
+                }.outputImageFile(path)
+            }?.get(2, TimeUnit.MINUTES) ?: run {
+                nickNameMap.remove(cacheName)
+            }
+        } catch (e: TimeoutException) {
+            // 首次启动selenium访问页面加载会非常慢
+            return "任务执行时间超出预期已被强制取消,这可能是因为程序正在初始化或服务器网络无法正常请求"
         }
         log.info { "已完成的截图: $cacheName" }
 
