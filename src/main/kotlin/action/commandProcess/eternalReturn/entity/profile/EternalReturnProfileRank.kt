@@ -1,4 +1,6 @@
-package cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile
+package action.commandProcess.eternalReturn.entity.profile
+
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileRankGlobal
 
 /**
  * @author LoMu
@@ -8,7 +10,7 @@ package cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile
  *  高手 进入了 前1000名
  */
 data class EternalReturnProfileRank(
-    val in1000: EternalReturnProfileRankGlobal,
-    val local: EternalReturnProfileRankGlobal,
-    val global: EternalReturnProfileRankGlobal,
+    val in1000: EternalReturnProfileRankGlobal?,
+    val local: EternalReturnProfileRankGlobal?,
+    val global: EternalReturnProfileRankGlobal?,
 )

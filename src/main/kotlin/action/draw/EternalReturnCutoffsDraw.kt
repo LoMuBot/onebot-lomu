@@ -56,13 +56,15 @@ class EternalReturnCutoffsDraw(
                     }
                 }
 
-
+                // 预前赛或无永恒
+                if (leaderboard.cutoffs.size < 2){
+                    return "数据正在收集中..."
+                }
                 val eternal = leaderboard.cutoffs[1]
                 val demigod = leaderboard.cutoffs[0]
 
 
                 //画上
-
                 val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日HH时mm分ss"))
                 val draw = DrawImageUtils.builder()
                 draw.setTemplate(PathUtils.getEternalReturnDataImagePath("bg-character.jpg"))

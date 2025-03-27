@@ -1,7 +1,5 @@
-package cn.luorenmu.action
+package cn.luorenmu.action.commandProcess
 
-
-import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.common.extensions.isCQReply
 import cn.luorenmu.entiy.OneBotAllCommands
 import cn.luorenmu.listen.entity.MessageSender

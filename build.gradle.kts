@@ -27,6 +27,8 @@ tasks.withType<Test> {
 
 dependencies {
     implementation("org.freemarker:freemarker:2.3.34")
+
+
     // 为petpet提供的包支持
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.0")

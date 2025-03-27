@@ -76,13 +76,7 @@ object DeepSeekRequest {
         // 一个介于 0 到 20 之间的整数 N，指定每个输出位置返回输出概率 top N 的 token，且返回这些 token 的对数概率。指定此参数时，logprobs 必须为 true。
         @JSONField(name = "top_logprobs")
         val topLogprobs: Any? = null,
-    ) {
-        companion object {
-            fun builder(messages: MutableList<DeepSeekMessage>, model: String): String {
-                return DeepSeekRequestBody(messages, model = model).toJSONString()
-            }
-        }
-    }
+    )
 
 
     /**
@@ -93,6 +87,6 @@ object DeepSeekRequest {
      * 此外，如果 finish_reason="length"，这表示生成超过了 max_tokens 或对话超过了最大上下文长度，消息内容可能会被部分截断。
      */
     data class DeepSeekRequestResponse(
-        val type: String = "text",
+        var type: String = "text",
     )
 }

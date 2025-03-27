@@ -20,7 +20,7 @@ class TemplateRegister {
     }
 
     fun register(): HashMap<String, PetpetTemplate> {
-        val jsonAll = readDirsAllJson(ReadWriteFile.currentDirs("static/petpet/templates"))
+        val jsonAll = readDirsAllJson(ReadWriteFile.currentDirs("templates"))
         val petpetTemplates = hashMapOf<String, PetpetTemplate>()
         jsonAll.forEach {
             val petpetTemplate = if (it.name.contains("template")) {

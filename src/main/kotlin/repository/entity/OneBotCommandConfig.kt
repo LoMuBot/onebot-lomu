@@ -2,6 +2,7 @@ package cn.luorenmu.repository.entity
 
 import cn.luorenmu.listen.entity.BotRole
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
 
@@ -15,8 +16,9 @@ data class OneBotCommandConfig(
     val id: String?,
     val commandName: String,
     var state: Boolean,
-    var role: BotRole,
+    var role: BotRole = BotRole.GroupAdmin,
+    @Indexed
     var groupId: Long,
     var senderId: Long,
-    var date: LocalDateTime,
+    var date: LocalDateTime = LocalDateTime.now(),
 )

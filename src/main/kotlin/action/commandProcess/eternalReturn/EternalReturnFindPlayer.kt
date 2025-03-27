@@ -12,7 +12,6 @@ import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.BotContainer
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
-import java.util.concurrent.TimeUnit
 
 /**
  * @author LoMu
@@ -45,15 +44,10 @@ class EternalReturnFindPlayer(
         }
 
         // check name exist and sync data
-        eternalReturnRequestData.profile(nickname)?.let {
-            eternalReturnRequestData.syncPlayers(nickname)
-        } ?: run {
-            val notFound = MsgUtils.builder().text("不存在的玩家 -> $nickname").build()
-            opsForValue["Eternal_Return_NickName:$nickname", notFound, 7L] = TimeUnit.DAYS
-            return notFound
+        if (!eternalReturnRequestData.checkPlayerExists(nickname)) {
+            return MsgUtils.builder().text("不存在的玩家 -> $nickname").build()
         }
-
-        botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
+        eternalReturnRequestData.syncPlayers(nickname)
         return eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)
 
     }

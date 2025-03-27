@@ -5,7 +5,6 @@ import moe.dituon.petpet.core.context.RequestContext
 import moe.dituon.petpet.core.element.PetpetTemplateModel
 import moe.dituon.petpet.template.PetpetTemplate
 import org.springframework.stereotype.Component
-import java.io.File
 import java.util.*
 
 /**

@@ -1,8 +1,6 @@
 package action.commandProcess.eternalReturn.entity.profile
 
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileDuoStat
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileRank
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileStat
 import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnServerStat
 
 /**
@@ -39,8 +37,8 @@ data class EternalReturnProfilePlayerSeasonOverviews(
     val mmrStats: List<List<Long>>,
     val duoStats: List<EternalReturnProfileDuoStat>,
     val recentMatches: List<Map<String, Long>>,
-    val tierID: Long? = null,
-    val tierGradeID: Long? = null,
-    val tierMmr: Long? = null,
-    val rank: EternalReturnProfileRank? = null
+    var tierID: Long? = null,
+    var tierGradeID: Long? = null,
+    var tierMmr: Long? = null,
+    var rank: EternalReturnProfileRank? = null
 )

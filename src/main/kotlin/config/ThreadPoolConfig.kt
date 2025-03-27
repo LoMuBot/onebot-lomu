@@ -11,10 +11,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
  * Date 2024.09.13 08:55
  */
 @Configuration
-class ThreadPoolConfig {
+open class ThreadPoolConfig {
 
     @Bean
-    fun keywordProcessThreadPool(): AsyncTaskExecutor {
+    open fun keywordProcessThreadPool(): AsyncTaskExecutor {
         return ThreadPoolTaskExecutor().apply {
             corePoolSize = 5
             threadNamePrefix = "keyword-process-thread-"
@@ -23,7 +23,7 @@ class ThreadPoolConfig {
     }
 
     @Bean
-    fun asyncProcessThreadPool(): AsyncTaskExecutor {
+    open fun asyncProcessThreadPool(): AsyncTaskExecutor {
         return ThreadPoolTaskExecutor().apply {
             corePoolSize = Runtime.getRuntime().availableProcessors() / 2
             threadNamePrefix = "async-process-thread-"

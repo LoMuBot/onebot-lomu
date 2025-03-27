@@ -1,9 +1,7 @@
 package cn.luorenmu.controller
 
-import cn.luorenmu.repository.ActiveSendMessageRepository
-import cn.luorenmu.repository.KeywordReplyRepository
-import cn.luorenmu.repository.OneBotCommandRespository
-import cn.luorenmu.repository.OneBotConfigRepository
+import cn.luorenmu.repository.*
+import cn.luorenmu.repository.entity.OneBotCommandConfig
 import cn.luorenmu.repository.entity.OneBotConfig
 import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
@@ -28,8 +26,17 @@ class System(
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
     private val oneBotCommandRespository: OneBotCommandRespository,
+    private val oneBotCommandConfigRepository: OneBotCommandConfigRepository
 
 ) {
+    @PostMapping("/command_config")
+    fun commandConfig(@RequestBody oneBotCommandConfig: OneBotCommandConfig): HashMap<String, String>{
+        val map = HashMap<String, String>()
+        val save = oneBotCommandConfigRepository.save(oneBotCommandConfig)
+        map["save_data"] = save.toString()
+        map["status"] = "ok"
+        return map
+    }
 
     @GetMapping("/")
     fun system(): String {

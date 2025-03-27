@@ -1,5 +1,7 @@
 package cn.luorenmu.repository.entiy
 
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 
 /**
@@ -9,6 +11,8 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document(collection = "bilibili_video")
 data class BilibiliVideo(
     var id: String?,
+    @Id
+    @Indexed
     val bvid: String,
     val path: String?,
     val videoPathCQ: String?,

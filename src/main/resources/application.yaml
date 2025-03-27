@@ -6,6 +6,17 @@ shiro:
     client:
       enable: true
       url: "ws://127.0.0.1:3001"
+  task-pool:
+    # 核心线程数（默认线程数）
+    core-pool-size: 20
+    # 缓冲队列大小
+    queue-capacity: 200
+    # 允许线程空闲时间（单位：默认为秒）
+    keep-alive-time: 10
+    # 最大线程数
+    max-pool-size: 32
+    # 线程池名前缀
+    thread-name-prefix: "OneBotEvent-"
 spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -24,11 +35,12 @@ lomu-bot:
     port: 465
     from: 3141298408@qq.com
     user: 3141298408
-    pass: null
+    pass: ====
     starttls: true
     ssl: true
   web-pool:
-    size: 4
+    size: 0
   deep-seek:
-    api-key: ""
+    api-key: "Bearer sk-1"
     base-url: "https://api.deepseek.com/chat/completions"
+    model: "deepseek-chat"

@@ -52,6 +52,7 @@ class EternalReturnWebPageScreenshot(
 
     /**
      * 玩家战绩页面截图
+     * TODO 非常的不可靠 待重写 手动渲染为图片
      */
     fun webPlayerPageScreenshot(nickname: String): String {
         val cacheName = "Eternal_Return_NickName:$nickname"
@@ -62,7 +63,7 @@ class EternalReturnWebPageScreenshot(
         val returnMsg = MsgUtils.builder().img(OneBotMedia().file(path).cache(false).proxy(false)).build()
         try {
             syncWebPageScreenshot(cacheName, returnMsg, 20L, TimeUnit.MINUTES) {
-                it.setHttpUrl(url).screenshotAllCrop(381, 150, 1131, -600, 50) {
+                it.setHttpUrl(url).screenshotAllCrop(381, 250, 1131, -600, 50) {
                     TimeUnit.SECONDS.sleep(4)
                 }.outputImageFile(path)
             }?.get(2, TimeUnit.MINUTES) ?: run {

@@ -18,8 +18,12 @@ import java.time.LocalDateTime
 class DeerCommand(
     private val deerDraw: DeerDraw,
     private val deerRepository: DeerRepository,
+    private val emojiGenerationCommand: EmojiGenerationCommand
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
+        if (!emojiGenerationCommand.state(sender.groupOrSenderId)){
+            return null
+        }
         val nowYear = LocalDateTime.now().year
         val nowMonth = LocalDateTime.now().monthValue
         val nowDay = LocalDateTime.now().dayOfMonth

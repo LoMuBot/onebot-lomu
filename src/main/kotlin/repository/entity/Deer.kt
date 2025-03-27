@@ -1,5 +1,6 @@
 package cn.luorenmu.repository.entiy
 
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 
 /**
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document(collection = "deer")
 data class Deer(
     val id: String?,
+    @Indexed
     val senderId: Long,
     val year: Int,
     val month: Int,

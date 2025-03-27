@@ -7,7 +7,7 @@ import cn.luorenmu.config.external.LoMuBotProperties
 import cn.luorenmu.entiy.Request.RequestDetailed
 import cn.luorenmu.entiy.Request.RequestParam
 import cn.luorenmu.request.RequestController
-import jakarta.annotation.PostConstruct
+import com.alibaba.fastjson2.toJSONString
 import org.springframework.stereotype.Component
 
 /**
@@ -18,30 +18,20 @@ import org.springframework.stereotype.Component
 class DeepSeekRequestData(
     private val properties: LoMuBotProperties,
 ) {
-    private val requestHeader: MutableList<RequestParam> = mutableListOf()
+    private val requestHeader: MutableList<RequestParam> = mutableListOf(RequestParam().apply {
+        name = "Content-Type"
+        content = "application/json"
+    }, RequestParam().apply {
+        name = "Accept"
+        content = "application/json"
+    }, RequestParam().apply {
+        name = "Authorization"
+        content = if (!properties.deepSeek.apiKey.startsWith("Bearer"))
+            "Bearer ${properties.deepSeek.apiKey}"
+        else
+            properties.deepSeek.apiKey
+    })
 
-
-    @PostConstruct
-    fun init() {
-        initRequestHeader(properties.deepSeek.apiKey)
-    }
-
-    fun initRequestHeader(key: String) {
-        requestHeader.add(RequestParam().apply {
-            name = "Content-Type"
-            content = "application/json"
-        })
-
-        requestHeader.add(RequestParam().apply {
-            name = "Accept"
-            content = "application/json"
-        })
-
-        requestHeader.add(RequestParam().apply {
-            name = "Authorization"
-            content = key
-        })
-    }
 
     /**
      *  构建请求
@@ -52,12 +42,33 @@ class DeepSeekRequestData(
             url = properties.deepSeek.baseUrl
             method = "Post"
             headers = requestHeader
-            bodyJson = DeepSeekRequest.DeepSeekRequestBody.builder(messages,properties.deepSeek.model)
+            bodyJson = DeepSeekRequest.DeepSeekRequestBody(messages, properties.deepSeek.model).toJSONString()
         }).request()
     }
 
-    fun buildRequest(message: String, role: String, chatHistory: MutableList<DeepSeekMessage>): HttpResponse {
+    fun buildRequest(
+        message: String,
+        role: String,
+        requestBody: (DeepSeekRequest.DeepSeekRequestBody) -> DeepSeekRequest.DeepSeekRequestBody,
+    ): HttpResponse {
+        return RequestController(RequestDetailed().apply {
+            url = properties.deepSeek.baseUrl
+            method = "Post"
+            headers = requestHeader
+            bodyJson = requestBody(DeepSeekRequest.DeepSeekRequestBody(
+                mutableListOf(DeepSeekMessage(message, role)),
+                properties.deepSeek.model
+            )).toJSONString()
+        }).request()
+    }
+
+    fun buildRequest(
+        message: String,
+        role: String,
+        chatHistory: MutableList<DeepSeekMessage> = mutableListOf<DeepSeekMessage>(),
+    ): HttpResponse {
         chatHistory.add(DeepSeekMessage(message, role))
         return buildRequest(chatHistory)
     }
 }
+

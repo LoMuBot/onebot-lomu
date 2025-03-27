@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
  * Date 2024.09.01 16:24
  */
 @Service
-class EmailPushService(
+open class EmailPushService(
     private val properties: LoMuBotProperties,
 ) {
     private var lastMsg: String? = null
@@ -27,7 +27,7 @@ class EmailPushService(
         .setStarttlsEnable(properties.mail.starttls)
 
     @Async
-    fun emailPush(emails: List<String>, title: String, msg: String) {
+    open fun emailPush(emails: List<String>, title: String, msg: String) {
         lastMsg?.let {
             if (it == msg)
                 return
@@ -37,7 +37,7 @@ class EmailPushService(
     }
 
     @Async
-    fun emailPush(email: String, title: String, msg: String) {
+    open fun emailPush(email: String, title: String, msg: String) {
         emailPush(listOf(email), title, msg)
     }
 }

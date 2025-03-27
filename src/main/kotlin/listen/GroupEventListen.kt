@@ -1,6 +1,6 @@
 package cn.luorenmu.listen
 
-import cn.luorenmu.action.OneBotCommandAllocator
+import cn.luorenmu.action.commandProcess.OneBotCommandAllocator
 import cn.luorenmu.action.PermissionsManager
 import cn.luorenmu.action.disuse.OneBotChatStudy
 import cn.luorenmu.action.disuse.OneBotKeywordReply
@@ -39,7 +39,6 @@ class GroupEventListen(
     private val permissionsManager: PermissionsManager,
     private val petpetListen: PetpetListen,
 ) {
-    private val log = KotlinLogging.logger { }
 
     @GroupMessageHandler
     fun groupMsgListen(bot: Bot, groupMessageEvent: GroupMessageEvent) {

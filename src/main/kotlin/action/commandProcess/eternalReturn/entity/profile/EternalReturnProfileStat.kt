@@ -1,4 +1,4 @@
-package cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile
+package action.commandProcess.eternalReturn.entity.profile
 
 /**
  * @author LoMu
@@ -21,6 +21,6 @@ data class EternalReturnProfileStat(
     val mmrGain: Long,
     val playTime: Long,
     val playerDeaths: Long,
-    val weaponStats: List<EternalReturnProfileStat>,
+    val weaponStats: List<EternalReturnProfileStat>?,
     val skinStats: List<EternalReturnProfileStat>? = null
 )

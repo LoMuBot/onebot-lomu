@@ -3,6 +3,7 @@ package cn.luorenmu
 import cn.luorenmu.action.request.QQRequestData
 import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.sendPrivateMsg
+import cn.luorenmu.service.ChatService
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.BotContainer
 import org.junit.jupiter.api.Test
@@ -19,11 +20,11 @@ import org.springframework.boot.test.context.SpringBootTest
 class Test(
     @Autowired val qqRequestData: QQRequestData,
     @Autowired val botContainer: BotContainer,
+    @Autowired val chatService: ChatService
 ) {
 
+    @Test
     fun testQQAvatar() {
-        botContainer.getFirstBot().sendPrivateMsg(
-            2842775752L,
-            MsgUtils.builder().img(qqRequestData.downloadQQAvatar(3141298408.toString()).substring(1)).build())
+        chatService.extractKeywordsFromReply(mutableListOf("好下头","没有童年的吗","你有赛车驾照吗","你吃屎了吗","我操你妈","傻逼"), "你才傻逼")
     }
 }

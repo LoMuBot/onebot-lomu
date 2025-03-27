@@ -15,10 +15,8 @@ import org.springframework.stereotype.Component
 @Component("eternalReturnCutoffs")
 class EternalReturnCutoffs(
     private val eternalReturnDraw: EternalReturnCutoffsDraw,
-    private val botContainer: BotContainer,
 ) : CommandProcess {
     override fun process(command: String, sender: MessageSender): String? {
-        botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
         return eternalReturnDraw.cutoffs()
     }
 

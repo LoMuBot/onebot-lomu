@@ -20,14 +20,14 @@ import kotlin.random.Random
  * Date 2024.07.27 1:21
  */
 @Component
-class OneBotKeywordReply(
+open class OneBotKeywordReply(
     private val stringRedisTemplate: StringRedisTemplate,
     private var keywordReplyRepository: KeywordReplyRepository,
     private val keywordSendCommand: KeywordSendCommand,
 ) {
 
     @Async("keywordProcessThreadPool")
-    fun process(bot: Bot, messageSender: MessageSender) = runBlocking {
+    open fun process(bot: Bot, messageSender: MessageSender) = runBlocking {
     if (!keywordSendCommand.state(messageSender.groupOrSenderId)) {
             if (!messageSender.message.isAt(bot.selfId)) {
                 return@runBlocking

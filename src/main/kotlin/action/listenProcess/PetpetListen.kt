@@ -13,46 +13,44 @@ import cn.luorenmu.listen.entity.MessageType
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.BotContainer
 import com.mikuac.shiro.dto.action.response.GetMsgResp
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
-import kotlin.math.log
 
 /**
  * @author LoMu
  * Date 2025.02.05 11:27
  */
 @Component
-class PetpetListen(
+open class PetpetListen(
     private val petpetGenerate: PetpetGenerate,
     private val botContainer: BotContainer,
     private val emojiGenerationCommand: EmojiGenerationCommand,
     private val permissionsManager: PermissionsManager,
     private val qqRequestData: QQRequestData,
 ) {
-    private val blackList = listOf("口我", "撅")
-
     @Async("asyncProcessThreadPool")
-    fun process(messageSender: MessageSender) {
+    open fun process(messageSender: MessageSender) {
         if (!messageSender.message.replaceReplyToEmpty().startsWith("/")) {
             return
         }
         val replaceCQMessage =
             messageSender.message.replace("/", "").replaceAtToEmpty().replaceBlankToEmpty()
                 .replaceReplyToEmpty().replaceImageToEmpty()
-        if (blackList.contains(replaceCQMessage) && !(messageSender.role.roleNumber >= BotRole.GroupAdmin.roleNumber ||
+        if (!(messageSender.role.roleNumber >= BotRole.GroupAdmin.roleNumber ||
                     emojiGenerationCommand.state(messageSender.groupOrSenderId))
         ) {
             return
         }
         TemplateRegister.getTemplate(replaceCQMessage)?.let {
-
+            // bot反射表情
+            if (messageSender.message.isAt(messageSender.botId)) {
+                reflectionTarget(messageSender)
+                return
+            }
             val existsFrom = it.elements.toString().contains("from")
             val triggerTo = triggerObj(messageSender, 0, existsFrom)
             val triggerFrom = triggerObj(messageSender, 1, existsFrom)
-
-            // bot反射表情
-            if (triggerTo.contains(messageSender.botId.toString()) || triggerFrom.contains(messageSender.botId.toString())) {
+            if (triggerTo == null || triggerFrom == null) {
                 reflectionTarget(messageSender)
                 return
             }
@@ -90,7 +88,12 @@ class PetpetListen(
         messageSender: MessageSender,
         index: Int,
         existsFrom: Boolean,
-    ): String {
+    ): String? {
+        // 就是不允许对bot使用表情
+        if (messageSender.senderId == messageSender.botId || messageSender.message.isAt(messageSender.botId)) {
+            return null
+        }
+
         // 模版存在from并且当前为from的情况下 则是第一条at或第二条at
         if (existsFrom && index == 1) {
             messageSender.message.getAtQQ(1)?.let {
@@ -115,6 +118,7 @@ class PetpetListen(
         }
 
         // 当前消息为to为at的目标或自己
+
         messageSender.message.getAtQQ(0)?.let {
             return qqRequestData.downloadQQAvatar(it)
         }
@@ -129,8 +133,7 @@ class PetpetListen(
         senderId = msg.sender.userId.toLong(),
         role = permissionsManager.botRole(msg.sender.userId.toLong(), msg.sender.role),
         message = msg.message,
-        // TODO 后续如果支持Private时应当修改
-        messageType = MessageType.convert("group"),
+        messageType = MessageType.convert(msg.messageType),
         messageId = msg.messageId,
         botId = messageSender.botId
     )

@@ -76,7 +76,8 @@ class BilibiliEventListen(
                 }
 
             }
-            val videoInfoStr = MsgUtils.builder().img(getVideoInfoImage(info)).build()
+            val videoInfoStr =
+                MsgUtils.builder().img(getVideoInfoImage(info)).text("https://www.bilibili.com/video/$bvid").build()
             bot.sendGroupMsgLimit(
                 groupId,
                 videoInfoStr

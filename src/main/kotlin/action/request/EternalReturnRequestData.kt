@@ -12,6 +12,7 @@ import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.JSONException
 import com.alibaba.fastjson2.to
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.io.File
@@ -25,7 +26,9 @@ import java.util.concurrent.TimeUnit
 @Component
 class EternalReturnRequestData(
     private val redisTemplate: RedisTemplate<String, String>,
+    private val requestData: RequestData,
 ) {
+    private val log = KotlinLogging.logger {}
 
     // sync player
     fun syncPlayers(nickname: String, counter: Int = 0): Boolean {
@@ -150,7 +153,18 @@ class EternalReturnRequestData(
         return respCurrentSeason?.body().to<EternalReturnCurrentSeason>()
     }
 
-    fun profile(name: String, season: String = currentSeason()?.currentSeason?.name ?: ""): EternalReturnProfile? {
+    fun checkPlayerExists(name: String): Boolean {
+        val requestProfile = RequestController("eternal_return_request.profile")
+        requestProfile.replaceUrl("season", "SEASON_1")
+        requestProfile.replaceUrl("name", name)
+        val requestRetry = requestData.requestRetry(requestProfile)
+        requestRetry?.let {
+            return true
+        }
+        return false
+    }
+
+    fun profile(name: String, season: String = "SEASON_1"): EternalReturnProfile? {
         val requestProfile = RequestController("eternal_return_request.profile")
         requestProfile.replaceUrl("season", season)
         requestProfile.replaceUrl("name", name)
@@ -158,9 +172,9 @@ class EternalReturnRequestData(
         return try {
             resp?.body().to<EternalReturnProfile>()
         } catch (e: JSONException) {
+            log.error { e.printStackTrace() }
             null
         }
-
     }
 
     fun news(id: String): String? {
