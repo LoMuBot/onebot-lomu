@@ -5,9 +5,9 @@ package action.commandProcess.eternalReturn.entity.profile
  * Date 2024.08.03 14:31
  */
 data class EternalReturnProfilePlayerSeason(
-    val seasonID: Long,
-    val mmr: Long? = null,
-    val tierID: Long? = null,
-    val tierGradeID: Long? = null,
-    val tierMmr: Long? = null,
+    val seasonId: Int,
+    var mmr: Int,
+    var tierId: Int,
+    var tierGradeId: Long,
+    var tierMmr: Long
 )

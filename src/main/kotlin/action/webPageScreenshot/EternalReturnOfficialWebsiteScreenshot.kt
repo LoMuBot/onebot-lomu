@@ -25,7 +25,7 @@ class EternalReturnOfficialWebsiteScreenshot(
     @Synchronized
     fun screenshotNews(id: String, outputPath: String): String {
         webPageScreenshot.execute {
-            it.setHttpUrl(WEBSITE_URL + id).screenshotAllCrop(400, 140, -880, -1300, 50) { webDriver ->
+            it.setHttpUrl(WEBSITE_URL + id).screenshotAllCrop(400, 140, -850, -1300, 50) { webDriver ->
                 // 在页面打开后删除头导航元素 因为它会跟随页面滑动 导致截图結果不符合預期
                 val gnbElement: WebElement = webDriver.findElement(By.id("gnb"))
                 val js = webDriver as JavascriptExecutor

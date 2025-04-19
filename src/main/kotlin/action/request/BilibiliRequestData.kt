@@ -40,7 +40,6 @@ class BilibiliRequestData {
 
     fun getVideoInfo(bvid: String, cid: Long): BilibiliVideoInfoStreamData? {
         val requestController = RequestController("bilibili_request.video_stream")
-        requestController.setWaitTime(1L)
         requestController.replaceUrl("bvid", bvid)
         requestController.replaceUrl("cid", cid.toString())
         val resp = requestController.request()

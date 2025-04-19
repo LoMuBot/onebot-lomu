@@ -80,7 +80,7 @@ class DeerDraw(
             drawImageUtils.drawString(commandSender.senderName, Color.black, 450, 780, 30)
         }
 
-        val deerSenderCount = deerRepository.count()
+        val deerSenderCount = deerRepository.findByYearAndMonth(LocalDateTime.now().year, LocalDateTime.now().monthValue).count()
         val ranking = ranking(commandSender.senderId)
         drawImageUtils.drawString(
             "当月在${deerSenderCount}人中 排名第${ranking.ranking} 名与${ranking.rankingCount}人位于同一名次",

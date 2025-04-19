@@ -1,0 +1,56 @@
+{
+  "bvid_to_cid": {
+    "url": "https://api.bilibili.com/x/player/pagelist?bvid=${bvid}",
+    "method": "GET",
+    "headers": [
+      {
+        "name": "User-Agent",
+        "content": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0"
+      },
+      {
+        "name": "Referer",
+        "content": "https://www.bilibili.com/"
+      },
+      {
+        "name": "Origin",
+        "content": "https://www.bilibili.com/"
+      }
+    ]
+  },
+  "video_stream": {
+    "url": "https://api.bilibili.com/x/player/wbi/playurl?cid=${cid}&qn=112&fnval=0&fnver=0&fourk=1&bvid=${bvid}",
+    "method": "GET",
+    "headers": [
+      {
+        "name": "User-Agent",
+        "content": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0"
+      },
+      {
+        "name": "Referer",
+        "content": "https://www.bilibili.com/"
+      },
+      {
+        "name": "Origin",
+        "content": "https://www.bilibili.com/"
+      }
+    ]
+  },
+  "info": {
+    "url": "https://api.bilibili.com/x/web-interface/view?bvid=${bvid}",
+    "method": "GET",
+    "headers": [
+      {
+        "name": "User-Agent",
+        "content": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0"
+      },
+      {
+        "name": "Referer",
+        "content": "https://www.bilibili.com/"
+      },
+      {
+        "name": "Origin",
+        "content": "https://www.bilibili.com/"
+      }
+    ]
+  }
+}

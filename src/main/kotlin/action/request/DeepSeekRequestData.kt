@@ -65,10 +65,18 @@ class DeepSeekRequestData(
     fun buildRequest(
         message: String,
         role: String,
-        chatHistory: MutableList<DeepSeekMessage> = mutableListOf<DeepSeekMessage>(),
+        chatHistory: MutableList<DeepSeekMessage> = mutableListOf(),
     ): HttpResponse {
         chatHistory.add(DeepSeekMessage(message, role))
         return buildRequest(chatHistory)
+    }
+
+    fun buildImageRequest(
+        message: String,
+        image: String,
+        role: String,
+    ): HttpResponse {
+        TODO()
     }
 }
 

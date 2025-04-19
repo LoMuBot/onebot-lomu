@@ -23,15 +23,10 @@ object PathUtils {
 
 
     fun getEternalReturnNicknameImagePath(name: String): String {
-        ReadWriteFile.createCurrentDirs("image/eternal_return/nickname/${name}.png")
-        return ReadWriteFile.currentPathFileName("image/eternal_return/nickname/${name}.png").substring(1)
+        ReadWriteFile.createCurrentDirs("image/eternal_return/nickname/${name}.jpg")
+        return ReadWriteFile.currentPathFileName("image/eternal_return/nickname/${name}.jpg").substring(1)
     }
 
-    fun dakggCdnUrl(url: String): String = MatcherData.replaceDollardName(
-        JsonObjectUtils.getString("request.eternal_return_request.dakgg_cdn"),
-        "url",
-        url
-    )
 
     fun getEternalReturnImagePath(name: String): String {
         ReadWriteFile.createCurrentDirs("image/eternal_return/${name}")

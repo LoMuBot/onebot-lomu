@@ -1,4 +1,7 @@
-package cn.luorenmu.action.commandProcess.eternalReturn.entiy
+package action.commandProcess.eternalReturn.entity
+
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnPlayerTierByUserNum
+import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnRankings
 
 /**
  * @author LoMu

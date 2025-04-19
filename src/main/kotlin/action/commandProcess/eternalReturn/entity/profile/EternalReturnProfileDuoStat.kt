@@ -1,6 +1,4 @@
-package cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile
-
-import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfileCharacterStat
+package action.commandProcess.eternalReturn.entity.profile
 
 /**
  * @author LoMu
@@ -10,8 +8,8 @@ data class EternalReturnProfileDuoStat(
     val userNum: Long,
     val nickname: String,
     val updatedAt: Long,
-    val play: Long,
-    val win: Long,
-    val place: Long,
+    val play: Int,
+    val win: Int,
+    val place: Int,
     val characterStats: List<EternalReturnProfileCharacterStat>
 )

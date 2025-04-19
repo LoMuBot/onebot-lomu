@@ -29,7 +29,7 @@ open class PetpetListen(
     private val qqRequestData: QQRequestData,
 ) {
     @Async("asyncProcessThreadPool")
-    open fun process(messageSender: MessageSender) {
+    fun process(messageSender: MessageSender) {
         if (!messageSender.message.replaceReplyToEmpty().startsWith("/")) {
             return
         }

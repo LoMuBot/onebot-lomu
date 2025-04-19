@@ -22,27 +22,33 @@ class RequestData {
     }
 
     fun requestRetry(requestController: RequestController, retry: Int = 3): HttpResponse? {
-        val resp = requestController.request()
-        resp?.let {
-            if (resp.status == 200) {
-                return resp
-            } else if (resp.status == 404) {
-                return null
-            } else {
+        try {
+            val resp = requestController.request()
+            resp?.let {
+                if (resp.status == 200) {
+                    return resp
+                } else if (resp.status == 404) {
+                    return null
+                } else {
+                    if (retry > 0) {
+                        return requestRetry(requestController, retry - 1)
+                    }
+                }
+            } ?: run {
                 if (retry > 0) {
                     return requestRetry(requestController, retry - 1)
                 }
             }
-        } ?: run {
-            if (retry > 0) {
-                return requestRetry(requestController, retry - 1)
-            }
+            return null
+        }catch (e: Exception){
+            return requestRetry(requestController, retry - 1)
         }
-        return null
     }
 
-    fun requestRetry(requestDetailed: (RequestDetailed) -> RequestDetailed, retry: Int = 3): HttpResponse? {
-        val requestController = RequestController(requestDetailed(RequestDetailed()))
+    fun requestRetry(requestDetailedLmd: (RequestDetailed) -> Unit, retry: Int = 3): HttpResponse? {
+        val requestDetailed = RequestDetailed()
+        requestDetailedLmd(requestDetailed)
+        val requestController = RequestController(requestDetailed)
         return requestRetry(requestController, retry)
     }
 }

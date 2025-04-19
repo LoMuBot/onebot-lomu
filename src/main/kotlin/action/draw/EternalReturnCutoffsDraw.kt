@@ -6,6 +6,7 @@ import cn.luorenmu.common.utils.DrawImageUtils
 import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.common.utils.RedisUtils
 import com.mikuac.shiro.common.utils.MsgUtils
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import java.awt.Color
 import java.awt.Font
@@ -27,7 +28,7 @@ class EternalReturnCutoffsDraw(
         return "%.1f".format(value * i)
     }
 
-    fun draw(): String {
+    suspend fun draw(): String {
         val tierDistributions = eternalReturnRequestData.tierDistributionsFind()
         tierDistributions?.let { td ->
             eternalReturnRequestData.leaderboardFind()?.let { leaderboard ->
@@ -57,7 +58,7 @@ class EternalReturnCutoffsDraw(
                 }
 
                 // 预前赛或无永恒
-                if (leaderboard.cutoffs.size < 2){
+                if (leaderboard.cutoffs.size < 2) {
                     return "数据正在收集中..."
                 }
                 val eternal = leaderboard.cutoffs[1]
@@ -143,7 +144,7 @@ class EternalReturnCutoffsDraw(
         return redisUtils.getCache(
             "Eternal_Return:cutoffs",
             String::class.java,
-            { draw() },
+            { runBlocking { draw() } },
             30L,
             TimeUnit.MINUTES,
             EternalReturnCutoffsDraw::class.java

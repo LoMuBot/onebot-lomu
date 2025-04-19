@@ -1,7 +1,7 @@
 package cn.luorenmu.task
 
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnArticle
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.EternalReturnNews
+import action.commandProcess.eternalReturn.entity.EternalReturnArticle
+import action.commandProcess.eternalReturn.entity.EternalReturnNews
 import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.entiy.Request
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
  * Date 2024.09.01 14:40
  */
 @Component
-class EternalReturnRewardPushTask(
+open class EternalReturnRewardPushTask(
     private val oneBotConfigRepository: OneBotConfigRepository,
     private val commandConfigRepository: OneBotCommandConfigRepository,
     val botContainer: BotContainer,
@@ -44,7 +44,7 @@ class EternalReturnRewardPushTask(
     }
 
 
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 */3 * * * *")
     //@Scheduled(cron = "0 */1 * * * *")
     fun eternalReturnRewardPush() {
         if (failed > 3) {
@@ -93,7 +93,7 @@ class EternalReturnRewardPushTask(
 
     }
 
-    fun findArticleThenPush(lastId: Int, articles: List<EternalReturnArticle>) {
+    private fun findArticleThenPush(lastId: Int, articles: List<EternalReturnArticle>) {
         val groupList = pushGroupList()
 
         for (article in articles) {

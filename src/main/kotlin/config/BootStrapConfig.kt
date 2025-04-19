@@ -31,12 +31,7 @@ class BootStrapConfig(
         ReadWriteFile.createCurrentDirs("image/qq/avatar")
         ReadWriteFile.createCurrentDirs("image/qq/deer")
         ReadWriteFile.createCurrentDirs("image/qq/petpet")
-        ReadWriteFile.createCurrentDirs("qrcode/")
         ReadWriteFile.createCurrentDirs("request/")
-        ReadWriteFile.createCurrentDirs("crx/")
-
-        ReadWriteFile.readDirJsonToRunStore("keyword")
-
         val resourcesRequestJson = mapOf(
             "bilibili_request" to "static/request/bilibili_request.json",
             "eternal_return_request" to "static/request/eternal_return_request.json",
@@ -71,14 +66,14 @@ class BootStrapConfig(
             JsonObjectUtils.putRequestJson(filePath.key, initJsonObj)
         }
     }
-
-
     @Bean(destroyMethod = "shutdown")
-    fun getWebPageScreenshotPool(): WebPageScreenshotPool {
+    fun BootStrapConfig.getWebPageScreenshotPool(): WebPageScreenshotPool {
         WebDriverManager.chromedriver().browserVersion("133.0.6943.126").setup();
         return WebPageScreenshotPool(properties.webPool.size) {
             it.addArguments("--headless");
             it.addArguments("--window-size=1920,1080");
         }
     }
+
 }
+

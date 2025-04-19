@@ -1,9 +1,9 @@
 package cn.luorenmu.listen
 
-import cn.luorenmu.action.commandProcess.OneBotCommandAllocator
 import cn.luorenmu.action.PermissionsManager
-import cn.luorenmu.action.disuse.OneBotChatStudy
-import cn.luorenmu.action.disuse.OneBotKeywordReply
+import cn.luorenmu.action.chat.OneBotChatStudy
+import cn.luorenmu.action.chat.OneBotKeywordReply
+import cn.luorenmu.action.commandProcess.OneBotCommandAllocator
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
 import cn.luorenmu.action.listenProcess.PetpetListen
 import cn.luorenmu.common.extensions.sendGroupMsg
@@ -16,7 +16,6 @@ import com.mikuac.shiro.annotation.common.Shiro
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.dto.event.message.GroupMessageEvent
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -25,8 +24,6 @@ import java.time.LocalDateTime
  * @author LoMu
  * Date 2024.07.04 10:22
  */
-
-val groupMessageQueue: RecentlyMessageQueue<GroupMessage> = RecentlyMessageQueue()
 
 
 @Component
@@ -39,6 +36,9 @@ class GroupEventListen(
     private val permissionsManager: PermissionsManager,
     private val petpetListen: PetpetListen,
 ) {
+    companion object {
+        val groupMessageQueue: RecentlyMessageQueue<GroupMessage> = RecentlyMessageQueue()
+    }
 
     @GroupMessageHandler
     fun groupMsgListen(bot: Bot, groupMessageEvent: GroupMessageEvent) {
@@ -68,8 +68,6 @@ class GroupEventListen(
                 LocalDateTime.now(),
                 groupMessageEvent
             )
-
-
 
 
         // 指令

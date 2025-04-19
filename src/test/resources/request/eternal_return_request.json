@@ -1,0 +1,46 @@
+{
+  "players": "https://dak.gg/er/players/${nickname}?gameMode=ALL",
+  "find_player": {
+    "url": "https://er.dakgg.io/api/v0/rpc/player-sync/by-name/${nickname}",
+    "method": "get"
+  },
+  "leaderboard": {
+    "url": "https://er.dakgg.io/api/v0/leaderboard?page=1&seasonKey=${season}&serverName=seoul&teamMode=SQUAD&hl=zh_CN",
+    "method": "get"
+  },
+  "current_season": {
+    "url": "https://er.dakgg.io/api/v1/data/seasons?hl=zh_CN",
+    "method": "get"
+  },
+  "dakgg_cdn": "https://cdn.dak.gg${url}",
+  "leaderboard_cutoffs": "https://dak.gg/er/leaderboard?hl=zh_CN",
+  "leaderboard_characters": {
+    "url": "https://er.dakgg.io/api/v0/leaderboard/characters/${character}?seasonKey=${season}&teamMode=ALL&sortType=${sortType}&page=1&hl=zh_CN",
+    "method": "get"
+  },
+  "character": {
+    "url": "https://er.dakgg.io/api/v0/characters?hl=zh_CN",
+    "method": "get"
+  },
+  "tiers": {
+    "url": "https://er.dakgg.io/api/v1/data/tiers?hl=zh_cn",
+    "method": "get"
+  },
+  "tier_distribution": {
+    "url": "https://er.dakgg.io/api/v0/statistics/tier-distribution?teamMode=SQUAD&hl=zh_CN",
+    "method": "get"
+  },
+  "profile": {
+    "url": "https://er.dakgg.io/api/v1/players/${name}/profile?season=${season}",
+    "method": "get"
+  },
+  "find_character_info": {
+    "url": "https://dak.gg/er/_next/data/${token}/characters/${key}.json?teamMode=SQUAD&weaponType=${weapon}&period=3day&tier=diamond_plus&character=${key1}&hl=zh_CN",
+    "method": "get"
+  },
+  "news": {
+    "url": "https://playeternalreturn.com/posts/news/${id}",
+    "method": "get"
+  },
+  "find_character":"https://dak.gg/er/characters/${characterName}?teamMode=SQUAD&weaponType=${weapon}&period=3day&tier=diamond_plus"
+}

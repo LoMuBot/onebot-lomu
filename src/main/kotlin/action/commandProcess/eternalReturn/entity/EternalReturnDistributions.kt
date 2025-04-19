@@ -1,4 +1,4 @@
-package cn.luorenmu.action.commandProcess.eternalReturn.entiy
+package action.commandProcess.eternalReturn.entity
 
 /**
  * @author LoMu
@@ -12,5 +12,4 @@ data class EternalReturnDistributions(
     val tierGrade: Int,
     val tierImageUrl: String,
     val tierType: Int,
-) {
-}
+)

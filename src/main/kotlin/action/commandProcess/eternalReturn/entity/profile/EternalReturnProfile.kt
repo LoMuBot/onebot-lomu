@@ -9,7 +9,7 @@ package action.commandProcess.eternalReturn.entity.profile
  */
 data class EternalReturnProfile (
     val meta: EternalReturnProfileMeta,
-    val player: EternalReturnProfilePlayer?,
+    val player: EternalReturnProfilePlayer,
     val playerSeasonOverviews: List<EternalReturnProfilePlayerSeasonOverviews>?,
-    val playerSeasons : List<EternalReturnProfilePlayerSeason>?
+    val playerSeasons : List<EternalReturnProfilePlayerSeason>
 )

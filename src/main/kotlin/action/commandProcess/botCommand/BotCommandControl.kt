@@ -46,7 +46,7 @@ class BotCommandControl(
             } ?: run {
                 // 配置不存在 生成配置
                 initConfig(commandName, sender, true)
-                return "配置初始化成功 已为该群启用$commandName 更改该功能权限至少需要和[${sender.senderName}]同等级权限\n${sender.role}"
+                return "已为该群启用$commandName 更改该功能权限至少需要和[${sender.senderName}]同等级权限\n${sender.role}"
             }
         } finally {
             redisUtils.deleteCache("${commandName}State:${sender.groupOrSenderId}")

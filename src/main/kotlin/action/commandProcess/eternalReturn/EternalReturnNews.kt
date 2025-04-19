@@ -36,8 +36,8 @@ class EternalReturnNews(
 ) : CommandProcess {
 
     private val log = KotlinLogging.logger {}
-    val regex = "<div class=\"er-article-detail__content er-article-content fr-view\">([\\s\\S]*?)</div>".toRegex()
-    val imgRegex = "<img src=\"(.*?)\"".toRegex()
+    private val regex = "<div class=\"er-article-detail__content er-article-content fr-view\">([\\s\\S]*?)</div>".toRegex()
+    private val imgRegex = "<img src=\"(.*?)\"".toRegex()
 
     /**
      * @param command 正则表达式 -> https://playeternalreturn.com/posts/news/([0-9]{4,6})

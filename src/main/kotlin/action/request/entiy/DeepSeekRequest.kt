@@ -7,8 +7,8 @@ import com.alibaba.fastjson2.toJSONString
  * @author LoMu
  * Date 2025.01.30 21:30
  */
-object DeepSeekRequest {
-    data class DeepSeekRequestBody(
+object DeepSeekRequest{
+    data class DeepSeekRequestBody (
         val messages: MutableList<DeepSeekMessage>,
         // [deepseek-chat, deepseek-reasoner]
         val model: String = "deepseek-chat",

@@ -67,7 +67,7 @@ class EternalReturnFindCharacter(
 
 
 
-            eternalReturnRequestData.characterInfoFind(characterKey, "", "WBqQEY6MRy7FD3WJ6lG9q")
+            eternalReturnRequestData.characterDetailsFind(characterKey, "", "WBqQEY6MRy7FD3WJ6lG9q")
                 ?.let { characterInfo ->
                     weaponStr.append("武器选择:")
                     val weaponType =

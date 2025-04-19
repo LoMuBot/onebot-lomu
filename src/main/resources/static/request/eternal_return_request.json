@@ -8,18 +8,25 @@
     "url": "https://er.dakgg.io/api/v0/leaderboard?page=1&seasonKey=${season}&serverName=seoul&teamMode=SQUAD&hl=zh_CN",
     "method": "get"
   },
+  "weapons":{
+    "url": "https://er.dakgg.io/api/v1/data/masteries?hl=zh_cn",
+    "method": "get"
+  },
   "current_season": {
     "url": "https://er.dakgg.io/api/v1/data/seasons?hl=zh_CN",
     "method": "get"
   },
-  "dakgg_cdn": "https://cdn.dak.gg${url}",
   "leaderboard_cutoffs": "https://dak.gg/er/leaderboard?hl=zh_CN",
   "leaderboard_characters": {
     "url": "https://er.dakgg.io/api/v0/leaderboard/characters/${character}?seasonKey=${season}&teamMode=ALL&sortType=${sortType}&page=1&hl=zh_CN",
     "method": "get"
   },
   "character": {
-    "url": "https://er.dakgg.io/api/v0/characters?hl=zh_CN",
+    "url": "https://er.dakgg.io/api/v1/data/characters?hl=zh_cn",
+    "method": "get"
+  },
+  "tiers": {
+    "url": "https://er.dakgg.io/api/v1/data/tiers?hl=zh_cn",
     "method": "get"
   },
   "tier_distribution": {
@@ -38,5 +45,10 @@
     "url": "https://playeternalreturn.com/posts/news/${id}",
     "method": "get"
   },
-  "find_character":"https://dak.gg/er/characters/${characterName}?teamMode=SQUAD&weaponType=${weapon}&period=3day&tier=diamond_plus"
+  "find_character":"https://dak.gg/er/characters/${characterName}?teamMode=SQUAD&weaponType=${weapon}&period=3day&tier=diamond_plus",
+  "matches": {
+    "url":"https://er.dakgg.io/api/v1/players/${nickname}/matches?season=${season}&matchingMode=${matching_mode}&teamMode=${team_mode}&page=${page}",
+    "method": "get"
+  }
+
 }

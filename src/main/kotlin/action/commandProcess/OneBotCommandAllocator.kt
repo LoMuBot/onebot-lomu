@@ -1,17 +1,16 @@
 package cn.luorenmu.action.commandProcess
 
 import cn.luorenmu.common.extensions.isCQReply
+import cn.luorenmu.common.extensions.sendGroupMsg
+import cn.luorenmu.common.utils.RedisUtils
 import cn.luorenmu.entiy.OneBotAllCommands
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.repository.OneBotCommandRespository
 import cn.luorenmu.repository.entiy.OneBotCommand
-import com.alibaba.fastjson2.to
-import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.ApplicationContext
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
@@ -22,7 +21,7 @@ import java.util.concurrent.TimeUnit
 @Component
 class OneBotCommandAllocator(
     private val oneBotCommandRepository: OneBotCommandRespository,
-    private val redisTemplate: StringRedisTemplate,
+    private val redisUtils: RedisUtils,
     private val applicationContext: ApplicationContext,
 ) {
     private val log = KotlinLogging.logger {}
@@ -59,24 +58,18 @@ class OneBotCommandAllocator(
                     return commandProcess.process(oneBotCommand.keyword, messageSender)
                 } catch (e: Exception) {
                     log.error { e.stackTraceToString() }
-                    return "服务器内部发生错误来自功能${commandProcess.commandName()}\n ${e.javaClass.name}: ${e.message}"
+                    bot.sendGroupMsg(646708986, "${e.javaClass}:${e.printStackTrace()}")
+                    return "服务器内部发生错误来自功能${commandProcess.commandName()}\n "
                 }
             }
         return null
     }
 
 
-    private fun allCommands(): List<OneBotCommand> =
-        redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
-            synchronized(redisTemplate) {
-                // 二次安全检查
-                redisTemplate.opsForValue()["allCommands"]?.to<OneBotAllCommands>()?.allCommands ?: run {
-                    val allCommands = oneBotCommandRepository.findAll()
-                    val oneBotCommands = OneBotAllCommands(allCommands)
-                    redisTemplate.opsForValue()["allCommands", oneBotCommands.toJSONString(), 1L] =
-                        TimeUnit.DAYS
-                    allCommands
-                }
-            }
-        }
+    private fun allCommands(): List<OneBotCommand> {
+        return redisUtils.getCache("allCommands", OneBotAllCommands::class.java, {
+            val allCommands = oneBotCommandRepository.findAll()
+            OneBotAllCommands(allCommands)
+        }, 5L, TimeUnit.DAYS)!!.allCommands
+    }
 }

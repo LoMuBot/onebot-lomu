@@ -1,7 +1,5 @@
 package action.commandProcess.eternalReturn.entity.profile
 
-import cn.luorenmu.action.commandProcess.eternalReturn.entiy.profile.EternalReturnProfileRankGlobal
-
 /**
  * @author LoMu
  * Date 2024.08.03 14:26
