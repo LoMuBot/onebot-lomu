@@ -5,6 +5,9 @@
         font-family: '微软雅黑';
     }
 
+    body {
+        background-color: #e7e3e3;
+    }
 
     #content-container {
         height: 1080px;
@@ -22,6 +25,7 @@
         background-size: cover;
         background-position: center;
         background-image: url(https://cdn.dak.gg/er/images/bg/bg-landing-search-v7.jpg);
+    ;
         float: left;
         overflow: hidden;
     }
@@ -49,6 +53,16 @@
         margin: 10px;
         font-size: 28px;
 
+    }
+
+    #verison {
+        margin-right: 10px;
+        margin-top: 10px;
+        float: right;
+        font-size: 10px;
+        height: 20px;
+        border: 1px #808080 solid;
+        border-radius: 8px;
     }
 
     #logo {
@@ -80,6 +94,8 @@
     }
 
     #left {
+        border-radius: 10px;
+        margin-top: 20px;
         width: 352px;
         height: 1080px;
         background-color: rgba(255, 255, 255, 0.8);
@@ -167,22 +183,20 @@
     .war_record {
         margin-bottom: 10px;
         height: 200px;
-        width: 820px;
+        width: 810px;
         border-radius: 20px;
         position: relative;
-        background-color: rgb(255, 255, 255);
+        background-color: rgba(255, 255, 255, 0.8);
     }
-    body {
-        background-color: #e7e3e3;
-    }
+
 
     .war_record_small {
         margin-bottom: 10px;
         height: 100px;
-        width: 820px;
+        width: 810px;
         border-radius: 20px;
         position: relative;
-        background-color: rgb(255, 255, 255);
+        background-color: rgba(255, 255, 255, 0.8);
     }
 
     .war_record_left_large_top1,
@@ -372,15 +386,6 @@
     }
 
 
-    .war_record2 .item_img {
-        width: 24.6px;
-        height: 14.4px;
-        bottom: 22px;
-        left: 2px;
-    }
-
-
-
     .skill {
         margin-top: 20px;
         margin-left: 5px;
@@ -396,7 +401,7 @@
 
     .play_stat {
         margin-left: 20px;
-        width: 100px;
+        width: 80px;
         float: left;
         height: 54px;
         margin-top: 25px;
@@ -481,6 +486,7 @@
     }
 
     .item {
+        position: relative;
         background-color: #E6E6E6;
         border-radius: 4px;
         float: left;
@@ -504,7 +510,7 @@
     }
 
     .item_bg {
-        position: relative;
+        position: absolute;
         mix-blend-mode: multiply;
         z-index: 1;
     }
@@ -512,11 +518,7 @@
 
 
     .item_img {
-        position: relative;
-        width: 32px;
-        height: 18px;
-        bottom: 25px;
-        left: 4px;
+        position: absolute;
         z-index: 2;
     }
 
@@ -554,6 +556,10 @@
         color: rgb(255, 255, 255);
         background: rgb(54, 57, 68);
         border: 1px solid rgb(54, 57, 68);
+
+    }
+
+    #recent_play>thead>tr>th {
         height: 40px;
     }
 

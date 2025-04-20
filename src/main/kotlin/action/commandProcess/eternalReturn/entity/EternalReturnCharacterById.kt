@@ -8,6 +8,7 @@ data class EternalReturnCharacterById(
     val id: Int,
     val key: String,
     val name: String,
+    val imageName: String,
     val imageUrl: String,
     val backgroundImageUrl: String,
     val communityImageUrl: String,
@@ -30,10 +31,12 @@ data class EternalReturnCharacterById(
         val key: String,
     )
 
-    enum class UrlType(val type: String) {
+    enum class CharacterImgUrlType(val type: String) {
         BackgroundImageUrl("BackgroundImage"),
         FullImageUrl("FullImage"),
         ResultImageUrl("ResultImage"),
-        CommunityImageUrl("CommunityImage")
+        CommunityImageUrl("CommunityImage"),
+        ImageUrl("Image"),
+        CharProfileImageUrl("CharProfileImage")
     }
 }

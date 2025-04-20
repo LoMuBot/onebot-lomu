@@ -9,7 +9,6 @@ import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.pool.WebPageScreenshotPool
 import com.alibaba.fastjson2.JSONObject
 import com.alibaba.fastjson2.to
-import io.github.bonigarcia.wdm.WebDriverManager
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -68,7 +67,7 @@ class BootStrapConfig(
     }
     @Bean(destroyMethod = "shutdown")
     fun BootStrapConfig.getWebPageScreenshotPool(): WebPageScreenshotPool {
-        WebDriverManager.chromedriver().browserVersion("133.0.6943.126").setup();
+        //WebDriverManager.chromedriver().browserVersion("133.0.6943.126").setup();
         return WebPageScreenshotPool(properties.webPool.size) {
             it.addArguments("--headless");
             it.addArguments("--window-size=1920,1080");

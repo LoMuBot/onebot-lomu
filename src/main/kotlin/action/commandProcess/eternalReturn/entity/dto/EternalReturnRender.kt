@@ -12,7 +12,7 @@ data class EternalReturnRender(
     var profileImageUrl: String? = null,
     var recentPlayContent: String = "",
     var rightContent: String = "",
-
+    var season:String,
     ) {
     data class EternalReturnPlayerData(
         var rp: String = "段位鉴定中.",

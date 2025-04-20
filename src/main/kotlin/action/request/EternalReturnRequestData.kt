@@ -343,35 +343,58 @@ class EternalReturnRequestData(
 
     /**
      * @param id  英雄id
-     * @param urlType 用于确定url类型以存储图片位置
-     * @param url 选取图片url
+     * @param characterImgUrlType 用于确定url类型以存储图片位置
+     * @param skin 皮肤id
      * 持久化头像
      * 英雄图片
      */
     suspend fun getCharacterImg(
         id: Int,
-        urlType: EternalReturnCharacterById.UrlType,
+        characterImgUrlType: EternalReturnCharacterById.CharacterImgUrlType,
         skin: Long = -1,
     ): String {
+        val versionRegex = "(\\d+\\.\\d+\\.\\d+)".toRegex()
         val characterInfo = getCharacterInfo(id.toString())
         val eternalReturnDataImagePath =
-            PathUtils.getEternalReturnDataImagePath("ico/${urlType.type}/${id}.png")
+            PathUtils.getEternalReturnDataImagePath("ico/${characterImgUrlType.type}/${id}.png")
         if (!File(eternalReturnDataImagePath).exists()) {
             characterInfo?.let {
-                val url = when (urlType) {
-                    EternalReturnCharacterById.UrlType.BackgroundImageUrl ->
-                        it.backgroundImageUrl
+                val url: String = if (skin != -1L) {
+                    val skinInfo = it.skins.first { skinObj -> skinObj.id == skin }
+                    when (characterImgUrlType) {
+                        EternalReturnCharacterById.CharacterImgUrlType.ImageUrl ->
+                            skinInfo.imageUrl
 
-                    EternalReturnCharacterById.UrlType.FullImageUrl ->
-                        it.fullImageUrl
+                        EternalReturnCharacterById.CharacterImgUrlType.FullImageUrl ->
+                            skinInfo.fullImageUrl
 
-                    EternalReturnCharacterById.UrlType.ResultImageUrl ->
-                        it.resultImageUrl
+                        EternalReturnCharacterById.CharacterImgUrlType.CharProfileImageUrl ->
+                            "//cdn.dak.gg/assets/er/game-assets/${versionRegex.find(skinInfo.imageUrl)!!.value}/CharProfile_${skinInfo.imageName}.png"
 
-                    EternalReturnCharacterById.UrlType.CommunityImageUrl ->
-                        it.communityImageUrl
+                        else ->
+                            skinInfo.imageUrl
+                    }
+                } else {
+                    when (characterImgUrlType) {
+                        EternalReturnCharacterById.CharacterImgUrlType.BackgroundImageUrl ->
+                            it.backgroundImageUrl
 
+                        EternalReturnCharacterById.CharacterImgUrlType.FullImageUrl ->
+                            it.fullImageUrl
+
+                        EternalReturnCharacterById.CharacterImgUrlType.ResultImageUrl ->
+                            it.resultImageUrl
+
+                        EternalReturnCharacterById.CharacterImgUrlType.CommunityImageUrl ->
+                            it.communityImageUrl
+
+                        EternalReturnCharacterById.CharacterImgUrlType.CharProfileImageUrl ->
+                            "//cdn.dak.gg/assets/er/game-assets/${versionRegex.find(it.imageUrl)!!.value}/CharProfile_${it.imageName}.png"
+
+                        else -> it.resultImageUrl
+                    }
                 }
+
                 downloadDakGGCompleteUrlStream(url, eternalReturnDataImagePath)
             }
         }

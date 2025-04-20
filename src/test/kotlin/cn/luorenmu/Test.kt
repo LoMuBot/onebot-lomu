@@ -29,19 +29,18 @@ class Test(
 ) {
 
 
+    @Test
     fun test() {
         runBlocking {
             val nowTime = System.currentTimeMillis()
-            val nickname = "Stormchaser"
+            val nickname = "徐悲宏"
             val imgPath = PathUtils.getEternalReturnNicknameImagePath(nickname)
             val htmlPath = PathUtils.getEternalReturnDataImagePath("$nickname.html")
             val pageRender = runBlocking { eternalReturnFindPlayer.pageRender(nickname) }
             val parseData = FreeMarkerUtils.parseData("eternal_return_player.ftlh", pageRender)
             ReadWriteFile.writeStreamFile(htmlPath, ByteArrayInputStream(parseData.toByteArray()))
 
-            WkhtmltoimageUtils.convertHtmlToImage(
-                htmlPath, imgPath, mapOf("zoom" to "2")
-            )
+
             val endTime = System.currentTimeMillis()
             print(endTime - nowTime)
         }

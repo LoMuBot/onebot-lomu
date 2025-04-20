@@ -27,7 +27,7 @@
     <div id="body">
         <div id="left">
             <div id="rank">
-                <h4>排位</h4>
+                <h4>排位(${season})</h4>
                 <div id="score">
                     <div id="rp_img">
                         <img src="${data.tierImageUrl}" alt="">

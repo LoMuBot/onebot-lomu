@@ -8,7 +8,6 @@ import cn.luorenmu.action.commandProcess.eternalReturn.entiy.*
  * Date 2024.07.31 8:59
  */
 data class EternalReturnLeaderboard(
-    val characterById: HashMap<Int, EternalReturnCharacterById>,
     val cutoffs: ArrayList<EternalReturnCutoffs>,
     val leaderboards: ArrayList<EternalReturnLeaderboardPlayer>,
     val playerTierByUserNum: HashMap<Int, EternalReturnPlayerTierByUserNum>,

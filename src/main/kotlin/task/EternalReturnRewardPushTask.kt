@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
  * Date 2024.09.01 14:40
  */
 @Component
-open class EternalReturnRewardPushTask(
+ class EternalReturnRewardPushTask(
     private val oneBotConfigRepository: OneBotConfigRepository,
     private val commandConfigRepository: OneBotCommandConfigRepository,
     val botContainer: BotContainer,
@@ -122,11 +122,8 @@ open class EternalReturnRewardPushTask(
     }
 
     fun pushGroupList(): List<Long> {
-        val bot = botContainer.robots.entries.first().value
         val groups =
             commandConfigRepository.findByCommandNameAndState("eternalReturnGroupPush", true).map { it.groupId }
-        return bot.groupList.data.stream().filter {
-            it.groupName.contains("永恒轮回") || groups.contains(it.groupId)
-        }.map { it.groupId }.toList()
+        return groups
     }
 }

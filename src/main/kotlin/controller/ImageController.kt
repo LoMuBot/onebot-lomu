@@ -1,7 +1,6 @@
 package cn.luorenmu.controller
 
 import action.commandProcess.eternalReturn.entity.EternalReturnCharacterById
-import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.service.ImageService
 import org.springframework.core.io.InputStreamResource
@@ -32,6 +31,8 @@ class ImageController(
         return ResponseEntity.ok(resource)
     }
 
+
+
     @GetMapping("/local_images/{dir}/{filename}", produces = [MediaType.IMAGE_PNG_VALUE])
     fun getLocalImage(@PathVariable dir: String, @PathVariable filename: String): ResponseEntity<InputStreamResource> {
         return ResponseEntity.ok(InputStreamResource(FileInputStream(PathUtils.getImagePath("$dir/$filename"))))
@@ -39,11 +40,16 @@ class ImageController(
 
     @GetMapping("/images/eternal_return/character/{type}/{id}/{skin}", produces = [MediaType.IMAGE_PNG_VALUE])
     fun getEternalReturnCharacterImage(
-        @PathVariable type: EternalReturnCharacterById.UrlType,
+        @PathVariable type: EternalReturnCharacterById.CharacterImgUrlType,
         @PathVariable id: Int,
         @PathVariable skin: Long,
     ): ResponseEntity<InputStreamResource> {
         val path = imageService.getEternalReturnCharacterImage(type, id, skin)
+        return ResponseEntity.ok(InputStreamResource(FileInputStream(path)))
+    }
+    @GetMapping("/images/eternal_return/tier/{id}")
+    fun getEternalReturnTierImage(@PathVariable id: Int): ResponseEntity<InputStreamResource> {
+        val path = imageService.getTierImage(id)
         return ResponseEntity.ok(InputStreamResource(FileInputStream(path)))
     }
 
@@ -72,7 +78,7 @@ class ImageController(
     }
 
 
-    @GetMapping("/images/eternal_return/item_bg/{id}")
+    @GetMapping("/images/eternal_return/item_bg/{id}", produces = ["image/svg+xml"])
     fun getEternalReturnItemBgImage(
         @PathVariable id: Int,
     ): ResponseEntity<String> {

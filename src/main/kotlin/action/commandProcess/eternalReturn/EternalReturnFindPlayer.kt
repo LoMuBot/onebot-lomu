@@ -28,12 +28,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import java.text.DecimalFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -45,13 +44,13 @@ class EternalReturnFindPlayer(
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val redisUtils: RedisUtils,
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
-    private val redisTemplate: StringRedisTemplate,
     private val botContainer: BotContainer,
     private val imageService: ImageService,
     @Value("\${server.port}")
     private val port: String,
 ) : CommandProcess {
     private val log = KotlinLogging.logger { }
+    private val threadPool = Executors.newFixedThreadPool(5)
 
     override fun process(command: String, sender: MessageSender): String? {
         var nickname =
@@ -69,55 +68,51 @@ class EternalReturnFindPlayer(
             return MsgUtils.builder().text("名称不合法 -> $nickname").build()
         }
 
-        val opsForValue = redisTemplate.opsForValue()
+        return redisUtils.getCache("Eternal_Return_NickName:$nickname", String::class.java, {
+            // check name exist and sync data
+            if (!eternalReturnRequestData.syncPlayers(nickname)) {
+                return@getCache MsgUtils.builder().text("不存在的玩家 -> $nickname").build()
+            }
 
-        // check cache
-        opsForValue["Eternal_Return_NickName:$nickname"]?.let {
-            return "$it \n该数据由缓存命中"
-        }
-
-        // check name exist and sync data
-        if (!eternalReturnRequestData.checkPlayerExists(nickname)) {
-            return MsgUtils.builder().text("不存在的玩家 -> $nickname").build()
-        }
-        eternalReturnRequestData.syncPlayers(nickname)
-        botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
-        imageRenderGenerate(nickname)
-        return eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)
-
+            botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
+            imageRenderGenerate(nickname)
+            return@getCache eternalReturnWebPageScreenshot.webPlayerPageScreenshot(nickname)
+        }, 5L, TimeUnit.MINUTES)
     }
 
-    @Async
     fun imageRenderGenerate(nickname: String) {
-        try {
-            val pageRender = runBlocking { pageRender(nickname) }
-            val parseData = FreeMarkerUtils.parseData("eternal_return_player.ftlh", pageRender)
-            val imgPath = PathUtils.getEternalReturnNicknameImagePath(nickname)
+        threadPool.execute {
+            try {
+                val pageRender = runBlocking { pageRender(nickname) }
+                val parseData = FreeMarkerUtils.parseData("eternal_return_player.ftlh", pageRender)
+                val imgPath = PathUtils.getEternalReturnNicknameImagePath(nickname)
 
-            val returnMsg = MsgUtils.builder().img(OneBotMedia().file(imgPath).cache(false).proxy(false)).build()
-            redisUtils.setCache("ftlh:eternal_return_player_data_${nickname}", parseData, 5L, TimeUnit.MINUTES)
-            WkhtmltoimageUtils.convertHtmlToImage(
-                "http://localhost:$port/ftlh/eternal_return_player_data_${nickname}", imgPath, mapOf("zoom" to "2")
-            )
-        } catch (e: Exception) {
-            log.error { e.printStackTrace() }
+                val returnMsg = MsgUtils.builder().img(OneBotMedia().file(imgPath).cache(false).proxy(false)).build()
+                redisUtils.setCache("ftlh:eternal_return_player_data_${nickname}", parseData, 5L, TimeUnit.MINUTES)
+                WkhtmltoimageUtils.convertHtmlToImage(
+                    "http://localhost:$port/ftlh/eternal_return_player_data_${nickname}", imgPath, mapOf("zoom" to "2")
+                )
+            } catch (e: Exception) {
+                log.error { e.printStackTrace() }
+            }
         }
     }
 
     suspend fun pageRender(nickname: String): EternalReturnRender {
-        val currentSeason = eternalReturnRequestData.currentSeason()?.currentSeason?.key ?: "SEASON_16"
-        val profile = eternalReturnRequestData.profile(nickname, currentSeason)
+        val currentSeason = eternalReturnRequestData.currentSeason()?.currentSeason
+        val currentSeasonKey = currentSeason?.key ?: "SEASON_16"
+        val profile = eternalReturnRequestData.profile(nickname, currentSeasonKey)
         val tiers = eternalReturnRequestData.tiers()
         // 最新活跃赛季 由于过去赛季的api数据不同 因此暂时不支持处理
         //val season =
         //    eternalReturnRequestData.currentSeason()!!.seasons.first { seasons -> seasons.id == profile.playerSeasons.maxBy { it.seasonId }.seasonId }
-        val matches = eternalReturnRequestData.matches(nickname, currentSeason)
+        val matches = eternalReturnRequestData.matches(nickname, currentSeasonKey)
         if (profile == null || tiers == null || matches == null) {
             throw HttpException("多次尝试仍然无法从dak.gg获取数据")
         }
 
         //必要数据由left优先生成并渲染
-        val eternalReturnRender = pageLeftConvert(profile, tiers)
+        val eternalReturnRender = pageLeftConvert(profile, tiers, currentSeason?.name ?: "未知赛季")
         pageRightConvert(matches, eternalReturnRender)
         log.info { "$nickname 页面已生成" }
         return eternalReturnRender
@@ -128,6 +123,7 @@ class EternalReturnFindPlayer(
     suspend fun pageLeftConvert(
         profile: EternalReturnProfile,
         tiers: EternalReturnTiers,
+        seasonName: String,
     ): EternalReturnRender {
         val player = profile.player
         val playerSeasons = profile.playerSeasons
@@ -148,7 +144,7 @@ class EternalReturnFindPlayer(
                         val tierGrad = if (data.tierId > 6 && data.tierId * 10 > 60) "" else data.tierGradeId
                         rpName = "${currentTier.name}$tierGrad - ${data.tierMmr}RP"
                     }
-                    tierImageUrl = ""
+                    tierImageUrl = getTierImgUrl(currentTier.id)
 
                 }
 
@@ -184,13 +180,15 @@ class EternalReturnFindPlayer(
                             rpRank =
                                 "全球服务器.共${seasonOverview.rank?.global?.rankSize}-${seasonOverview.rank?.global?.rank}"
                         }
-                        seasonOverview.characterStats.firstOrNull()?.let { stats ->
-                            profileImageUrl =
-                                getCharacterImgUrl(EternalReturnCharacterById.UrlType.ResultImageUrl, stats.key.toInt())
+                    }
 
-                        }
-
-
+                    //主页图
+                    profileImageUrl = seasonOverviews.firstOrNull()?.characterStats?.firstOrNull()?.let { stats ->
+                        getCharacterImgUrl(
+                            EternalReturnCharacterById.CharacterImgUrlType.ResultImageUrl,
+                            stats.key.toInt(),
+                            stats.skinStats?.firstOrNull()?.key ?: -1L
+                        )
                     }
 
                     //近期一起玩的人
@@ -198,8 +196,8 @@ class EternalReturnFindPlayer(
                         seasonOverview.duoStats.forEach { duoStat ->
                             recentPlays.add(EternalReturnPlayerRecentPlay().apply {
                                 imageWrapperUrl = getCharacterImgUrl(
-                                    EternalReturnCharacterById.UrlType.CommunityImageUrl,
-                                    duoStat.characterStats.first().key.toInt()
+                                    EternalReturnCharacterById.CharacterImgUrlType.CharProfileImageUrl,
+                                    duoStat.characterStats.first().key.toInt(),
                                 )
                                 this.plays = duoStat.play
                                 val playDouble = this.plays.toDouble()
@@ -226,7 +224,8 @@ class EternalReturnFindPlayer(
             level = player.accountLevel,
             eternalReturnPlayerData,
             profileImageUrl,
-            recentPlayContent = recentPlayContent.toString()
+            recentPlayContent = recentPlayContent.toString(),
+            season = seasonName
         )
     }
 
@@ -265,7 +264,11 @@ class EternalReturnFindPlayer(
             item4Url = getItemImgUrl(match.equipment[3])
             item5Url = getItemImgUrl(match.equipment[4])
             characterAvatarUrl =
-                getCharacterImgUrl(EternalReturnCharacterById.UrlType.CommunityImageUrl, match.characterNum.toInt())
+                getCharacterImgUrl(
+                    EternalReturnCharacterById.CharacterImgUrlType.CharProfileImageUrl,
+                    match.characterNum.toInt(),
+                    match.skinCode
+                )
             characterName =
                 eternalReturnRequestData.getCharacterInfo(match.characterNum.toString())?.name ?: "未知:("
             weaponUrl = getWeaponImgUrl(match.bestWeapon)
@@ -300,16 +303,21 @@ class EternalReturnFindPlayer(
         eternalReturnRender.rightContent = rightContent.toString()
     }
 
-    private fun getCharacterImgUrl(type: EternalReturnCharacterById.UrlType, id: Int, skin: Long = -1) = run {
-        imageService.getEternalReturnCharacterImage(type, id, skin)
-        "http://localhost:$port/images/eternal_return/character/$type/$id/$skin"
-    }
+    private fun getCharacterImgUrl(type: EternalReturnCharacterById.CharacterImgUrlType, id: Int, skin: Long = -1) =
+        run {
+            imageService.getEternalReturnCharacterImage(type, id, skin)
+            "http://localhost:$port/images/eternal_return/character/$type/$id/$skin"
+        }
 
     private fun getItemImgUrl(id: Long) = run {
         imageService.getEternalReturnItemImage(id)
         "http://localhost:$port/images/eternal_return/item/${id}"
     }
 
+    private fun getTierImgUrl(id: Int) = run {
+        imageService.getTierImage(id)
+        "http://localhost:$port/images/eternal_return/tier/${id}"
+    }
 
     private fun getItemImgBgUrl(id: Int) = run {
         imageService.getEternalReturnItemBgImage(id)
@@ -328,7 +336,7 @@ class EternalReturnFindPlayer(
 
     private fun getWeaponImgUrl(id: Int) = run {
         imageService.getEternalReturnWeaponImage(id)
-        "http://localhost:$/images/eternal_return/weapon/${id}"
+        "http://localhost:$port/images/eternal_return/weapon/${id}"
     }
 
 

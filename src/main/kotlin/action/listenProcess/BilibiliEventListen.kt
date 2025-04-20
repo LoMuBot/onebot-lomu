@@ -60,7 +60,7 @@ class BilibiliEventListen(
             val videoPath = PathUtils.getVideoPath("bilibili/$bvid.flv")
             val videoPathCQ = MsgUtils.builder().video(videoPath, "").build()
             // 视频限制时长 只有在首次监听到该视频 管理员时长发送才生效 否则不发送
-            val limitTime = if (sender.role.roleNumber >= BotRole.ADMIN.roleNumber) 15 else 5
+            val limitTime = if (sender.role.roleNumber >= BotRole.ADMIN.roleNumber) 5 else 0
             bilibiliVideoRepository.findFirstBybvid(bvid)?.let { bilibili ->
                 bot.sendGroupMsgLimit(groupId, bilibili.info)
                 bilibili.videoPathCQ?.let { videoPathCQ ->

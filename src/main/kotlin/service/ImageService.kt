@@ -14,14 +14,18 @@ import org.springframework.stereotype.Service
 class ImageService(
     private val eternalReturnRequestData: EternalReturnRequestData,
 ) {
-    fun getEternalReturnCharacterImage(type: EternalReturnCharacterById.UrlType, id: Int, skin: Long) = runBlocking {
-        StringLockUtils.lock("${type.type}-$skin:$id") {
-            eternalReturnRequestData.getCharacterImg(
-                id,
-                type
-            )
+    fun getTierImage(id: Int) = runBlocking { eternalReturnRequestData.checkTierIconExistThenGetPathOrDownload(id) }
+
+    fun getEternalReturnCharacterImage(type: EternalReturnCharacterById.CharacterImgUrlType, id: Int, skin: Long) =
+        runBlocking {
+            StringLockUtils.lock("${type.type}-$skin:$id") {
+                eternalReturnRequestData.getCharacterImg(
+                    id,
+                    type,
+                    skin
+                )
+            }
         }
-    }
 
     fun getEternalReturnItemImage(id: Long) = runBlocking {
         StringLockUtils.lock("item:$id") {
