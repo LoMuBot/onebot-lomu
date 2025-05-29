@@ -6,10 +6,6 @@ plugins {
 }
 
 
-
-group = "cn.luorenmu"
-version = ""
-
 repositories {
     maven(url = "https://maven.aliyun.com/repository/public/")
     maven(url = "https://maven.aliyun.com/repository/spring/")
@@ -21,9 +17,12 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-dependencies {
-    implementation("org.freemarker:freemarker:2.3.34")
 
+
+dependencies {
+    implementation(project(":webPageScreenshot"))
+    implementation("org.freemarker:freemarker:2.3.34")
+    implementation("com.microsoft.playwright:playwright:1.42.0")
 
     // 为petpet提供的包支持
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")

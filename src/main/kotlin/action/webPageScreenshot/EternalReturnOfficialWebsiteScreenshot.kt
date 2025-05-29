@@ -1,9 +1,6 @@
 package cn.luorenmu.action.webPageScreenshot
 
-import cn.luorenmu.pool.WebPageScreenshotPool
-import org.openqa.selenium.By
-import org.openqa.selenium.JavascriptExecutor
-import org.openqa.selenium.WebElement
+import cn.luorenmu.core.WebPool
 import org.springframework.stereotype.Component
 
 /**
@@ -12,7 +9,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class EternalReturnOfficialWebsiteScreenshot(
-    private val webPageScreenshot: WebPageScreenshotPool,
+    private val webPool: WebPool,
 ) {
     companion object {
         private const val WEBSITE_URL = "https://playeternalreturn.com/posts/news/"
@@ -23,15 +20,22 @@ class EternalReturnOfficialWebsiteScreenshot(
      * @param id 公告id
      */
     @Synchronized
-    fun screenshotNews(id: String, outputPath: String): String {
-        webPageScreenshot.execute {
-            it.setHttpUrl(WEBSITE_URL + id).screenshotAllCrop(400, 140, -850, -1300, 50) { webDriver ->
-                // 在页面打开后删除头导航元素 因为它会跟随页面滑动 导致截图結果不符合預期
-                val gnbElement: WebElement = webDriver.findElement(By.id("gnb"))
-                val js = webDriver as JavascriptExecutor
-                js.executeScript("arguments[0].remove();", gnbElement)
-            }.outputImageFile(outputPath)
-        }.get()
+    fun screenshotNews(id: String, outputPath: String, failed: Int = 0): String {
+        val url = WEBSITE_URL + id
+        try {
+            webPool.getWebPageScreenshot().screenshotSelector(
+                url,
+                outputPath,
+                ".er-article-detail__content.er-article-content.fr-view"
+            ) {
+                it.evaluate("document.querySelector('#gnb').remove()")
+            }
+        } catch (e: Exception) {
+            if (failed < 5) {
+                return screenshotNews(id, outputPath, failed + 1)
+            }
+            throw RuntimeException("EternalReturnOfficialWebsiteScreenshot 重试次数过多")
+        }
         return outputPath
     }
 }

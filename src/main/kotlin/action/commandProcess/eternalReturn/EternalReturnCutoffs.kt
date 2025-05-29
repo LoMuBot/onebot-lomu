@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 class EternalReturnCutoffs(
     private val eternalReturnDraw: EternalReturnCutoffsDraw,
 ) : CommandProcess {
-    override fun process(command: String, sender: MessageSender): String? {
+    override fun process(sender: MessageSender): String? {
         return eternalReturnDraw.cutoffs()
     }
 
@@ -27,4 +27,8 @@ class EternalReturnCutoffs(
     override fun state(id: Long): Boolean {
         return true
     }
+
+    override fun command(): Regex = Regex("((永恆多少分)|(半神多少分)|(永恆分段)|(半神分段)|(永恒分数)|(半神分数))")
+
+    override fun needAtBot(): Boolean = false
 }

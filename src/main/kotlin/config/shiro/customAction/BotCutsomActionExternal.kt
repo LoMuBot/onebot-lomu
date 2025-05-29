@@ -27,7 +27,10 @@ fun Bot.setMsgEmojiLike(msgId: String, face: String): ActionData<*>? {
     return null
 }
 
-fun Bot.getGroupMsgHistory(groupId: Long, messageSeq: Int, count: Int): ActionData<*> {
+/**
+ * @param messageSeq 指定消息id
+ */
+fun Bot.getGroupMsgHistory(groupId: Long, messageSeq: Int = 0, count: Int): ActionData<*> {
     val action = GetGroupMsgHistoryActionPath.GetGroupMsgHistory
     val map = hashMapOf<String, Any>("group_id" to groupId, "message_seq" to messageSeq, "count" to count)
     return this.customRequest(action, map)

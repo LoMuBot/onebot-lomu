@@ -1,18 +1,18 @@
 package cn.luorenmu.action.commandProcess
 
+import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.isCQReply
 import cn.luorenmu.common.extensions.sendGroupMsg
-import cn.luorenmu.common.utils.RedisUtils
-import cn.luorenmu.entiy.OneBotAllCommands
+import cn.luorenmu.common.extensions.sendMsg
 import cn.luorenmu.listen.entity.MessageSender
-import cn.luorenmu.repository.OneBotCommandRespository
-import cn.luorenmu.repository.entiy.OneBotCommand
+import cn.luorenmu.listen.entity.MessageType
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
+import com.mikuac.shiro.core.BotContainer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.ApplicationContext
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
-import java.util.concurrent.TimeUnit
 
 /**
  * @author LoMu
@@ -20,20 +20,22 @@ import java.util.concurrent.TimeUnit
  */
 @Component
 class OneBotCommandAllocator(
-    private val oneBotCommandRepository: OneBotCommandRespository,
-    private val redisUtils: RedisUtils,
-    private val applicationContext: ApplicationContext,
+    applicationContext: ApplicationContext,
+    private val bot: BotContainer,
 ) {
     private val log = KotlinLogging.logger {}
+
+    private val commandList: List<CommandProcess> =
+        applicationContext.getBeansOfType(CommandProcess::class.java).values.toList()
 
     private fun isCurrentCommand(
         botId: Long,
         command: String,
-        oneBotCommand: OneBotCommand,
+        oneBotCommand: CommandProcess,
     ): Boolean {
         val atMe = MsgUtils.builder().at(botId).build()
         var removeAtAndEmptyCharacterCommand = command.replace(atMe, "").replace(" ", "")
-        if (oneBotCommand.needAtMe) {
+        if (oneBotCommand.needAtBot()) {
             if (!command.contains(atMe)) {
                 return false
             }
@@ -45,31 +47,45 @@ class OneBotCommandAllocator(
                 removeAtAndEmptyCharacterCommand.replace("\\[CQ:reply,id=\\d+]".toRegex(), "")
         }
 
-        return removeAtAndEmptyCharacterCommand.contains(Regex(oneBotCommand.keyword))
+        return removeAtAndEmptyCharacterCommand.contains(oneBotCommand.command())
     }
 
+    private fun send(message: String?, id: Long, messageId: Int, type: MessageType) {
+        message?.let {
+            if (it.isNotBlank()) {
+                bot.getFirstBot().sendMsg(
+                    type,
+                    id,
+                    MsgUtils.builder().reply(messageId).text(it).build(),
+                )
+            }
+        }
+    }
 
-    fun process(bot: Bot, messageSender: MessageSender): String? {
+    @Async
+    fun process(bot: Bot, messageSender: MessageSender) {
         val botId = bot.selfId
-        allCommands().firstOrNull { isCurrentCommand(botId, messageSender.message, it) }
+        commandList.firstOrNull { isCurrentCommand(botId, messageSender.message, it) }
             ?.let { oneBotCommand ->
-                val commandProcess = applicationContext.getBean(oneBotCommand.commandName) as CommandProcess
                 try {
-                    return commandProcess.process(oneBotCommand.keyword, messageSender)
+                    send(
+                        oneBotCommand.process(messageSender),
+                        messageSender.groupOrSenderId,
+                        messageSender.messageId,
+                        messageSender.messageType
+                    )
                 } catch (e: Exception) {
                     log.error { e.stackTraceToString() }
-                    bot.sendGroupMsg(646708986, "${e.javaClass}:${e.printStackTrace()}")
-                    return "服务器内部发生错误来自功能${commandProcess.commandName()}\n "
+                    bot.sendGroupMsg(646708986, "${e.javaClass}:${e.stackTraceToString()}-${e.message}")
+                    send(
+                        "服务器内部发生错误来自功能${oneBotCommand.commandName()}\n ",
+                        messageSender.groupOrSenderId,
+                        messageSender.messageId,
+                        messageSender.messageType
+                    )
                 }
             }
-        return null
     }
 
 
-    private fun allCommands(): List<OneBotCommand> {
-        return redisUtils.getCache("allCommands", OneBotAllCommands::class.java, {
-            val allCommands = oneBotCommandRepository.findAll()
-            OneBotAllCommands(allCommands)
-        }, 5L, TimeUnit.DAYS)!!.allCommands
-    }
 }

@@ -20,7 +20,7 @@ class DeerCommand(
     private val deerRepository: DeerRepository,
     private val emojiGenerationCommand: EmojiGenerationCommand
 ) : CommandProcess {
-    override fun process(command: String, sender: MessageSender): String? {
+    override fun process(sender: MessageSender): String? {
         if (!emojiGenerationCommand.state(sender.groupOrSenderId)){
             return null
         }
@@ -56,4 +56,6 @@ class DeerCommand(
     override fun commandName() = "DeerCommand"
 
     override fun state(id: Long) = true
+    override fun command(): Regex  = Regex("^(\uD83E\uDD8C)$")
+    override fun needAtBot(): Boolean = false
 }

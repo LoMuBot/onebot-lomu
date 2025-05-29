@@ -2,9 +2,11 @@ package cn.luorenmu
 
 import cn.luorenmu.action.commandProcess.eternalReturn.EternalReturnFindPlayer
 import cn.luorenmu.action.request.QQRequestData
+import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
 import cn.luorenmu.common.utils.FreeMarkerUtils
 import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.common.utils.WkhtmltoimageUtils
+import cn.luorenmu.core.WebPageScreenshot
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.service.LLMGenerateService
 import com.mikuac.shiro.core.BotContainer
@@ -25,24 +27,15 @@ class Test(
     @Autowired val qqRequestData: QQRequestData,
     @Autowired val botContainer: BotContainer,
     @Autowired val lLMGenerateService: LLMGenerateService,
-    @Autowired val eternalReturnFindPlayer: EternalReturnFindPlayer,
+    @Autowired private val webPageScreenshot: EternalReturnWebPageScreenshot,
 ) {
 
 
-    @Test
+
+
+
+
     fun test() {
-        runBlocking {
-            val nowTime = System.currentTimeMillis()
-            val nickname = "徐悲宏"
-            val imgPath = PathUtils.getEternalReturnNicknameImagePath(nickname)
-            val htmlPath = PathUtils.getEternalReturnDataImagePath("$nickname.html")
-            val pageRender = runBlocking { eternalReturnFindPlayer.pageRender(nickname) }
-            val parseData = FreeMarkerUtils.parseData("eternal_return_player.ftlh", pageRender)
-            ReadWriteFile.writeStreamFile(htmlPath, ByteArrayInputStream(parseData.toByteArray()))
-
-
-            val endTime = System.currentTimeMillis()
-            print(endTime - nowTime)
-        }
+        println(lLMGenerateService.replyFitKeyword(mutableListOf("我要成为相机高手","哈哈"),"先成为人类吧"))
     }
 }

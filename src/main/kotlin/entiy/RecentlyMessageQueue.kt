@@ -10,6 +10,9 @@ import org.springframework.util.MultiValueMap
  * Date 2024.07.05 8:23
  */
 
+/**
+ *  环形队列
+ */
 class RecentlyMessageQueue<T>(private val maxSize: Int = 20) {
     private val log = KotlinLogging.logger {}
 

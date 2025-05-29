@@ -16,5 +16,5 @@ data class ActiveMessage(
     @Indexed
     var groupId: Long,
     var message: String,
-    var nextMessage: DeepMessage?,
+    var nextMessage: DeepMessage? = null,
 )

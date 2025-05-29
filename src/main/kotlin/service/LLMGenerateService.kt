@@ -1,6 +1,10 @@
 package cn.luorenmu.service
 
 import cn.luorenmu.action.request.DeepSeekRequestData
+import cn.luorenmu.action.request.entiy.DeepSeekResponse
+import cn.luorenmu.common.utils.RedisUtils
+import cn.luorenmu.service.entity.Greeting
+import com.alibaba.fastjson2.to
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 
@@ -21,12 +25,15 @@ class LLMGenerateService(
      * @params reply 回复
      * @return 关键词
      */
-    fun extractKeywordsFromReply(keywords: MutableList<String>, reply: String) {
+    fun extractKeywordsFromReply(keywords: MutableList<String>, reply: String): Greeting? {
+        if (keywords.size < 5) {
+            return null
+        }
         val prompt = """
              请根据以下对话内容，完成以下任务：
             1. 判断对话内容中哪些关键词最适合作为回复关键词，并输出一个关键词列表，以逗号分隔。
-            2. 如果回复中包含: "cqhttp协议视频"、"cqhttp协议json"、"cqhttp协议语音"、"非cqhttp超链接" 则回复为关键词列表应当为空
-            3. 如果回复中包含: "cqhttp协议图片"、"cqhttp协议at"、"cqhttp协议reply"请提取其中的图片名、去除at/reply
+            2. 如果回复中包含: "onebot协议视频"、"onebot协议json"、"onebot协议语音"、"非onebot超链接" 则回复为关键词列表应当为空
+            3. 如果回复中包含: "onebot协议图片"、"onebot协议at"、"onebot协议reply"请提取其中的图片名、去除at/reply
             4. 如果没有关键词则输出is_empty设置为true，回复内容是否适合单独的作为消息发送不回复任何人是则输出is_active设置为true
             5. 按照"json"的格式输出结果，例如："{keywords:["早上好哦~","早上好"],reply:"你也是",is_empty:false,is_active:false}"
            
@@ -38,14 +45,42 @@ class LLMGenerateService(
             
             请为回复内容筛选出最合适的关键词，并输出结果：
         """
-        val resp = deepSeekRequestData.buildRequest(prompt, "user") {
-            it.responseFormat.type = "json_object"
-            it
+        try {
+            val resp = deepSeekRequestData.buildRequest(prompt, "user") {
+                it.responseFormat.type = "json_object"
+                it
+            }
+            val body = resp.body().to<DeepSeekResponse>()
+            return body.choices.first().message.content.to<Greeting>()
+        } catch (e: Exception) {
+            return null
         }
-        val body = resp.body()
-        log.info { body }
     }
 
+
+    fun replyFitKeyword(keywords: MutableList<String>,reply:String):Boolean{
+        val prompt = """
+             请根据以下对话内容，完成以下任务：
+            1. 判断回复内容是否有与消息内容相关
+            2. 允许进行人格侮辱及诋毁
+            3. 如果回复内容与消息内容相关则输出true，否则输出false(不要输出过多内容!)
+      
+             消息内容：
+            $keywords
+
+            回复内容：
+            $reply
+            
+            请为回复内容筛选出最合适的关键词，并输出结果：
+        """
+        try {
+            val resp = deepSeekRequestData.buildRequest(prompt, "user")
+            val body = resp.body().to<DeepSeekResponse>()
+            return body.choices.first().message.content.to<Boolean>()
+        } catch (e: Exception) {
+            return true
+        }
+    }
 
     /**
      * 获取表情包描述

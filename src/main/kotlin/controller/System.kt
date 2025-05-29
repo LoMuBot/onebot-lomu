@@ -1,16 +1,13 @@
 package cn.luorenmu.controller
 
-import cn.luorenmu.repository.*
+import cn.luorenmu.repository.ActiveSendMessageRepository
+import cn.luorenmu.repository.KeywordReplyRepository
+import cn.luorenmu.repository.OneBotCommandConfigRepository
+import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entity.OneBotCommandConfig
 import cn.luorenmu.repository.entity.OneBotConfig
 import cn.luorenmu.repository.entiy.ActiveMessage
 import cn.luorenmu.repository.entiy.KeywordReply
-import cn.luorenmu.repository.entiy.OneBotCommand
-import com.github.houbb.opencc4j.util.ZhConverterUtil
-import org.springframework.core.io.Resource
-import org.springframework.core.io.ResourceLoader
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 
@@ -25,12 +22,11 @@ class System(
     private val keywordReplyRepository: KeywordReplyRepository,
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
-    private val oneBotCommandRespository: OneBotCommandRespository,
-    private val oneBotCommandConfigRepository: OneBotCommandConfigRepository
+    private val oneBotCommandConfigRepository: OneBotCommandConfigRepository,
 
-) {
+    ) {
     @PostMapping("/command_config")
-    fun commandConfig(@RequestBody oneBotCommandConfig: OneBotCommandConfig): HashMap<String, String>{
+    fun commandConfig(@RequestBody oneBotCommandConfig: OneBotCommandConfig): HashMap<String, String> {
         val map = HashMap<String, String>()
         val save = oneBotCommandConfigRepository.save(oneBotCommandConfig)
         map["save_data"] = save.toString()
@@ -43,17 +39,6 @@ class System(
         return "server running success"
     }
 
-
-    @PostMapping("/command")
-    fun saveCommand(@RequestBody body: OneBotCommand): HashMap<String, String> {
-        val map = HashMap<String, String>()
-        val simple = oneBotCommandRespository.insert(body).toString()
-        body.keyword = ZhConverterUtil.toTraditional(body.keyword)
-        oneBotCommandRespository.insert(body)
-        map["save_data"] = simple
-        map["status"] = "ok"
-        return map
-    }
 
     @PostMapping("/active_message")
     fun saveActiveMessage(@RequestBody body: ActiveMessage): HashMap<String, String> {
@@ -78,8 +63,6 @@ class System(
         map["status"] = "ok"
         return map
     }
-
-
 
 
 }

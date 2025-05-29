@@ -14,7 +14,5 @@ data class LoMuBotProperties(
     @NestedConfigurationProperty
     var mail: Mail = Mail(),
     @NestedConfigurationProperty
-    var webPool: WebPool = WebPool(),
-    @NestedConfigurationProperty
     var deepSeek: DeepSeek = DeepSeek(),
 )

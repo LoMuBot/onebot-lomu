@@ -1,6 +1,5 @@
 package cn.luorenmu.common.utils
 
-import cn.luorenmu.file.ReadWriteFile
 import java.io.File
 import java.io.IOException
 
@@ -9,8 +8,8 @@ import java.io.IOException
  * Date 2025.03.18 19:37
  */
 object WkhtmltoimageUtils {
-     private val WKHTMLTOIMAGE_PATH: String = "${ReadWriteFile.CURRENT_PATH}/wkhtmltopdf/bin/wkhtmltoimage.exe"
-   /// val WKHTMLTOIMAGE_PATH: String = "E:\\code\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
+    //     private val WKHTMLTOIMAGE_PATH: String = "${ReadWriteFile.CURRENT_PATH}/wkhtmltopdf/bin/wkhtmltoimage.exe"
+    private val WKHTMLTOIMAGE_PATH: String = "E:\\code\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
 
 
     /**

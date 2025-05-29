@@ -13,7 +13,7 @@ import java.io.File
 class TemplateRegister {
     private val log = KotlinLogging.logger {}
     companion object {
-        val petpetTemplates: HashMap<String, PetpetTemplate> by lazy { TemplateRegister().register() }
+        private val petpetTemplates: HashMap<String, PetpetTemplate> by lazy { TemplateRegister().register() }
         fun getTemplate(id: String): PetpetTemplate? {
             return petpetTemplates[id] ?: run { return null }
         }

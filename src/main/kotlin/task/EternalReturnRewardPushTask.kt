@@ -45,7 +45,6 @@ import java.util.concurrent.TimeUnit
 
 
     @Scheduled(cron = "0 */3 * * * *")
-    //@Scheduled(cron = "0 */1 * * * *")
     fun eternalReturnRewardPush() {
         if (failed > 3) {
             log.error { "eternalReturnRewardPush 任务失败超过指定次数当前任务已被拒绝" }

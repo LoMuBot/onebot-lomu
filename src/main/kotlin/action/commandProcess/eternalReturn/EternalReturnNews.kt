@@ -36,14 +36,12 @@ class EternalReturnNews(
 ) : CommandProcess {
 
     private val log = KotlinLogging.logger {}
-    private val regex = "<div class=\"er-article-detail__content er-article-content fr-view\">([\\s\\S]*?)</div>".toRegex()
+    private val regex =
+        "<div class=\"er-article-detail__content er-article-content fr-view\">([\\s\\S]*?)</div>".toRegex()
     private val imgRegex = "<img src=\"(.*?)\"".toRegex()
 
-    /**
-     * @param command 正则表达式 -> https://playeternalreturn.com/posts/news/([0-9]{4,6})
-     */
-    override fun process(command: String, sender: MessageSender): String? {
-        val regex = command.toRegex()
+    override fun process(sender: MessageSender): String? {
+        val regex = command()
         // 匹配到该命令必然存在
         val newsId = regex.find(sender.message)!!.groups[1]!!.value
         val news = eternalReturnRequestData.news(newsId) ?: run { return null }
@@ -141,4 +139,7 @@ class EternalReturnNews(
     override fun commandName() = "eternalReturnNews"
 
     override fun state(id: Long) = true
+    override fun command(): Regex = Regex("https://playeternalreturn.com/posts/news/([0-9]{4,6})")
+
+    override fun needAtBot(): Boolean = false
 }

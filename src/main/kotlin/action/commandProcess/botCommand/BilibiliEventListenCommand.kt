@@ -1,5 +1,6 @@
 package cn.luorenmu.action.commandProcess.botCommand
 
+import cn.luorenmu.action.commandProcess.BotCommandControl
 import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.listen.entity.BotRole
 import cn.luorenmu.listen.entity.MessageSender
@@ -13,19 +14,21 @@ import org.springframework.stereotype.Component
 class BilibiliEventListenCommand(
     private val botCommandControl: BotCommandControl,
 ) : CommandProcess {
-    override fun process(command: String, sender: MessageSender): String? {
+    override fun process(sender: MessageSender): String? {
         if (sender.role.roleNumber < BotRole.GroupAdmin.roleNumber) {
-            return "你没有权限使用这个命令 该命令至少需要群管理员权限"
+            return null
         }
         return botCommandControl.changeCommandState(commandName(), sender)
     }
 
-    override fun state(id: Long) = botCommandControl.commandState(commandName(), id)
-
+    override fun state(id: Long) = botCommandControl.commandState(commandName(), id) ?: false
 
     override fun commandName(): String {
         return "BilibiliEventListenCommand"
     }
+
+    override fun command(): Regex = Regex("^((视频监听)|(监听视频))$")
+    override fun needAtBot(): Boolean = true
 
 
 }

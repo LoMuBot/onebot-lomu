@@ -19,7 +19,7 @@
     "method": "get"
   },
   "character": {
-    "url": "https://er.dakgg.io/api/v0/characters?hl=zh_CN",
+    "url": "https://er.dakgg.io/api/v1/data/characters?hl=zh_CN",
     "method": "get"
   },
   "tiers": {

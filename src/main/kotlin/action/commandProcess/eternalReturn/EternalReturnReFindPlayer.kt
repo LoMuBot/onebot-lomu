@@ -1,11 +1,13 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
 import cn.luorenmu.action.commandProcess.CommandProcess
+import cn.luorenmu.action.render.EternalReturnFindPlayerRender
+import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
+import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender
-import org.springframework.context.ApplicationContext
-import org.springframework.data.redis.core.StringRedisTemplate
+import com.mikuac.shiro.core.BotContainer
 import org.springframework.stereotype.Component
 
 /**
@@ -14,18 +16,18 @@ import org.springframework.stereotype.Component
  */
 @Component("eternalReturnReFindPlayers")
 class EternalReturnReFindPlayer(
-    private val redisTemplate: StringRedisTemplate,
-    private val applicationContext: ApplicationContext,
+    private val eternalReturnFindPlayerRender: EternalReturnFindPlayerRender,
+    private val botContainer: BotContainer,
 ) : CommandProcess {
-    override fun process(command: String, sender: MessageSender): String? {
+    override fun process(sender: MessageSender): String? {
         val nickname =
             sender.message.replaceAtToEmpty(sender.botId).trim()
-                .replace(Regex(command), "")
+                .replace(command(), "")
                 .replaceBlankToEmpty()
                 .lowercase()
-        redisTemplate.delete("Eternal_Return_NickName:$nickname")
-        val findPlayer = applicationContext.getBean("eternalReturnFindPlayers") as CommandProcess
-        return findPlayer.process(command, sender)
+        botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
+        eternalReturnFindPlayerRender.asyncSendMessage(nickname, sender.groupOrSenderId, sender.messageId)
+        return null
     }
 
     override fun commandName(): String {
@@ -35,4 +37,8 @@ class EternalReturnReFindPlayer(
     override fun state(id: Long): Boolean {
         return true
     }
+
+    override fun command(): Regex = Regex("^((玩家|战绩)查询)|(search)")
+
+    override fun needAtBot(): Boolean = false
 }

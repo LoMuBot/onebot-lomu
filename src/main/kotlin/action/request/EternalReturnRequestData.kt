@@ -148,7 +148,7 @@ class EternalReturnRequestData(
             request.replaceUrl("weapon", weapon)
             val resp = requestData.requestRetry(request)
             resp!!.body().to<EternalReturnCharacterInfo>()
-        }, 2L, TimeUnit.DAYS)
+        }, 2L, TimeUnit.DAYS, EternalReturnCharacterInfo::class.java)
     }
 
 

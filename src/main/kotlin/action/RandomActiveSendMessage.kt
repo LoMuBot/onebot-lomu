@@ -1,6 +1,8 @@
 package cn.luorenmu.action
 
+import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.sendGroupDeepMsgLimit
+import cn.luorenmu.listen.GroupEventListen.Companion.groupMessageQueue
 import cn.luorenmu.repository.ActiveSendMessageRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -20,7 +22,7 @@ open class RandomActiveSendMessage(
     private val activeSendMessageRepository: ActiveSendMessageRepository,
 ) {
     @Async
-    open fun start() {
+    fun start() {
         val minute = 60 * 1000L // 60 minute
         while (true) {
             val minDelay = oneBotConfigRepository.findOneByConfigName("min_delay")!!.configContent.toLong()
@@ -43,7 +45,12 @@ open class RandomActiveSendMessage(
                 !banGroup.contains(it.groupId.toString())
             }
             val group = groupIds.random().groupId
-            if (Random.nextBoolean()) {
+            for (lastMessage in groupMessageQueue.lastMessages(group, 5)) {
+                if (lastMessage.groupEventObject.sender.userId == botContainer.getFirstBot().selfId) {
+                    return
+                }
+            }
+            if ((0..6).random() < 2) {
                 val file = File("H:\\bot\\夏紫萱表情包\\夏紫萱表情包").listFiles().random()
                 log.info { "行动消息夏紫萱 -> $group " }
                 value.sendGroupDeepMsgLimit(group, MsgUtils.builder().img(file.absolutePath).build(), null)

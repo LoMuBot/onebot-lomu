@@ -9,19 +9,10 @@ import cn.luorenmu.request.RequestController
  */
 fun main() {
     val request = RequestController(Request.RequestDetailed().apply {
-        url = "https://playeternalreturn.com/posts/news/2536"
+        url = "https://dak.gg/er/routes/1199522"
         method = "GET"
     }
     ).request()
-    val body = request.body()
-    val regex = "<div class=\"er-article-detail__content er-article-content fr-view\">([\\s\\S]*?)</div>".toRegex()
-    val imgRegex = "<img src=\"(.*?)\"".toRegex()
-    regex.find(body)?.let {
-        it.groups[1]?.let { value ->
-            for (matchResult in imgRegex.findAll(value.value)) {
-                println(matchResult.groups[1]?.value)
-            }
-        }
-    }
+    println(request.status)
 
 }

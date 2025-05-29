@@ -1,12 +1,9 @@
 package cn.luorenmu.listen
 
 import cn.luorenmu.action.PermissionsManager
-import cn.luorenmu.action.chat.OneBotChatStudy
-import cn.luorenmu.action.chat.OneBotKeywordReply
 import cn.luorenmu.action.commandProcess.OneBotCommandAllocator
 import cn.luorenmu.action.listenProcess.BilibiliEventListen
 import cn.luorenmu.action.listenProcess.PetpetListen
-import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.listen.entity.MessageType
@@ -30,8 +27,6 @@ import java.time.LocalDateTime
 @Shiro
 class GroupEventListen(
     private val oneBotCommandAllocator: OneBotCommandAllocator,
-    private val oneBotChatStudy: OneBotChatStudy,
-    private val keywordReply: OneBotKeywordReply,
     private val bilibiliEventListen: BilibiliEventListen,
     private val permissionsManager: PermissionsManager,
     private val petpetListen: PetpetListen,
@@ -71,19 +66,8 @@ class GroupEventListen(
 
 
         // 指令
-        oneBotCommandAllocator.process(bot, messageSender)?.let {
-            if (it.isNotBlank()) {
-                bot.sendGroupMsg(
-                    groupId,
-                    MsgUtils.builder().reply(groupMessageEvent.messageId).text(it).build()
-                )
-                return
-            }
-        }
+        oneBotCommandAllocator.process(bot, messageSender)
         // 监听类
-        oneBotChatStudy.process(bot, groupMessageEvent)
-        oneBotChatStudy.reRead(bot, groupMessageEvent)
-        keywordReply.process(bot, messageSender)
         bilibiliEventListen.process(bot, messageSender)
         petpetListen.process(messageSender)
 

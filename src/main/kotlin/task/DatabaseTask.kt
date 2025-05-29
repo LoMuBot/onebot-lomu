@@ -19,21 +19,8 @@ import java.time.LocalDateTime
 @Component
 class DatabaseTask(
     private val keywordReplyRepository: KeywordReplyRepository,
-    private val oneBotConfigRepository: OneBotConfigRepository,
 ) {
     private val log = KotlinLogging.logger {}
-    @Scheduled(cron = "0 0 4 * * ?")
-    fun timingDeleteFile() {
-        val deleteFiles = oneBotConfigRepository.findAllByConfigName("waitDeleteFile")
-        for (config in deleteFiles) {
-            val deleteFile = config.configContent.to<WaitDeleteFile>()
-            if (deleteFile.deleteDate.isBefore(LocalDateTime.now())) {
-                if (!File(deleteFile.path).exists() || File(deleteFile.path).delete()) {
-                    oneBotConfigRepository.deleteById(config.id!!)
-                }
-            }
-        }
-    }
 
     @Scheduled(cron = "0 0 12 * * ?")
     fun timingDeleteKeyword() {

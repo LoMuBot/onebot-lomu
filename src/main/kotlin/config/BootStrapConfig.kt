@@ -4,9 +4,10 @@ import cn.hutool.core.io.resource.ResourceUtil
 import cn.luorenmu.MainApplication
 import cn.luorenmu.common.utils.JsonObjectUtils
 import cn.luorenmu.config.external.LoMuBotProperties
+import cn.luorenmu.core.WebPageScreenshot
+import cn.luorenmu.core.WebPool
 import cn.luorenmu.file.InitializeFile
 import cn.luorenmu.file.ReadWriteFile
-import cn.luorenmu.pool.WebPageScreenshotPool
 import com.alibaba.fastjson2.JSONObject
 import com.alibaba.fastjson2.to
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -22,9 +23,7 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 @Configuration
-class BootStrapConfig(
-    private val properties: LoMuBotProperties,
-) {
+class BootStrapConfig {
     init {
         InitializeFile.run(MainApplication::class.java)
         ReadWriteFile.createCurrentDirs("image/qq/avatar")
@@ -66,12 +65,8 @@ class BootStrapConfig(
         }
     }
     @Bean(destroyMethod = "shutdown")
-    fun BootStrapConfig.getWebPageScreenshotPool(): WebPageScreenshotPool {
-        //WebDriverManager.chromedriver().browserVersion("133.0.6943.126").setup();
-        return WebPageScreenshotPool(properties.webPool.size) {
-            it.addArguments("--headless");
-            it.addArguments("--window-size=1920,1080");
-        }
+    fun BootStrapConfig.getWebPageScreenshotPool(): WebPool  {
+        return WebPool(5,true)
     }
 
 }
