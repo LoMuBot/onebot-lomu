@@ -5,6 +5,7 @@ import cn.luorenmu.action.render.EternalReturnFindPlayerRender
 import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
+import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender
 import com.mikuac.shiro.core.BotContainer
@@ -26,8 +27,7 @@ class EternalReturnReFindPlayer(
                 .replaceBlankToEmpty()
                 .lowercase()
         botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
-        eternalReturnFindPlayerRender.asyncSendMessage(nickname, sender.groupOrSenderId, sender.messageId)
-        return null
+        return eternalReturnFindPlayerRender.imageRenderGenerate(nickname)
     }
 
     override fun commandName(): String {

@@ -10,20 +10,17 @@ import cn.luorenmu.action.commandProcess.eternalReturn.entity.dto.EternalReturnR
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.matcher.EternalReturnMatches
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.tier.EternalReturnTiers
 import cn.luorenmu.action.request.EternalReturnRequestData
-import cn.luorenmu.common.extensions.getFirstBot
-import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.common.utils.FreeMarkerUtils
 import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.common.utils.RedisUtils
 import cn.luorenmu.common.utils.WkhtmltoimageUtils
+import cn.luorenmu.exception.LoMuBotException
 import cn.luorenmu.service.ImageService
 import com.mikuac.shiro.common.utils.MsgUtils
-import com.mikuac.shiro.core.BotContainer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import java.text.DecimalFormat
 import java.time.ZonedDateTime
@@ -38,39 +35,24 @@ import java.util.concurrent.TimeUnit
 class EternalReturnFindPlayerRender(
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val redisUtils: RedisUtils,
-    private val botContainer: BotContainer,
     private val imageService: ImageService,
     @Value("\${server.port}")
     private val port: String,
 ) {
     private val log = KotlinLogging.logger { }
 
-    @Async
-    fun asyncSendMessage(nickname: String, groupId: Long, messageId: Int) {
-        imageRenderGenerate(nickname)?.also {
-            botContainer.getFirstBot()
-                .sendGroupMsg(
-                    groupId,
-                    "$it dak.gg页面无法正常打开或你使用了 -> (玩家|战绩)查询"
-                )
-        }
-    }
 
-    fun imageRenderGenerate(nickname: String): String? {
-        try {
-            val pageRender = runBlocking { pageRender(nickname) }
-            val parseData = FreeMarkerUtils.parseData("eternal_return_player.ftlh", pageRender)
-            val imgPath = PathUtils.getEternalReturnNicknameImagePath("render_$nickname")
-            val returnMsg = MsgUtils.builder().img(imgPath).build()
-            redisUtils.setCache("ftlh:eternal_return_player_data_${nickname}", parseData, 5L, TimeUnit.MINUTES)
-            WkhtmltoimageUtils.convertHtmlToImage(
-                "http://localhost:$port/ftlh/eternal_return_player_data_${nickname}", imgPath, mapOf("zoom" to "2")
-            )
-            return returnMsg
-        } catch (e: Exception) {
-            log.error { e.printStackTrace() }
-            return null
-        }
+    fun imageRenderGenerate(nickname: String): String {
+        val pageRender = runBlocking { pageRender(nickname) }
+        val parseData = FreeMarkerUtils.parseData("eternal_return_player.ftlh", pageRender)
+        val imgPath = PathUtils.getEternalReturnNicknameImagePath("render_$nickname")
+        val returnMsg = MsgUtils.builder().img(imgPath).build()
+        redisUtils.setCache("ftlh:eternal_return_player_data_${nickname}", parseData, 5L, TimeUnit.MINUTES)
+        WkhtmltoimageUtils.convertHtmlToImage(
+            "http://localhost:$port/ftlh/eternal_return_player_data_${nickname}", imgPath, mapOf("zoom" to "2")
+        )
+        log.info { "$nickname 页面图片已生成" }
+        return returnMsg
     }
 
     suspend fun pageRender(nickname: String): EternalReturnRender {
@@ -83,13 +65,12 @@ class EternalReturnFindPlayerRender(
         //    eternalReturnRequestData.currentSeason()!!.seasons.first { seasons -> seasons.id == profile.playerSeasons.maxBy { it.seasonId }.seasonId }
         val matches = eternalReturnRequestData.matches(nickname, currentSeasonKey)
         if (profile == null || tiers == null || matches == null) {
-            throw HttpException("多次尝试仍然无法从dak.gg获取数据")
+            throw LoMuBotException("多次尝试仍然无法从dak.gg获取数据")
         }
 
         //必要数据由left优先生成并渲染
         val eternalReturnRender = pageLeftConvert(profile, tiers, currentSeason)
         pageRightConvert(matches, eternalReturnRender)
-        log.info { "$nickname 页面已生成" }
         return eternalReturnRender
 
     }

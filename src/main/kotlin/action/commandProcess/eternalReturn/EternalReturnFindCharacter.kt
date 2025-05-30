@@ -1,6 +1,5 @@
 package cn.luorenmu.action.commandProcess.eternalReturn
 
-import action.commandProcess.eternalReturn.entity.EternalReturnCharacter
 import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.action.webPageScreenshot.EternalReturnWebPageScreenshot
@@ -8,6 +7,7 @@ import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
 import cn.luorenmu.common.extensions.toPinYin
+import cn.luorenmu.config.entity.CharacterNickNameList
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender
 import com.mikuac.shiro.core.BotContainer
@@ -22,6 +22,7 @@ class EternalReturnFindCharacter(
     private val eternalReturnRequestData: EternalReturnRequestData,
     private val eternalReturnWebPageScreenshot: EternalReturnWebPageScreenshot,
     private val botContainer: BotContainer,
+    private val characterNames: CharacterNickNameList,
 ) : CommandProcess {
     override fun process(sender: MessageSender): String? {
         var characterName = sender.message.replaceAtToEmpty(sender.botId).trim()
@@ -42,46 +43,36 @@ class EternalReturnFindCharacter(
 
     private fun eternalReturnFindCharacter(characterName: String, i: Int, messageId: String): String? {
         val characterList = eternalReturnRequestData.characterFind()
-        var characterKey = ""
+        characterList?.let { characters ->
+            val character = characters.characters.firstOrNull { character ->
+                character.key.lowercase() == characterName.lowercase() || character.name.toPinYin()
+                    .lowercase() == characterName.toPinYin().lowercase()
+            }?.key ?: findName(characterName)
 
-        characterList?.let {
-            val character = correctName(characterName, characterList)
-            val characterPinYin = character.toPinYin()
-            for (character1 in it.characters) {
-                // 转换为首拼
-                if (character1.name.toPinYin().lowercase() == characterPinYin.lowercase()) {
-                    characterKey = character1.key
-                    break
-                }
-
-                // 英文角色名
-                if (character1.key.lowercase() == character.lowercase()) {
-                    characterKey = character1.key
-                    break
-                }
+            character?.let {
+                botContainer.getFirstBot().setMsgEmojiLike(messageId, "124")
+                return eternalReturnWebPageScreenshot.webCharacterScreenshot(characterName, it, "")
             }
-
-            if (characterKey.isBlank()) {
-                return null
-            }
-
-            botContainer.getFirstBot().setMsgEmojiLike(messageId, "124")
-            return eternalReturnWebPageScreenshot.webCharacterScreenshot(characterKey, "")
         }
         return null
     }
 
 
     /**
-     * 实验体绰号名修正
-     * 字符修正
+     * 查找绰号名
      */
-    private fun correctName(name: String, characterList: EternalReturnCharacter): String {
-        // 目前没有考虑支持 优先使用双子
-        if (name == "双子" || name.toPinYin() == "黛比马莲".toPinYin()) {
-            return characterList.characters.first { it.key == "DebiMarlene" }.name
+    fun findName(name: String): String? {
+        // &符号会被转换为amp; 适用于 黛比&马莲
+        val characterPinYin = name.replace(Regex("amp;"), "").toPinYin().lowercase()
+        val characterNickNames = characterNames.characterNickNames
+
+        val character = characterNickNames.firstOrNull { character ->
+            character.nickName.firstOrNull { nickname ->
+                characterPinYin == nickname.toPinYin().lowercase()
+            } != null
         }
-        return name.replace(Regex("amp;"), "")
+
+        return character?.character
     }
 
     override fun commandName(): String {

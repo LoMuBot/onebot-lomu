@@ -28,7 +28,7 @@ class EternalReturnCutoffs(
         return true
     }
 
-    override fun command(): Regex = Regex("((永恆多少分)|(半神多少分)|(永恆分段)|(半神分段)|(永恒分数)|(半神分数))")
+    override fun command(): Regex = Regex("永恒多少分|半神多少分|永恒分段|半神分段|永恒分数|半神分数")
 
     override fun needAtBot(): Boolean = false
 }

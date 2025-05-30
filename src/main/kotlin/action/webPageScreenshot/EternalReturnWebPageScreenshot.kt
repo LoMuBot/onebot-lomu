@@ -1,6 +1,7 @@
 package cn.luorenmu.action.webPageScreenshot
 
 import cn.luorenmu.action.request.RequestData
+import cn.luorenmu.common.extensions.toPinYin
 import cn.luorenmu.common.utils.JsonObjectUtils
 import cn.luorenmu.common.utils.MatcherData
 import cn.luorenmu.common.utils.PathUtils
@@ -37,22 +38,40 @@ class EternalReturnWebPageScreenshot(
 
 
     // 角色页面
-    fun webCharacterScreenshot(character: String, weapon: String, failed: Int = 0): String {
-        val path = PathUtils.getEternalReturnImagePath("character/${character}-${weapon}.png")
+    fun webCharacterScreenshot(inputName: String, character: String, weapon: String, failed: Int = 0): String {
+        val cacheName = "EternalReturn:character_${character}_${inputName.toPinYin()}_${weapon}"
+        redisUtils.getCache(cacheName, String::class.java)?.let {
+            log.info { "命中缓存: $character" }
+            return it
+        }
+
+        val path = PathUtils.getEternalReturnImagePath("character/${character}-${inputName.toPinYin()}-${weapon}.png")
         log.info { "正在进行截图: $character" }
         var url = JsonObjectUtils.getString("request.eternal_return_request.find_character")
         url = MatcherData.replaceDollardName(url, "characterName", character)
         url = MatcherData.replaceDollardName(url, "weapon", weapon)
         try {
-            webPool.getWebPageScreenshot().screenshotSelector(url, path, ".contents") { TimeUnit.SECONDS.sleep(2) }
+            webPool.getWebPageScreenshot().screenshotSelector(url, path, ".contents") {
+                TimeUnit.SECONDS.sleep(4)
+                it.locator("div.title h3").evaluate(
+                    """node => {
+                                    node.innerHTML = node.innerHTML.replace(
+                                        /(<strong>.*?<\/strong>)([^<]+)/, 
+                                        "$1${inputName}"
+                                    );
+                              }"""
+                )
+            }
         } catch (e: Exception) {
             if (failed < 3) {
-                return webCharacterScreenshot(character, weapon, failed + 1)
+                return webCharacterScreenshot(inputName, character, weapon, failed + 1)
             }
             return "重试次数过多 网络无法连接"
         }
+        val returnMsg = MsgUtils.builder().img(path).build()
         log.info { "已完成的截图: $character" }
-        return MsgUtils.builder().img(path).build()
+        redisUtils.setCacheIfAbsent(cacheName, returnMsg)
+        return returnMsg
     }
 
     /**
@@ -121,7 +140,7 @@ class EternalReturnWebPageScreenshot(
                         )
                     }
                 returnMsg
-            }, 5L, TimeUnit.MINUTES) ?: returnMsg
+            }, 1L, TimeUnit.DAYS) ?: returnMsg
         } catch (e: Exception) {
             if (failed < 3) {
                 return webCharacterStatisticsPageScreenshot(failed + 1)

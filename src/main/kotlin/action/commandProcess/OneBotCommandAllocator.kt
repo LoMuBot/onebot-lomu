@@ -4,6 +4,7 @@ import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.isCQReply
 import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.common.extensions.sendMsg
+import cn.luorenmu.exception.LoMuBotException
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.listen.entity.MessageType
 import com.mikuac.shiro.common.utils.MsgUtils
@@ -70,6 +71,13 @@ class OneBotCommandAllocator(
                 try {
                     send(
                         oneBotCommand.process(messageSender),
+                        messageSender.groupOrSenderId,
+                        messageSender.messageId,
+                        messageSender.messageType
+                    )
+                } catch (e: LoMuBotException) {
+                    send(
+                        e.msg,
                         messageSender.groupOrSenderId,
                         messageSender.messageId,
                         messageSender.messageType

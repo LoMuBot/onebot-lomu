@@ -58,9 +58,8 @@ class EternalReturnFindPlayer(
                     MsgUtils.builder().reply(sender.messageId).text("与服务器无法正常连接 正在重试")
                         .build()
                 )
-            eternalReturnFindPlayerRender.asyncSendMessage(nickname, sender.groupOrSenderId, sender.messageId)
+            return eternalReturnFindPlayerRender.imageRenderGenerate(nickname)
         }
-        return null
     }
 
 
@@ -72,7 +71,7 @@ class EternalReturnFindPlayer(
         return true
     }
 
-    override fun command(): Regex  = Regex("^((查詢(玩家|戰績))|((玩家|戰績)查詢)|(查询(玩家|战绩)))")
+    override fun command(): Regex = Regex("^((查詢(玩家|戰績))|((玩家|戰績)查詢)|(查询(玩家|战绩)))")
 
     override fun needAtBot(): Boolean = false
 }

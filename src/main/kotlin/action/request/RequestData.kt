@@ -21,7 +21,7 @@ class RequestData {
         ReadWriteFile.writeStreamFile(path, resp.bodyStream())
     }
 
-    fun requestRetry(requestController: RequestController, retry: Int = 3): HttpResponse? {
+    fun requestRetry(requestController: RequestController, retry: Int = 5): HttpResponse? {
         try {
             val resp = requestController.request()
             resp?.let {
