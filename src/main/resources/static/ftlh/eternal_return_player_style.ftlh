@@ -12,7 +12,7 @@
     #content-container {
         height: 1080px;
         width: 1200px;
-        background-image: url(https://cdn.playeternalreturn.com/event/season7/global_bt/bg_deco02.png);
+
         background-size: cover;
         background-position: center;
         padding: 20px;
@@ -25,7 +25,6 @@
         background-size: cover;
         background-position: center;
         background-image: url(https://cdn.dak.gg/er/images/bg/bg-landing-search-v7.jpg);
-    ;
         float: left;
         overflow: hidden;
     }
@@ -97,8 +96,6 @@
         border-radius: 10px;
         margin-top: 20px;
         width: 352px;
-        height: 1080px;
-        background-color: rgba(255, 255, 255, 0.8);
         float: left;
     }
 
@@ -112,9 +109,11 @@
     }
 
     #rank {
+        border-radius: 10px;
+        background-color: #fff;
         overflow: hidden;
         width: 100%;
-        height: 300px;
+
         text-align: center;
     }
 
@@ -124,9 +123,8 @@
         border-bottom: 1px solid #8d8a8a;
     }
 
-    #rank #score {
-        padding: 15px 0;
-        text-align: center;
+    #score {
+        height: 106px;
         border-bottom: 1px solid #8d8a8a;
     }
 
@@ -136,14 +134,21 @@
     }
 
     #rp_img {
+        margin-top: 20px;
         height: 64px;
         width: 64px;
+        vertical-align: top;
+    }
+
+    #rp_box {
+        margin-left: 15px;
+        margin-top: 25px;
     }
 
     #rp {
         font-size: 25px;
         font-weight: 900;
-        color: chocolate;
+        color: #CA9372;
     }
 
     #rp_name {
@@ -151,26 +156,26 @@
         font-weight: 900;
     }
 
-
-    #rp_rank,
-    #rp_local_rank {
-        font-size: 10px;
-    }
-
     #record {
-        overflow: hidden;
         height: 135px;
-        margin-top: 10px;
-        border-bottom: 1px solid #8d8a8a;
+
         text-align: center;
+        padding: 10px 0;
+        margin-bottom: 10px;
     }
 
 
     .record_box {
-        border-bottom: 1px solid;
+        background-color: #f0e9e9;
+        margin: 5px;
+        border-radius: 5px;
         display: inline-block;
         width: 100px;
         height: 40px;
+    }
+
+    .record_box>h4:nth-child(2) {
+        color: #ff500b
     }
 
     .record_box>h4 {
@@ -198,6 +203,7 @@
         position: relative;
         background-color: rgba(255, 255, 255, 0.8);
     }
+
 
     .war_record_left_large_top1,
     .war_record_left_large_top2,
@@ -242,14 +248,14 @@
     .war_record_right_large_top1,
     .war_record_left_small_top1,
     .war_record_right_small_top1 {
-        background-color: chartreuse;
+        background-color: #11B288;
     }
 
     .war_record_left_large_top2,
     .war_record_right_small_top2,
     .war_record_right_large_top2,
     .war_record_left_small_top2 {
-        background-color: #329ce0;
+        background-color: #39c5bb;
     }
 
     .war_record_left_large_top3,
@@ -260,13 +266,42 @@
     }
 
     .war_rank {
-        margin-top: 10px;
+        margin-top: 5px;
         width: 60px;
         height: 66px;
         padding-left: 25px;
+        padding-top: 10px;
         font-size: 14px;
         float: left;
     }
+
+    .war_rank>div {
+        margin: 5px;
+        height: 14px;
+        width: 66px;
+    }
+
+    .war_rank>div:nth-child(1) {
+        margin-top: 0;
+        color: #999999;
+        font-size: 14px;
+    }
+
+    .war_rank>div:nth-child(2) {
+        color: #000000;
+        font-size: 12px;
+    }
+
+    .war_rank>div:nth-child(3) {
+        color: #999999;
+        font-size: 12px;
+    }
+
+    .war_rank>div:nth-child(4) {
+        color: #999999;
+        font-size: 12px;
+    }
+
 
     .war_record_character_info {
         margin-top: 4px;
@@ -401,18 +436,18 @@
 
     .play_stat {
         margin-left: 20px;
-        width: 80px;
+        width: 90px;
         float: left;
         height: 54px;
         margin-top: 25px;
     }
 
     .stat {
-        width: 80px;
         height: 14px;
         font-size: 14px;
         font-weight: bold;
     }
+
 
     .stat span {
         font-weight: normal;
@@ -430,7 +465,7 @@
         border: #323232;
         margin-top: 25px;
         margin-left: 10px;
-        width: 250px;
+        width: 300px;
         height: 44px;
         float: left;
     }
@@ -444,7 +479,7 @@
     }
 
     .rp {
-        width: 70px;
+        width: 100px;
         height: 44px;
         display: inline-block;
     }
@@ -518,6 +553,10 @@
 
 
     .item_img {
+        height: 70%;
+        left: 5px;
+        top: 4px;
+        width: 70%;
         position: absolute;
         z-index: 2;
     }
@@ -539,10 +578,12 @@
     .game_id {
         float: left;
         font-size: 14px;
+        color: #808080;
     }
 
-    #recent_play {
-        margin-top: 10px;
+    #recent_play,
+    #rank_character_stats {
+        margin-top: 30px;
         border-collapse: collapse;
         background-color: rgb(255, 255, 255);
         width: 100%;
@@ -552,19 +593,19 @@
 
 
 
-    #recent_play>thead {
+    #recent_play>thead,
+    #rank_character_stats>thead {
         color: rgb(255, 255, 255);
         background: rgb(54, 57, 68);
-        border: 1px solid rgb(54, 57, 68);
-
     }
 
-    #recent_play>thead>tr>th {
+    #recent_play>thead>tr>th,
+    #rank_character_stats>thead>tr>th {
         height: 40px;
     }
 
-    #recent_play>tbody>tr {
-        border: 1px solid rgb(171, 171, 182);
+    tbody tr {
+        border: 1px solid rgb(201, 201, 201)
     }
 
 
@@ -596,9 +637,25 @@
         text-align: right;
     }
 
-    .win-rate {
+    .avg-dmg {
+        padding-right: 10px;
+        text-align: right;
+    }
+
+    #rank_character_stats tbody .avg-dmg {
+        color: #646464;
+    }
+
+
+    #rank_character_stats>tbody>tr>td .win-rate,
+    .get-rp {
         text-align: center;
     }
+
+    #rank_character_stats tbody .get-rp img {
+        width: 8px;
+    }
+
 
     .image-wrapper,
     .image-wrapper>img {

@@ -2,12 +2,13 @@ package cn.luorenmu.action.commandProcess.eternalReturn
 
 import cn.luorenmu.action.commandProcess.CommandProcess
 import cn.luorenmu.action.render.EternalReturnFindPlayerRender
+import cn.luorenmu.action.request.EternalReturnRequestData
 import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.replaceAtToEmpty
 import cn.luorenmu.common.extensions.replaceBlankToEmpty
-import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.config.shiro.customAction.setMsgEmojiLike
 import cn.luorenmu.listen.entity.MessageSender
+import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.BotContainer
 import org.springframework.stereotype.Component
 
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component
 class EternalReturnReFindPlayer(
     private val eternalReturnFindPlayerRender: EternalReturnFindPlayerRender,
     private val botContainer: BotContainer,
+    private val eternalReturnRequestData: EternalReturnRequestData,
 ) : CommandProcess {
     override fun process(sender: MessageSender): String? {
         val nickname =
@@ -26,6 +28,9 @@ class EternalReturnReFindPlayer(
                 .replace(command(), "")
                 .replaceBlankToEmpty()
                 .lowercase()
+        if (!eternalReturnRequestData.syncPlayers(nickname)) {
+            return MsgUtils.builder().text("不存在的玩家 -> $nickname").build()
+        }
         botContainer.getFirstBot().setMsgEmojiLike(sender.messageId.toString(), "124")
         return eternalReturnFindPlayerRender.imageRenderGenerate(nickname)
     }

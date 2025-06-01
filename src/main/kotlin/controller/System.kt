@@ -1,13 +1,11 @@
 package cn.luorenmu.controller
 
 import cn.luorenmu.repository.ActiveSendMessageRepository
-import cn.luorenmu.repository.KeywordReplyRepository
 import cn.luorenmu.repository.OneBotCommandConfigRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entity.OneBotCommandConfig
 import cn.luorenmu.repository.entity.OneBotConfig
 import cn.luorenmu.repository.entiy.ActiveMessage
-import cn.luorenmu.repository.entiy.KeywordReply
 import org.springframework.web.bind.annotation.*
 
 
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("")
 class System(
-    private val keywordReplyRepository: KeywordReplyRepository,
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
     private val oneBotCommandConfigRepository: OneBotCommandConfigRepository,
@@ -48,13 +45,6 @@ class System(
         return map
     }
 
-    @PostMapping("/save")
-    fun saveKeywordReply(@RequestBody body: KeywordReply): HashMap<String, String> {
-        val map = HashMap<String, String>()
-        map["save_data"] = keywordReplyRepository.save(body).toString()
-        map["status"] = "ok"
-        return map
-    }
 
     @PostMapping("/config")
     fun saveConfig(@RequestBody body: OneBotConfig): HashMap<String, String> {

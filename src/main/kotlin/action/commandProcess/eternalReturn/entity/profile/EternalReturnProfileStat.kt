@@ -7,7 +7,7 @@ package action.commandProcess.eternalReturn.entity.profile
 data class EternalReturnProfileStat(
     val key: Long,
     val updatedAt: Long? = null,
-    val play: Long,
+    val play: Int,
     val win: Long,
     val top2: Long,
     val top3: Long,
@@ -16,11 +16,11 @@ data class EternalReturnProfileStat(
     val playerAssistant: Long,
     val teamKill: Long,
     val monsterKill: Long,
-    val damageToPlayer: Long,
+    val damageToPlayer: Int,
     val damageToMonster: Long,
-    val mmrGain: Long,
+    val mmrGain: Int,
     val playTime: Long,
     val playerDeaths: Long,
     val weaponStats: List<EternalReturnProfileStat>?,
-    val skinStats: List<EternalReturnProfileStat>? = null
+    val skinStats: List<EternalReturnProfileStat>? = null,
 )

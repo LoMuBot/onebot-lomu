@@ -13,6 +13,7 @@ import cn.luorenmu.action.request.entiy.EternalReturnTraitSkillImgDTO
 import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.common.utils.RedisUtils
 import cn.luorenmu.entiy.Request.RequestDetailed
+import cn.luorenmu.exception.LoMuBotException
 import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.JSONException
@@ -358,7 +359,7 @@ class EternalReturnRequestData(
         val eternalReturnDataImagePath =
             PathUtils.getEternalReturnDataImagePath("ico/${characterImgUrlType.type}/${id}.png")
         if (!File(eternalReturnDataImagePath).exists()) {
-            characterInfo?.let {
+            characterInfo.let {
                 val url: String = if (skin != -1L) {
                     val skinInfo = it.skins.first { skinObj -> skinObj.id == skin }
                     when (characterImgUrlType) {
@@ -406,7 +407,10 @@ class EternalReturnRequestData(
      */
     fun getWeapons(): EternalReturnWeapons? {
         return redisUtils.getCache("Eternal_Return_Weapons", EternalReturnWeapons::class.java, {
-            val resp = requestData.requestRetry(RequestController("eternal_return_request.weapons"))
+            val resp = requestData.requestRetry(RequestController(RequestDetailed().apply {
+                url = "https://er.dakgg.io/api/v1/data/masteries?hl=zh_CN"
+                method = "get"
+            }))
             resp?.body().to<EternalReturnWeapons>()
         }, 2L, TimeUnit.DAYS)
     }
@@ -432,7 +436,7 @@ class EternalReturnRequestData(
      *  具体英雄信息 通过id、key、name获取
      *  无法获取到具体的英雄
      */
-    suspend fun getCharacterInfo(id: String, retry: Boolean = true): EternalReturnCharacterById? {
+    suspend fun getCharacterInfo(id: String, retry: Boolean = true): EternalReturnCharacterById {
         characterFind()?.let { character ->
             if (StringUtils.isNumeric(id)) {
                 return character.characters.first { it.id == id.toInt() }
@@ -445,7 +449,7 @@ class EternalReturnRequestData(
             redisUtils.deleteCache("Eternal_Return_Find: characters")
             getCharacterInfo(id, false)
         }
-        return null
+        throw LoMuBotException("获取英雄信息失败")
     }
 
 }

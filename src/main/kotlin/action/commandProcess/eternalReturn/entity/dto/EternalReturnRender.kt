@@ -6,20 +6,31 @@ package cn.luorenmu.action.commandProcess.eternalReturn.entity.dto
  * Date 2025.03.29 15:08
  */
 data class EternalReturnRender(
+    var userNum: Long,
     var nickName: String = "螺母",
     var level: Int = 1,
     var data: EternalReturnPlayerData,
     var profileImageUrl: String? = null,
     var recentPlayContent: String = "",
+    var characterUseStats: MutableList<EternalReturnCharacterUseStats>,
     var rightContent: String = "",
-    var season:String,
-    ) {
+    var season: String,
+) {
+
+    data class EternalReturnCharacterUseStats(
+        val imgUrl: String,
+        val characterName: String,
+        val characterPlay: Int,
+        val winRate: String,
+        val getRP: Int,
+        val avgRank: String,
+        val avgDmg: Int,
+    )
+
     data class EternalReturnPlayerData(
         var rp: String = "段位鉴定中.",
         var rpName: String = "",
-        var rpRank: String = "",
         var tierImageUrl: String = "",
-        var rpLocalRank: String = "",
         var play: Int = 0,
         var avgTk: String = "-",
         var avgKill: String = "-",
@@ -42,7 +53,7 @@ data class EternalReturnRender(
 
 
     data class EternalReturnPlayerMatchData(
-
+        var serverName:String = "",
         var nickName: String = "螺母",
         var characterName: String = "螺母",
         var rank: Int = 8,

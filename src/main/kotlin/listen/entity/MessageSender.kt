@@ -43,6 +43,7 @@ enum class BotRole(val role: String, val roleNumber: Int) {
         }
     }
 
+
     companion object {
         fun convert(role: String): BotRole {
             return entries.first { it.role == role }

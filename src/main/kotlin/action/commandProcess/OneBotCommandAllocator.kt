@@ -4,6 +4,7 @@ import cn.luorenmu.common.extensions.getFirstBot
 import cn.luorenmu.common.extensions.isCQReply
 import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.common.extensions.sendMsg
+import cn.luorenmu.common.utils.RedisUtils
 import cn.luorenmu.exception.LoMuBotException
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.listen.entity.MessageType
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component
 class OneBotCommandAllocator(
     applicationContext: ApplicationContext,
     private val bot: BotContainer,
+    private val redisUtils: RedisUtils,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -84,7 +86,12 @@ class OneBotCommandAllocator(
                     )
                 } catch (e: Exception) {
                     log.error { e.stackTraceToString() }
-                    bot.sendGroupMsg(646708986, "${e.javaClass}:${e.stackTraceToString()}-${e.message}")
+                    redisUtils.setCache(
+                        "EternalReturn: ${messageSender.message}",
+                        "${e.javaClass}:${e.stackTraceToString()}-${e.message}",
+                        0
+                    )
+                    bot.sendGroupMsg(646708986, "${e.javaClass}:出现错误")
                     send(
                         "服务器内部发生错误来自功能${oneBotCommand.commandName()}\n ",
                         messageSender.groupOrSenderId,

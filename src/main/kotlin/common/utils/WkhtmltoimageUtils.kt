@@ -1,5 +1,6 @@
 package cn.luorenmu.common.utils
 
+import cn.luorenmu.file.ReadWriteFile
 import java.io.File
 import java.io.IOException
 
@@ -8,8 +9,8 @@ import java.io.IOException
  * Date 2025.03.18 19:37
  */
 object WkhtmltoimageUtils {
-    //     private val WKHTMLTOIMAGE_PATH: String = "${ReadWriteFile.CURRENT_PATH}/wkhtmltopdf/bin/wkhtmltoimage.exe"
-    private val WKHTMLTOIMAGE_PATH: String = "E:\\code\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
+    private val WKHTMLTOIMAGE_PATH: String = "${ReadWriteFile.CURRENT_PATH}/wkhtmltopdf/bin/wkhtmltoimage.exe"
+     //private val WKHTMLTOIMAGE_PATH: String = "E:\\code\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
 
 
     /**
@@ -45,15 +46,12 @@ object WkhtmltoimageUtils {
      * @return 是否成功
      */
     private fun convert(input: String, outputImage: String, options: Map<String, String>): Boolean {
-        // 构建命令
+
         val command = buildCommand(input, outputImage, options)
 
         try {
-            // 执行命令
             val process = Runtime.getRuntime().exec(command)
-            process.waitFor() // 等待命令执行完成
-
-            // 检查输出文件是否存在
+            process.waitFor()
             return File(outputImage).exists()
         } catch (e: IOException) {
             e.printStackTrace()

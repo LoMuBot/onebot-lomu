@@ -9,5 +9,5 @@ data class EternalReturnProfilePlayer(
     val lastPlayedSeasonId: Int,
     val name: String,
     val syncedAt: Long,
-    val userNum: Int
+    val userNum: Long,
 )

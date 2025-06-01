@@ -12,11 +12,11 @@
 <div id="content-container">
     <div id="header">
         <div class="profile-image-wrapper">
-         <#if profileImageUrl??>
-             <img src="${profileImageUrl}" alt = ""/>
-         <#else>
-             <#include "eternal_return_error_img.ftlh">
-         </#if>
+            <#if profileImageUrl??>
+                <img src="${profileImageUrl}" alt=""/>
+            <#else>
+                <#include "eternal_return_error_img.ftlh">
+            </#if>
         </div>
         <div id="top">
             <div class="level">Lv.${level}</div>
@@ -39,8 +39,6 @@
                         <div id="rp_name">
                             ${data.rpName}
                         </div>
-                        <div id="rp_rank">${data.rpRank}</div>
-                        <div id="rp_local_rank">${data.rpLocalRank}</div>
                     </div>
                 </div>
                 <div id="record">
@@ -84,6 +82,55 @@
                     </div>
                 </div>
             </div>
+            <section>
+                <table id="rank_character_stats">
+                    <thead>
+                    <tr>
+                        <th class="character">角色</th>
+                        <th class="win-rate">胜率</th>
+                        <th class="get-rp">RP</th>
+                        <th class="avg-rank">平均排名</th>
+                        <th class="avg-dmg">平均伤害</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <#list characterUseStats as character>
+                        <tr>
+                            <td class="character">
+                                <div class="image-wrapper"><img
+                                            src="${character.imgUrl}"
+                                            alt=""></div>
+                                <div class="info">${character.characterName}
+                                    <div class="plays">${character.characterPlay} 游戲</div>
+                                </div>
+                            </td>
+                            <td class="win-rate">${character.winRate}</td>
+                            <td class="get-rp">
+                                <#if character.getRP gte 0>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="5" viewBox="0 0 8 5"
+                                         fill="none"
+                                         style="transform: none;">
+                                        <path d="M6.75 4.75C7.17188 4.75 7.38281 4.25781 7.07812 3.95312L4.07812 0.953125C3.89062 0.765625 3.58594 0.765625 3.39844 0.953125L0.398438 3.95312C0.09375 4.25781 0.304688 4.75 0.726562 4.75H6.75Z"
+                                              fill="#FF4655"></path>
+                                    </svg>
+                                    ${character.getRP}
+                                <#else>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="5" viewBox="0 0 8 5"
+                                         fill="none" style="transform: rotate(180deg);">
+                                        <path
+                                                d="M6.75 4.75C7.17188 4.75 7.38281 4.25781 7.07812 3.95312L4.07812 0.953125C3.89062 0.765625 3.58594 0.765625 3.39844 0.953125L0.398438 3.95312C0.09375 4.25781 0.304688 4.75 0.726562 4.75H6.75Z"
+                                                fill="#5393ca"></path>
+                                    </svg>
+                                    ${character.getRP}
+                                </#if>
+                            </td>
+                            <td class="avg-rank">${character.avgRank}</td>
+                            <td class="avg-dmg">${character.avgDmg}</td>
+                        </tr>
+                    </#list>
+                    </tbody>
+                </table>
+            </section>
             <section>
                 <table id="recent_play">
                     <thead>

@@ -4,7 +4,6 @@ import cn.luorenmu.entiy.RecentlyMessageQueue
 import cn.luorenmu.entiy.SelfSendMsg
 import cn.luorenmu.listen.entity.MessageType
 import cn.luorenmu.repository.entiy.DeepMessage
-import cn.luorenmu.repository.entiy.KeywordReply
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.core.BotContainer
 import com.mikuac.shiro.dto.action.common.ActionData
@@ -18,7 +17,6 @@ import java.util.concurrent.TimeUnit
  */
 
 private val selfRecentlySendMessage: RecentlyMessageQueue<SelfSendMsg> = RecentlyMessageQueue(40)
-private val selfKeywordMessage: RecentlyMessageQueue<KeywordReply> = RecentlyMessageQueue(30)
 private val log = KotlinLogging.logger { }
 
 /**
@@ -61,30 +59,6 @@ fun Bot.sendPrivateMsgLimit(id: Long, message: String) {
     sendMsgLimit(id, message, MessageType.PRIVATE)
 }
 
-@Synchronized
-fun Bot.sendGroupMsgKeywordLimit(id: Long, keywordReply: KeywordReply): Boolean {
-    var send = false
-    selfKeywordMessage.map[id]?.let {
-        for (kw in it) {
-            if ((keywordReply == kw || keywordReply.keyword == kw.keyword || keywordReply.reply == kw.reply)) {
-                return false
-            }
-        }
-    } ?: run {
-        send = true
-    }
-
-    if (send) {
-        val sendList: ArrayList<String> = arrayListOf()
-        sendList.add(keywordReply.reply)
-        keywordReply.deepMessage(sendList, keywordReply.nextMessage)
-        for (s in sendList) {
-            sendGroupMsgLimit(id, s)
-            TimeUnit.SECONDS.sleep(1)
-        }
-    }
-    return send
-}
 
 fun Bot.addMsgLimit(id: Long, message: String) {
     synchronized(selfRecentlySendMessage) {

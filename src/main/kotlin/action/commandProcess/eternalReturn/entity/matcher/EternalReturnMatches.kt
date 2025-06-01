@@ -1,5 +1,7 @@
 package cn.luorenmu.action.commandProcess.eternalReturn.entity.matcher
 
+import com.alibaba.fastjson2.annotation.JSONField
+
 /**
  * @author LoMu
  * Date 2025.04.06 15:18
@@ -11,7 +13,8 @@ data class EternalReturnMatches(
     data class Match(
         // 装备
         // https://cdn.dak.gg/assets/er/game-assets/1.44.0/ItemIcon_115504.png
-        val equipment: List<Long>,
+        @JSONField(name = "equipment")
+        val equipmentVirtual: Any,
         // 装备背景
         // https://cdn.dak.gg/er/images/item/ico-itemgradebg-04.svg
         val equipmentGrade: List<Int>,
@@ -29,6 +32,12 @@ data class EternalReturnMatches(
         val playerDeaths: Int,
         val playerAssistant: Int,
         val monsterKill: Long,
+        // 这局之前的分数
+        val mmrBefore: Int,
+        // 这局之后的分数
+        val mmrAfter: Int,
+        // 这局加了/减了多少分
+        val mmrGain: Int,
         // 武器
         // https://er.dakgg.io/api/v1/data/masteries?hl=en
         val bestWeapon: Int,
@@ -99,7 +108,7 @@ data class EternalReturnMatches(
         val deathsPhaseThree: Long,
         val usedPairLoop: Long,
         val ccTimeToPlayer: Double,
-        val creditSource: Map<String, Double>,
+        val creditSource: Map<String, Double>?,
         val boughtInfusion: String,
         val itemTransferredConsole: List<Long>,
         val itemTransferredDrone: List<Long>,
@@ -118,7 +127,23 @@ data class EternalReturnMatches(
         val isLeavingBeforeCreditRevivalTerminate: Boolean,
         val mmrGainInGame: Long,
         val mmrLossEntryCost: Long,
-    )
+    ) {
+        /**
+         * 沟槽的dak.gg返回数据不一致
+         */
+        private inline fun <reified T> convertToList(value: Any?): List<T> {
+            return when (value) {
+                is List<*> -> value.mapNotNull { it as? T }
+                is Map<*, *> -> value.values.mapNotNull { it as? T }
+                else -> emptyList()
+            }
+        }
+
+        val equipment: List<Int>
+            get() {
+                return convertToList(equipmentVirtual)
+            }
+    }
 
 
     data class Meta(

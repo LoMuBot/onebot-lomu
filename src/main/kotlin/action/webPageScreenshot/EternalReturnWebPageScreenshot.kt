@@ -52,7 +52,7 @@ class EternalReturnWebPageScreenshot(
         url = MatcherData.replaceDollardName(url, "weapon", weapon)
         try {
             webPool.getWebPageScreenshot().screenshotSelector(url, path, ".contents") {
-                TimeUnit.SECONDS.sleep(4)
+                TimeUnit.SECONDS.sleep(3)
                 it.locator("div.title h3").evaluate(
                     """node => {
                                     node.innerHTML = node.innerHTML.replace(
@@ -64,6 +64,7 @@ class EternalReturnWebPageScreenshot(
             }
         } catch (e: Exception) {
             if (failed < 3) {
+                log.error { "页面截图:失败$failed 次 再次重试 $character" }
                 return webCharacterScreenshot(inputName, character, weapon, failed + 1)
             }
             return "重试次数过多 网络无法连接"
@@ -97,12 +98,14 @@ class EternalReturnWebPageScreenshot(
         val imgPath = PathUtils.getEternalReturnImagePath("routes/$routesId.png")
         val requestUrl = ROUTES_URL + routesId
 
-        val request = requestData.requestRetry(RequestController(Request.RequestDetailed().apply {
-            url = requestUrl
-            method = "GET"
-        }))
-        if (request?.status == 307) {
-            return "未找到该路线"
+        if (failed == 0) {
+            val request = requestData.requestRetry(RequestController(Request.RequestDetailed().apply {
+                url = requestUrl
+                method = "GET"
+            }))
+            if (request?.status == 307) {
+                return "未找到该路线"
+            }
         }
 
         try {
@@ -111,6 +114,7 @@ class EternalReturnWebPageScreenshot(
             }
         } catch (e: Exception) {
             if (failed < 3) {
+                log.error { "页面截图:失败$failed 次 再次重试 $routesId" }
                 return webRoutesPageScreenshot(routesId, failed + 1)
             }
             return "重试次数过多 网络无法连接"
@@ -143,6 +147,7 @@ class EternalReturnWebPageScreenshot(
             }, 1L, TimeUnit.DAYS) ?: returnMsg
         } catch (e: Exception) {
             if (failed < 3) {
+                log.error { "页面截图:失败$failed 次 再次重试 Statistics" }
                 return webCharacterStatisticsPageScreenshot(failed + 1)
             }
             return "重试次数过多 网络无法连接"

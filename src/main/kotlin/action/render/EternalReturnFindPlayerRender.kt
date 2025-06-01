@@ -3,13 +3,13 @@ package cn.luorenmu.action.render
 import action.commandProcess.eternalReturn.entity.EternalReturnCharacterById
 import action.commandProcess.eternalReturn.entity.EternalReturnSeasons
 import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfile
-import cn.hutool.http.HttpException
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.dto.EternalReturnRender
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.dto.EternalReturnRender.EternalReturnPlayerData
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.dto.EternalReturnRender.EternalReturnPlayerRecentPlay
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.matcher.EternalReturnMatches
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.tier.EternalReturnTiers
 import cn.luorenmu.action.request.EternalReturnRequestData
+import cn.luorenmu.common.extensions.getUrlIfIndexExists
 import cn.luorenmu.common.utils.FreeMarkerUtils
 import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.common.utils.RedisUtils
@@ -22,7 +22,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import java.text.DecimalFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
@@ -44,12 +43,13 @@ class EternalReturnFindPlayerRender(
 
     fun imageRenderGenerate(nickname: String): String {
         val pageRender = runBlocking { pageRender(nickname) }
+        val userNum = pageRender.userNum
         val parseData = FreeMarkerUtils.parseData("eternal_return_player.ftlh", pageRender)
-        val imgPath = PathUtils.getEternalReturnNicknameImagePath("render_$nickname")
+        val imgPath = PathUtils.getEternalReturnNicknameImagePath("render_$userNum")
         val returnMsg = MsgUtils.builder().img(imgPath).build()
-        redisUtils.setCache("ftlh:eternal_return_player_data_${nickname}", parseData, 5L, TimeUnit.MINUTES)
+        redisUtils.setCache("ftlh:eternal_return_player_data_${userNum}", parseData, 5L, TimeUnit.MINUTES)
         WkhtmltoimageUtils.convertHtmlToImage(
-            "http://localhost:$port/ftlh/eternal_return_player_data_${nickname}", imgPath, mapOf("zoom" to "2")
+            "http://localhost:$port/ftlh/eternal_return_player_data_${userNum}", imgPath, mapOf("zoom" to "1")
         )
         log.info { "$nickname 页面图片已生成" }
         return returnMsg
@@ -85,6 +85,7 @@ class EternalReturnFindPlayerRender(
         val playerSeasons = profile.playerSeasons
         val playerSeasonOverviews = profile.playerSeasonOverviews
         val recentPlays = mutableListOf<EternalReturnPlayerRecentPlay>()
+        val characterUseStats = mutableListOf<EternalReturnRender.EternalReturnCharacterUseStats>()
         var profileImageUrl: String? = null
         val eternalReturnPlayerData = EternalReturnPlayerData().apply {
             if (playerSeasons.isNotEmpty()) {
@@ -106,37 +107,22 @@ class EternalReturnFindPlayerRender(
 
                 playerSeasonOverviews?.let { seasonOverviews ->
                     //筛选出排位信息
-                    val df = DecimalFormat("#.##")
-                    val rankDf = DecimalFormat("#.#")
                     seasonOverviews.firstOrNull { it.matchingModeId == 3 }?.let { seasonOverview ->
                         play = seasonOverview.play
                         val playDouble = play.toDouble()
                         if (play != 0) {
-                            avgTk = df.format(seasonOverview.teamKill / playDouble).toString()
-                            avgKill = df.format(seasonOverview.playerKill / playDouble).toString()
+                            avgTk = String.format("%.2f", seasonOverview.teamKill / playDouble)
+                            avgKill = String.format("%.2f", seasonOverview.playerKill / playDouble)
+                            avgAssists = String.format("%.2f", seasonOverview.playerAssistant / playDouble)
+                            avgDmg = (seasonOverview.damageToPlayer / play).toString()
+                            avgRank = "#" + String.format("%.2f", seasonOverview.place / playDouble)
 
-                            avgAssists = df.format(seasonOverview.playerAssistant / playDouble).toString()
-                            avgDmg = "${seasonOverview.damageToPlayer / play}"
-                            avgRank = "#${df.format(seasonOverview.place / playDouble)}"
-                            top1 = "${rankDf.format((seasonOverview.win / playDouble) * 100)}%"
-                            top2 = "${rankDf.format((seasonOverview.top2 / playDouble) * 100)}%"
-                            top3 = "${rankDf.format((seasonOverview.top3 / playDouble) * 100)}%"
+                            top1 = String.format("%.1f", (seasonOverview.win / playDouble) * 100) + "%"
+                            top2 = String.format("%.1f", (seasonOverview.top2 / playDouble) * 100) + "%"
+                            top3 = String.format("%.1f", (seasonOverview.top3 / playDouble) * 100) + "%"
                         }
                     }
-                    // 排名
-                    seasonOverviews.firstOrNull { it.matchingModeId == 3 && it.rank != null }?.let { seasonOverview ->
-                        val server = seasonOverview.serverStats.first().key
-                        // 在Seoul服务器.共31313131人-排名第123123
-                        seasonOverview.rank?.in1000?.let { in1000 ->
-                            rpRank = "全球服务器-${in1000.rank}"
-                            rpLocalRank = "${server}服务器.${seasonOverview.rank?.global?.rank}"
-                        } ?: run {
-                            rpLocalRank =
-                                "${server}服务器.共${seasonOverview.rank?.local?.rankSize}-${seasonOverview.rank?.local?.rank}"
-                            rpRank =
-                                "全球服务器.共${seasonOverview.rank?.global?.rankSize}-${seasonOverview.rank?.global?.rank}"
-                        }
-                    }
+
 
                     //主页图
                     profileImageUrl = seasonOverviews.firstOrNull()?.characterStats?.firstOrNull()?.let { stats ->
@@ -147,8 +133,9 @@ class EternalReturnFindPlayerRender(
                         )
                     }
 
-                    //近期一起玩的人
-                    seasonOverviews.firstOrNull { it.duoStats.isNotEmpty() }?.let { seasonOverview ->
+
+                    seasonOverviews.firstOrNull()?.let { seasonOverview ->
+                        //近期一起玩的人
                         seasonOverview.duoStats.forEach { duoStat ->
                             recentPlays.add(EternalReturnPlayerRecentPlay().apply {
                                 imageWrapperUrl = getCharacterImgUrl(
@@ -159,9 +146,37 @@ class EternalReturnFindPlayerRender(
                                 val playDouble = this.plays.toDouble()
                                 this.nickname = duoStat.nickname
 
-                                this.winRate = "${rankDf.format((duoStat.win / playDouble) * 100)}%"
-                                this.avgRank = "#${df.format(duoStat.place / playDouble)}"
+                                this.winRate = "${String.format("%.1f", (duoStat.win / playDouble) * 100)}%"
+                                this.avgRank = "#${String.format("%.1f", duoStat.place / playDouble)}"
                             })
+                        }
+                        // 常用排位角色
+                        seasonOverview.characterStats.take(10).forEach { characterState ->
+                            val character = eternalReturnRequestData.getCharacterInfo(characterState.key.toString())
+                            characterUseStats.add(
+                                EternalReturnRender.EternalReturnCharacterUseStats(
+                                    characterName = character.name,
+                                    imgUrl = getCharacterImgUrl(
+                                        EternalReturnCharacterById.CharacterImgUrlType.CharProfileImageUrl,
+                                        characterState.key.toInt()
+                                    ),
+                                    winRate = "${
+                                        String.format(
+                                            "%.1f",
+                                            if (characterState.win == 0L) 0.0 else characterState.win / characterState.play.toDouble() * 100
+                                        )
+                                    }%",
+                                    characterPlay = characterState.play,
+                                    getRP = characterState.mmrGain,
+                                    avgRank = "#${
+                                        String.format(
+                                            "%.1f",
+                                            characterState.place / characterState.play.toDouble()
+                                        )
+                                    }",
+                                    avgDmg = if (characterState.damageToPlayer == 0) 0 else characterState.damageToPlayer / characterState.play,
+                                )
+                            )
                         }
                     }
                 }
@@ -176,12 +191,14 @@ class EternalReturnFindPlayerRender(
         }
 
         return EternalReturnRender(
+            userNum = player.userNum,
             nickName = player.name,
             level = player.accountLevel,
             eternalReturnPlayerData,
             profileImageUrl,
             recentPlayContent = recentPlayContent.toString(),
-            season = season?.name ?: "未知赛季"
+            season = season?.name ?: "未知赛季",
+            characterUseStats = characterUseStats
         )
     }
 
@@ -191,13 +208,16 @@ class EternalReturnFindPlayerRender(
     ): String {
         val matcherData = EternalReturnRender.EternalReturnPlayerMatchData().apply {
             type = if (match.matchingMode == 3) "排位" else "匹配"
-            rank = match.gameRank
+            rank = if (match.escapeState == 3.toLong()) 99 else match.gameRank
             gameId = match.gameId.toString()
+            serverName = match.serverName
             version = "1.${match.versionMajor}.${match.versionMinor}"
             kill = match.playerKill
             assist = match.playerAssistant
             dmg = match.damageToPlayer
             tk = match.teamKill
+            rp = match.mmrAfter
+            rpChange = match.mmrGain
             kda = if (match.playerDeaths == 0) kill.toDouble() else kill.toDouble() / match.playerDeaths
             routeId = if (match.routeIdOfStart != 0L) match.routeIdOfStart.toString() else "Private"
             val date = ZonedDateTime.parse(match.startDtm, dateFormatter)
@@ -208,17 +228,20 @@ class EternalReturnFindPlayerRender(
             traitSkillUrl = getTraitSkillImgUrl(match.traitFirstCore)
             traitSkillGroupUrl = getTraitSkillImgUrl(match.traitFirstCore, true)
 
-            itemBg1Url = getItemImgBgUrl(match.equipmentGrade[0])
-            itemBg2Url = getItemImgBgUrl(match.equipmentGrade[1])
-            itemBg3Url = getItemImgBgUrl(match.equipmentGrade[2])
-            itemBg4Url = getItemImgBgUrl(match.equipmentGrade[3])
-            itemBg5Url = getItemImgBgUrl(match.equipmentGrade[4])
+            itemBg1Url = match.equipmentGrade.getUrlIfIndexExists(0) { getItemImgBgUrl(match.equipmentGrade[it]) }
+            itemBg2Url = match.equipmentGrade.getUrlIfIndexExists(1) { getItemImgBgUrl(match.equipmentGrade[it]) }
+            itemBg3Url = match.equipmentGrade.getUrlIfIndexExists(2) { getItemImgBgUrl(match.equipmentGrade[it]) }
+            itemBg4Url = match.equipmentGrade.getUrlIfIndexExists(3) { getItemImgBgUrl(match.equipmentGrade[it]) }
+            itemBg5Url = match.equipmentGrade.getUrlIfIndexExists(4) { getItemImgBgUrl(match.equipmentGrade[it]) }
 
-            item1Url = getItemImgUrl(match.equipment[0])
-            item2Url = getItemImgUrl(match.equipment[1])
-            item3Url = getItemImgUrl(match.equipment[2])
-            item4Url = getItemImgUrl(match.equipment[3])
-            item5Url = getItemImgUrl(match.equipment[4])
+            val equipment = match.equipment.map { it.toLong() }.toList()
+            item1Url = match.equipment.getUrlIfIndexExists(0) { getItemImgUrl(equipment[it]) }
+            item2Url = match.equipment.getUrlIfIndexExists(1) { getItemImgUrl(equipment[it]) }
+            item3Url = match.equipment.getUrlIfIndexExists(2) { getItemImgUrl(equipment[it]) }
+            item4Url = match.equipment.getUrlIfIndexExists(3) { getItemImgUrl(equipment[it]) }
+            item5Url = match.equipment.getUrlIfIndexExists(4) { getItemImgUrl(equipment[it]) }
+
+
             characterAvatarUrl =
                 getCharacterImgUrl(
                     EternalReturnCharacterById.CharacterImgUrlType.CharProfileImageUrl,
@@ -226,7 +249,7 @@ class EternalReturnFindPlayerRender(
                     match.skinCode
                 )
             characterName =
-                eternalReturnRequestData.getCharacterInfo(match.characterNum.toString())?.name ?: "未知:("
+                eternalReturnRequestData.getCharacterInfo(match.characterNum.toString()).name
             weaponUrl = getWeaponImgUrl(match.bestWeapon)
         }
         val parseData = FreeMarkerUtils.parseData("eternal_return_war_record.ftlh", matcherData)
@@ -234,6 +257,7 @@ class EternalReturnFindPlayerRender(
 
         return FreeMarkerUtils.parseData(
             "eternal_return_war_record_small.ftlh",
+            //小于三 使用不同的方式渲染
             mapOf("content" to parseData, "top" to if (matcherData.rank < 3) matcherData.rank else 3)
         )
 
