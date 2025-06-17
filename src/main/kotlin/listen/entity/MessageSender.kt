@@ -35,7 +35,7 @@ enum class BotRole(val role: String, val roleNumber: Int) {
 
     override fun toString(): String {
         return when (this) {
-            OWNER -> "¿?"
+            OWNER -> "owner"
             ADMIN -> "Bot管理者"
             GroupAdmin -> "群管理员"
             GroupOwner -> "群主"

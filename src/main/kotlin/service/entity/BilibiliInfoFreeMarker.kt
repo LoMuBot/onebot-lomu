@@ -11,7 +11,6 @@ data class BilibiliInfoFreeMarker(
     @JSONField(name = "video_bg")
     val videoBg: String,
     val avatar: String,
-    val port: String,
     @JSONField(name = "up_name")
     val upName: String,
     val title: String,

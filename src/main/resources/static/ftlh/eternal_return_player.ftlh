@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <#include "eternal_return_player_style.ftlh">
+    <link rel="stylesheet" href="/css/eternal_return_record.css">
 </head>
 
 <body>
@@ -141,7 +141,24 @@
                     </tr>
                     </thead>
                     <tbody>
-                    ${recentPlayContent?no_esc}
+                    <#list recentPlayer as recentPlayers>
+                        <tr>
+                            <td class="character">
+                                <div class="image-wrapper"><img
+                                            src="${recentPlayer.imageWrapperUrl}"
+                                            alt=""></div>
+                                <div class="info">${recentPlayer.nickname}
+                                    <div class="plays">${recentPlayer.plays} 游戏</div>
+                                </div>
+                            </td>
+                            <td class="win-rate">
+                                ${recentPlayer.winRate}
+                            </td>
+                            <td class="avg-rank">
+                                ${recentPlayer.avgRank}
+                            </td>
+                        </tr>
+                    </#list>
                     </tbody>
                 </table>
             </section>

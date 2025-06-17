@@ -8,6 +8,8 @@ import cn.luorenmu.common.utils.RedisUtils
 import cn.luorenmu.exception.LoMuBotException
 import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.listen.entity.MessageType
+import cn.luorenmu.repository.CommandUseHistoryRepository
+import cn.luorenmu.repository.entity.CommandUseHistory
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.core.BotContainer
@@ -25,6 +27,7 @@ class OneBotCommandAllocator(
     applicationContext: ApplicationContext,
     private val bot: BotContainer,
     private val redisUtils: RedisUtils,
+    private val commandUseHistoryRepository: CommandUseHistoryRepository,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -71,6 +74,12 @@ class OneBotCommandAllocator(
         commandList.firstOrNull { isCurrentCommand(botId, messageSender.message, it) }
             ?.let { oneBotCommand ->
                 try {
+                    commandUseHistoryRepository.save(
+                        CommandUseHistory(
+                            senderInfo = messageSender,
+                            commandName = oneBotCommand.commandName()
+                        )
+                    )
                     send(
                         oneBotCommand.process(messageSender),
                         messageSender.groupOrSenderId,

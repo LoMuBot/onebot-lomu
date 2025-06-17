@@ -88,7 +88,7 @@ class EternalReturnWebPageScreenshot(
         webPool.getWebPageScreenshot().screenshotSelector(
             url,
             path, "#content-container"
-        ) { TimeUnit.SECONDS.sleep(6) }
+        ) { TimeUnit.SECONDS.sleep(3) }
 
         log.info { "已完成的截图: $nickname" }
         return returnMsg
@@ -135,7 +135,7 @@ class EternalReturnWebPageScreenshot(
                         "#content-container",
                         WaitUntilState.DOMCONTENTLOADED
                     ) { page, box ->
-                        TimeUnit.SECONDS.sleep(6)
+                        TimeUnit.SECONDS.sleep(5)
                         val scrollHeight = page.evaluate("document.body.scrollHeight").toString().toDouble()
                         page.screenshot(
                             Page.ScreenshotOptions().setPath(Paths.get(imgPath))

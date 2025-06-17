@@ -1,0 +1,28 @@
+{
+  "id": "7a8e4bb9-acfc-4908-8aa1-f5eda234dad8",
+  "object": "chat.completion",
+  "created": 1742966836,
+  "model": "deepseek-chat",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "```json\n{\n  \"keywords\": [\"好下头\"],\n  \"reply\": \"从群名片到拍一拍都虾头\",\n  \"analysis\": {\n    \"position\": \"negative\",\n    \"sentiment\": \"disapproval\"\n  }\n}\n```"
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 217,
+    "completion_tokens": 54,
+    "total_tokens": 271,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 217
+  },
+  "system_fingerprint": "fp_3d5141a69a_prod0225"
+}

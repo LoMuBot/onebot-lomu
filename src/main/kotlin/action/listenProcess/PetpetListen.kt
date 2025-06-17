@@ -118,7 +118,6 @@ open class PetpetListen(
         }
 
         // 当前消息为to为at的目标或自己
-
         messageSender.message.getAtQQ(0)?.let {
             return qqRequestData.downloadQQAvatar(it)
         }

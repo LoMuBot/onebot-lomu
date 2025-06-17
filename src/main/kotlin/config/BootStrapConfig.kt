@@ -2,8 +2,8 @@ package cn.luorenmu.config
 
 import cn.hutool.core.io.resource.ResourceUtil
 import cn.luorenmu.MainApplication
+import cn.luorenmu.action.commandProcess.botCommand.CharacterNameUpdateCommand
 import cn.luorenmu.common.utils.JsonObjectUtils
-import cn.luorenmu.config.entity.CharacterNickName
 import cn.luorenmu.config.entity.CharacterNickNameList
 import cn.luorenmu.core.WebPool
 import cn.luorenmu.file.InitializeFile
@@ -13,7 +13,6 @@ import com.alibaba.fastjson2.to
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.io.ClassPathResource
 import java.io.File
 
 /**
@@ -73,18 +72,7 @@ class BootStrapConfig {
 
     @Bean
     fun getCharacterNickName(): CharacterNickNameList {
-        val classPathResource = ClassPathResource("static/character.txt")
-        val characterNickNames = mutableListOf<CharacterNickName>()
-        classPathResource.inputStream.bufferedReader().forEachLine {
-            if (it.isNotBlank()) {
-                val list = it.split(":").toMutableList()
-                list.removeIf { l -> l.isBlank() }
-                val first = list.removeFirst()
-                characterNickNames.add(CharacterNickName(first, list))
-            }
-        }
-        log.info { characterNickNames }
-        return CharacterNickNameList(characterNickNames)
+        return CharacterNameUpdateCommand.getCharacterNickName()
     }
 
 }

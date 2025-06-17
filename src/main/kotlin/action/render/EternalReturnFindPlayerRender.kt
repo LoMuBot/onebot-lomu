@@ -3,6 +3,7 @@ package cn.luorenmu.action.render
 import action.commandProcess.eternalReturn.entity.EternalReturnCharacterById
 import action.commandProcess.eternalReturn.entity.EternalReturnSeasons
 import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfile
+import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfileStat
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.dto.EternalReturnRender
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.dto.EternalReturnRender.EternalReturnPlayerData
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.dto.EternalReturnRender.EternalReturnPlayerRecentPlay
@@ -57,7 +58,9 @@ class EternalReturnFindPlayerRender(
 
     suspend fun pageRender(nickname: String): EternalReturnRender {
         val currentSeason = eternalReturnRequestData.currentSeason()?.currentSeason
-        val currentSeasonKey = currentSeason?.key ?: "SEASON_16"
+        val currentSeasonKey = currentSeason?.key ?: run {
+            throw LoMuBotException("无法获取当前赛季")
+        }
         val profile = eternalReturnRequestData.profile(nickname, currentSeasonKey)
         val tiers = eternalReturnRequestData.tiers()
         // 最新活跃赛季 由于过去赛季的api数据不同 因此暂时不支持处理
@@ -105,8 +108,9 @@ class EternalReturnFindPlayerRender(
 
                 }
 
+
+                //筛选出排位信息
                 playerSeasonOverviews?.let { seasonOverviews ->
-                    //筛选出排位信息
                     seasonOverviews.firstOrNull { it.matchingModeId == 3 }?.let { seasonOverview ->
                         play = seasonOverview.play
                         val playDouble = play.toDouble()
@@ -116,7 +120,6 @@ class EternalReturnFindPlayerRender(
                             avgAssists = String.format("%.2f", seasonOverview.playerAssistant / playDouble)
                             avgDmg = (seasonOverview.damageToPlayer / play).toString()
                             avgRank = "#" + String.format("%.2f", seasonOverview.place / playDouble)
-
                             top1 = String.format("%.1f", (seasonOverview.win / playDouble) * 100) + "%"
                             top2 = String.format("%.1f", (seasonOverview.top2 / playDouble) * 100) + "%"
                             top3 = String.format("%.1f", (seasonOverview.top3 / playDouble) * 100) + "%"
@@ -125,17 +128,19 @@ class EternalReturnFindPlayerRender(
 
 
                     //主页图
-                    profileImageUrl = seasonOverviews.firstOrNull()?.characterStats?.firstOrNull()?.let { stats ->
-                        getCharacterImgUrl(
-                            EternalReturnCharacterById.CharacterImgUrlType.ResultImageUrl,
-                            stats.key.toInt(),
-                            stats.skinStats?.firstOrNull()?.key ?: -1L
-                        )
-                    }
+                    profileImageUrl = seasonOverviews.firstOrNull()?.characterStats?.maxByOrNull(
+                        EternalReturnProfileStat::play
+                    )
+                        ?.let { stats ->
+                            getCharacterImgUrl(
+                                EternalReturnCharacterById.CharacterImgUrlType.ResultImageUrl,
+                                stats.key.toInt(),
+                                stats.skinStats?.maxByOrNull(EternalReturnProfileStat::play)?.key ?: -1L
+                            )
+                        }
 
-
-                    seasonOverviews.firstOrNull()?.let { seasonOverview ->
-                        //近期一起玩的人
+                    //近期一起玩的人
+                    seasonOverviews.firstOrNull { it.matchingModeId == 0 }?.let { seasonOverview ->
                         seasonOverview.duoStats.forEach { duoStat ->
                             recentPlays.add(EternalReturnPlayerRecentPlay().apply {
                                 imageWrapperUrl = getCharacterImgUrl(
@@ -150,45 +155,41 @@ class EternalReturnFindPlayerRender(
                                 this.avgRank = "#${String.format("%.1f", duoStat.place / playDouble)}"
                             })
                         }
-                        // 常用排位角色
-                        seasonOverview.characterStats.take(10).forEach { characterState ->
-                            val character = eternalReturnRequestData.getCharacterInfo(characterState.key.toString())
-                            characterUseStats.add(
-                                EternalReturnRender.EternalReturnCharacterUseStats(
-                                    characterName = character.name,
-                                    imgUrl = getCharacterImgUrl(
-                                        EternalReturnCharacterById.CharacterImgUrlType.CharProfileImageUrl,
-                                        characterState.key.toInt()
-                                    ),
-                                    winRate = "${
-                                        String.format(
-                                            "%.1f",
-                                            if (characterState.win == 0L) 0.0 else characterState.win / characterState.play.toDouble() * 100
-                                        )
-                                    }%",
-                                    characterPlay = characterState.play,
-                                    getRP = characterState.mmrGain,
-                                    avgRank = "#${
-                                        String.format(
-                                            "%.1f",
-                                            characterState.place / characterState.play.toDouble()
-                                        )
-                                    }",
-                                    avgDmg = if (characterState.damageToPlayer == 0) 0 else characterState.damageToPlayer / characterState.play,
-                                )
+                    }
+
+                    // 常用排位角色
+                    seasonOverviews.firstOrNull { it.matchingModeId == 3 }?.characterStats?.forEach { characterState ->
+                        val character = eternalReturnRequestData.getCharacterInfo(characterState.key.toString())
+                        characterUseStats.add(
+                            EternalReturnRender.EternalReturnCharacterUseStats(
+                                characterName = character.name,
+                                imgUrl = getCharacterImgUrl(
+                                    EternalReturnCharacterById.CharacterImgUrlType.CharProfileImageUrl,
+                                    characterState.key.toInt()
+                                ),
+                                winRate = "${
+                                    String.format(
+                                        "%.1f",
+                                        if (characterState.win == 0L) 0.0 else characterState.win / characterState.play.toDouble() * 100
+                                    )
+                                }%",
+                                characterPlay = characterState.play,
+                                getRP = characterState.mmrGain,
+                                avgRank = "#${
+                                    String.format(
+                                        "%.1f",
+                                        characterState.place / characterState.play.toDouble()
+                                    )
+                                }",
+                                avgDmg = if (characterState.damageToPlayer == 0) 0 else characterState.damageToPlayer / characterState.play,
                             )
-                        }
+                        )
                     }
                 }
             }
         }
 
-        val recentPlayContent = StringBuilder()
-        if (recentPlays.isNotEmpty()) {
-            for (recentPlay in recentPlays) {
-                recentPlayContent.append(FreeMarkerUtils.parseData("eternal_return_recent_play.ftlh", recentPlay))
-            }
-        }
+
 
         return EternalReturnRender(
             userNum = player.userNum,
@@ -196,7 +197,7 @@ class EternalReturnFindPlayerRender(
             level = player.accountLevel,
             eternalReturnPlayerData,
             profileImageUrl,
-            recentPlayContent = recentPlayContent.toString(),
+            recentPlayers = recentPlays,
             season = season?.name ?: "未知赛季",
             characterUseStats = characterUseStats
         )
@@ -286,37 +287,37 @@ class EternalReturnFindPlayerRender(
     private fun getCharacterImgUrl(type: EternalReturnCharacterById.CharacterImgUrlType, id: Int, skin: Long = -1) =
         run {
             imageService.getEternalReturnCharacterImage(type, id, skin)
-            "http://localhost:$port/images/eternal_return/character/$type/$id/$skin"
+            "/images/eternal_return/character/$type/$id/$skin"
         }
 
     private fun getItemImgUrl(id: Long) = run {
         imageService.getEternalReturnItemImage(id)
-        "http://localhost:$port/images/eternal_return/item/${id}"
+        "/images/eternal_return/item/${id}"
     }
 
     private fun getTierImgUrl(id: Int) = run {
         imageService.getTierImage(id)
-        "http://localhost:$port/images/eternal_return/tier/${id}"
+        "/images/eternal_return/tier/${id}"
     }
 
     private fun getItemImgBgUrl(id: Int) = run {
         imageService.getEternalReturnItemBgImage(id)
-        "http://localhost:$port/images/eternal_return/item_bg/${id}"
+        "/images/eternal_return/item_bg/${id}"
     }
 
     private fun getTraitSkillImgUrl(id: Long, `is`: Boolean = false) = run {
         imageService.getEternalReturnTraitSkillImage(id)
-        "http://localhost:$port/images/eternal_return/trait_skill/${id}?is=${`is`}"
+        "/images/eternal_return/trait_skill/${id}?is=${`is`}"
     }
 
     private fun getTacticalSkillImgUrl(id: Long) = run {
         imageService.getEternalReturnTacticalSkillImage(id)
-        "http://localhost:$port/images/eternal_return/tactical_skill/${id}"
+        "/images/eternal_return/tactical_skill/${id}"
     }
 
     private fun getWeaponImgUrl(id: Int) = run {
         imageService.getEternalReturnWeaponImage(id)
-        "http://localhost:$port/images/eternal_return/weapon/${id}"
+        "/images/eternal_return/weapon/${id}"
     }
 
 }

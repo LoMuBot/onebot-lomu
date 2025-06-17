@@ -11,11 +11,12 @@ data class EternalReturnRender(
     var level: Int = 1,
     var data: EternalReturnPlayerData,
     var profileImageUrl: String? = null,
-    var recentPlayContent: String = "",
+    var recentPlayers: MutableList<EternalReturnPlayerRecentPlay>,
     var characterUseStats: MutableList<EternalReturnCharacterUseStats>,
     var rightContent: String = "",
     var season: String,
 ) {
+
 
     data class EternalReturnCharacterUseStats(
         val imgUrl: String,
@@ -53,7 +54,7 @@ data class EternalReturnRender(
 
 
     data class EternalReturnPlayerMatchData(
-        var serverName:String = "",
+        var serverName: String = "",
         var nickName: String = "螺母",
         var characterName: String = "螺母",
         var rank: Int = 8,

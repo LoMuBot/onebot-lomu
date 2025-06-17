@@ -41,7 +41,7 @@ class BilibiliEventListen(
 ) {
     private val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
     private val bilibiliVideoShortLink = "((https://bili2233.cn/([a-zA-Z0-9]+))|(https://b23.tv/([a-zA-Z0-9]+)))"
-    private val prefixImagesUrl = "http://localhost:$port/local_images/bilibili/"
+    private val prefixImagesUrl = "/local_images/bilibili/"
 
     fun process(bot: Bot, sender: MessageSender) {
         val groupId = sender.groupOrSenderId
@@ -135,7 +135,6 @@ class BilibiliEventListen(
                 BilibiliInfoFreeMarker(
                     "$prefixImagesUrl$localPic",
                     "$prefixImagesUrl$localAvatarName",
-                    port,
                     info.owner.name,
                     info.title,
                     info.desc

@@ -93,7 +93,7 @@
         }
 
         body {
-            background-image: url("http://127.0.0.1:${port}/images/bilibili_bg.png");
+            background-image: url("/images/bilibili_bg.png");
             background-size: cover;
             background-repeat: no-repeat;
         }

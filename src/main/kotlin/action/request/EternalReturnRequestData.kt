@@ -357,7 +357,7 @@ class EternalReturnRequestData(
         val versionRegex = "(\\d+\\.\\d+\\.\\d+)".toRegex()
         val characterInfo = getCharacterInfo(id.toString())
         val eternalReturnDataImagePath =
-            PathUtils.getEternalReturnDataImagePath("ico/${characterImgUrlType.type}/${id}.png")
+            PathUtils.getEternalReturnDataImagePath("ico/${characterImgUrlType.type}/${id}/${skin}.png")
         if (!File(eternalReturnDataImagePath).exists()) {
             characterInfo.let {
                 val url: String = if (skin != -1L) {

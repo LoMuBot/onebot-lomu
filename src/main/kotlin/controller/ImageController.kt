@@ -21,16 +21,8 @@ import java.io.FileReader
  */
 @Controller
 class ImageController(
-    private val resourceLoader: ResourceLoader,
     private val imageService: ImageService,
 ) {
-
-    @GetMapping("/images/{filename}", produces = [MediaType.IMAGE_PNG_VALUE])
-    fun getImage(@PathVariable filename: String): ResponseEntity<Resource> {
-        val resource = resourceLoader.getResource("classpath:static/images/$filename")
-        return ResponseEntity.ok(resource)
-    }
-
 
 
     @GetMapping("/local_images/{dir}/{filename}", produces = [MediaType.IMAGE_PNG_VALUE])

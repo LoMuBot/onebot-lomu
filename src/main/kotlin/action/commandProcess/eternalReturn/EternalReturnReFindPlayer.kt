@@ -43,7 +43,7 @@ class EternalReturnReFindPlayer(
         return true
     }
 
-    override fun command(): Regex = Regex("^((玩家|战绩)查询)|(search)")
+    override fun command(): Regex = Regex("^(((玩家|战绩)查询)|(search))")
 
     override fun needAtBot(): Boolean = false
 }

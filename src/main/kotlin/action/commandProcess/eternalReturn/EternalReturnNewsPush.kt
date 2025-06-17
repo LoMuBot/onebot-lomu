@@ -16,7 +16,7 @@ class EternalReturnNewsPush(
 ) : CommandProcess {
     override fun process(sender: MessageSender): String? {
         if (sender.role.roleNumber < BotRole.GroupAdmin.roleNumber) {
-            return "你没有权限使用这个命令 该命令至少需要群管理员权限 你的权限为"
+            return "你没有权限使用这个命令 该命令至少需要群管理员权限"
         }
         return botCommandControl.changeCommandState(commandName(), sender)
     }

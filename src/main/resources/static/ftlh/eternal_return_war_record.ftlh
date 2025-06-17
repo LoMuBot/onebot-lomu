@@ -1,6 +1,6 @@
 <div class="war_record1">
     <div class="war_rank">
-        <div><#if rank == 99>懦夫<#else>#${rank}</#if></div>
+        <#if rank == 99> <div>懦夫</div><#else><div>#${rank}</div></#if>
         <div>${type}</div>
         <div>${dateHour}</div>
         <div>${dateMonth}</div>
