@@ -64,14 +64,14 @@ class EternalReturnFindPlayer(
 
 
     override fun commandName(): String {
-        return "eternalReturnFindPlayers"
+        return "网页查询玩家"
     }
 
     override fun state(id: Long): Boolean {
         return true
     }
 
-    override fun command(): Regex = Regex("^((查詢(玩家|戰績))|((玩家|戰績)查詢)|(查询(玩家|战绩)))")
+    override fun command(): Regex = Regex("^网页查询")
 
     override fun needAtBot(): Boolean = false
 }

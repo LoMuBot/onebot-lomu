@@ -4,6 +4,7 @@ import cn.luorenmu.action.commandProcess.botCommand.BilibiliEventListenCommand
 import cn.luorenmu.action.request.BilibiliRequestData
 import cn.luorenmu.action.request.RequestData
 import cn.luorenmu.action.request.entiy.bilibili.BilibiliVideoInfoData
+import cn.luorenmu.action.request.entiy.bilibili.BilibiliVideoInfoStreamData
 import cn.luorenmu.common.extensions.sendGroupMsg
 import cn.luorenmu.common.extensions.sendGroupMsgLimit
 import cn.luorenmu.common.utils.*
@@ -18,6 +19,7 @@ import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.toJSONString
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.File
@@ -39,10 +41,10 @@ class BilibiliEventListen(
     @Value("\${server.port}")
     private val port: String,
 ) {
-    private val bilibiliVideoLongLink = "BV[a-zA-Z0-9]+"
+    private val bilibiliVideoLongLink = "BV1[0-9a-zA-Z]{9}"
     private val bilibiliVideoShortLink = "((https://bili2233.cn/([a-zA-Z0-9]+))|(https://b23.tv/([a-zA-Z0-9]+)))"
     private val prefixImagesUrl = "/local_images/bilibili/"
-
+    private val log = KotlinLogging.logger { }
     fun process(bot: Bot, sender: MessageSender) {
         val groupId = sender.groupOrSenderId
         val message = sender.message
@@ -53,6 +55,7 @@ class BilibiliEventListen(
         findBilibiliLinkBvid(correctMsg)?.let { bvid ->
             // 视频信息
             val info = bilibiliRequestData.info(bvid) ?: run {
+                log.info { "视频信息获取失败 message -> $message" }
                 bot.sendGroupMsg(groupId, "视频信息获取失败")
                 return
             }
@@ -76,40 +79,50 @@ class BilibiliEventListen(
                 }
 
             }
-            val videoInfoStr =
-                MsgUtils.builder().img(getVideoInfoImage(info)).text("https://www.bilibili.com/video/$bvid").build()
-            bot.sendGroupMsgLimit(
-                groupId,
-                videoInfoStr
-            )
+
 
             // 下载视频并发送
             bilibiliRequestData.bvidToCid(bvid)?.let { videoStreamInfo ->
-                downloadVideo(bvid, videoStreamInfo.cid, videoPath, limitTime)?.let { success ->
-                    if (success) {
-                        bilibiliVideoRepository.save(
-                            BilibiliVideo(
-                                null,
-                                bvid,
-                                videoPath,
-                                videoPathCQ,
-                                videoInfoStr
-                            )
-                        )
-                        bot.sendGroupMsgLimit(groupId, videoPathCQ)
-                    } else {
-                        bilibiliVideoRepository.save(
-                            BilibiliVideo(
-                                null,
-                                bvid,
-                                null,
-                                null,
-                                videoInfoStr
-                            )
-                        )
+                val videoInfos = bilibiliRequestData.getVideoInfo(bvid, videoStreamInfo.cid)
+                videoInfos?.let {
+                    val minute = videoInfos.timelength / 1000 / 60
+                    val suffixMessage = if (minute > limitTime) "视频过长 不发送" else "视频准备发送中"
+                    val videoInfoStr =
+                        MsgUtils.builder().reply(sender.messageId).img(getVideoInfoImage(info)).text(suffixMessage)
+                            .build()
+                    bot.sendGroupMsgLimit(
+                        groupId,
+                        videoInfoStr
+                    )
+                    if (minute > limitTime){
+                        return
                     }
-                } ?: run {
-                    bot.sendGroupMsg(groupId, "视频下载失败")
+                    downloadVideo(videoInfos, videoPath)?.let { success ->
+                        if (success) {
+                            bilibiliVideoRepository.save(
+                                BilibiliVideo(
+                                    null,
+                                    bvid,
+                                    videoPath,
+                                    videoPathCQ,
+                                    videoInfoStr
+                                )
+                            )
+                            bot.sendGroupMsgLimit(groupId, videoPathCQ)
+                        } else {
+                            bilibiliVideoRepository.save(
+                                BilibiliVideo(
+                                    null,
+                                    bvid,
+                                    null,
+                                    null,
+                                    videoInfoStr
+                                )
+                            )
+                        }
+                    } ?: run {
+                        bot.sendGroupMsg(groupId, "视频解析失败")
+                    }
                 }
             }
         }
@@ -176,13 +189,11 @@ class BilibiliEventListen(
      *  @param outputPath video save local path need file name and video type (default type is flv)
      *  @return null if video download failed  else false video too large (limit length $minute minute)
      */
-    private fun downloadVideo(bvid: String, cid: Long, outputPath: String, limitTime: Int = 5): Boolean? {
-        val videoInfos = bilibiliRequestData.getVideoInfo(bvid, cid)
-        videoInfos?.let {
-            val minute = videoInfos.timelength / 1000 / 60
-            if (minute > limitTime) {
-                return false
-            }
+    private fun downloadVideo(
+        videoInfos: BilibiliVideoInfoStreamData,
+        outputPath: String,
+    ): Boolean? {
+        videoInfos.let {
             videoInfos.durl.firstOrNull()?.let { videoInfo ->
                 if (bilibiliRequestData.downloadVideo(videoInfo.url, outputPath)) {
                     return true

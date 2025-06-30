@@ -6,6 +6,7 @@ import cn.luorenmu.file.ReadWriteFile
 import cn.luorenmu.request.RequestController
 import com.alibaba.fastjson2.to
 import org.springframework.stereotype.Component
+import kotlin.math.log
 
 /**
  * @author LoMu
@@ -58,8 +59,13 @@ class BilibiliRequestData {
         requestController.replaceUrl("bvid", bvid)
         val resp = requestController.request()
         resp?.let {
-            val result = it.body().to<BilibiliVideoInfoResponse>()
-            return result.data.firstOrNull()
+            try {
+                val result = it.body().to<BilibiliVideoInfoResponse>()
+                return result.data.firstOrNull()
+            } catch (e: Exception) {
+                return null
+            }
+
         }
         return null
     }

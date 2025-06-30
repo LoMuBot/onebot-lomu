@@ -15,7 +15,7 @@ class WebPool(size: Int, headless: Boolean = true) {
         }
         item
     }
-    val index = AtomicInteger(0)
+    private val index = AtomicInteger(0)
 
     fun getWebPageScreenshot(): WebPageScreenshot {
         val idx =  index.getAndUpdate { (it + 1) %  webPageScreenshots.size }

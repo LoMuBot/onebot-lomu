@@ -124,3 +124,5 @@ fun String.isCQJson(): Boolean {
 fun String.isCQRecord(): Boolean {
     return this.contains("[CQ:record")
 }
+
+

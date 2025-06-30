@@ -10,6 +10,7 @@ import cn.luorenmu.listen.entity.MessageSender
 import cn.luorenmu.listen.entity.MessageType
 import cn.luorenmu.repository.CommandUseHistoryRepository
 import cn.luorenmu.repository.entity.CommandUseHistory
+import com.github.houbb.opencc4j.util.ZhConverterUtil
 import com.mikuac.shiro.common.utils.MsgUtils
 import com.mikuac.shiro.core.Bot
 import com.mikuac.shiro.core.BotContainer
@@ -53,7 +54,8 @@ class OneBotCommandAllocator(
                 removeAtAndEmptyCharacterCommand.replace("\\[CQ:reply,id=\\d+]".toRegex(), "")
         }
 
-        return removeAtAndEmptyCharacterCommand.contains(oneBotCommand.command())
+        val userMessage = ZhConverterUtil.toSimple(removeAtAndEmptyCharacterCommand)
+        return userMessage.contains(oneBotCommand.command())
     }
 
     private fun send(message: String?, id: Long, messageId: Int, type: MessageType) {

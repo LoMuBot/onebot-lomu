@@ -1,11 +1,13 @@
 package cn.luorenmu.controller
 
+import cn.luorenmu.action.render.EternalReturnFindPlayerRender
 import cn.luorenmu.repository.ActiveSendMessageRepository
 import cn.luorenmu.repository.OneBotCommandConfigRepository
 import cn.luorenmu.repository.OneBotConfigRepository
 import cn.luorenmu.repository.entity.OneBotCommandConfig
 import cn.luorenmu.repository.entity.OneBotConfig
 import cn.luorenmu.repository.entiy.ActiveMessage
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("")
 class System(
+    private val eternalReturnRender: EternalReturnFindPlayerRender,
     private val oneBotConfigRespository: OneBotConfigRepository,
     private val activeSendMessageRepository: ActiveSendMessageRepository,
     private val oneBotCommandConfigRepository: OneBotCommandConfigRepository,
@@ -36,6 +39,10 @@ class System(
         return "server running success"
     }
 
+    @GetMapping("/search/{name}")
+    fun search(@PathVariable name: String): String {
+        return eternalReturnRender.imageRenderGenerate(name)
+    }
 
     @PostMapping("/active_message")
     fun saveActiveMessage(@RequestBody body: ActiveMessage): HashMap<String, String> {

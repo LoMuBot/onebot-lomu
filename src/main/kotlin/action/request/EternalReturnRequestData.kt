@@ -3,6 +3,7 @@ package cn.luorenmu.action.request
 import action.commandProcess.eternalReturn.entity.*
 import action.commandProcess.eternalReturn.entity.profile.EternalReturnProfile
 import action.commandProcess.eternalReturn.entity.tier.EternalReturnTierDistributions
+import cn.luorenmu.action.commandProcess.eternalReturn.entity.matcher.EternalReturnMatchesById
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.item.EternalReturnItemInfos
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.matcher.EternalReturnMatches
 import cn.luorenmu.action.commandProcess.eternalReturn.entity.skill.EternalReturnTacticalSkill
@@ -22,7 +23,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.springframework.stereotype.Component
 import java.io.File
-import java.net.SocketException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -38,7 +38,7 @@ class EternalReturnRequestData(
 
     // sync player
     fun syncPlayers(nickname: String, counter: Int = 0): Boolean {
-        if (counter == 5) {
+        if (counter == 3) {
             return true
         }
         val requestController = RequestController("eternal_return_request.find_player")
@@ -55,10 +55,8 @@ class EternalReturnRequestData(
                 }
                 return !body.contains("not_found")
             }
-        } catch (e: SocketException) {
-            return true
         } catch (e: Exception) {
-            return syncPlayers(nickname, counter + 1)
+            return true
         }
         return true
     }
@@ -221,9 +219,25 @@ class EternalReturnRequestData(
         return eternalReturnDataImagePath
     }
 
+    /**
+     * 获取详细对局信息
+     * @param id 对局id
+     * @param nickname
+     * @param seasonId 赛季id
+     */
+    suspend fun getMatchesById(id: String, nickname: String, seasonId: Int): EternalReturnMatchesById? {
+        val resp = requestData.requestRetry {
+            it.url =
+                "https://er.dakgg.io/api/v1/players/$nickname/matches/$seasonId/$id"
+            it.method = "get"
+        }
+        return resp?.body().to<EternalReturnMatchesById>()
+    }
+
 
     /**
      * 天赋图片
+     *
      * 持久化存储 应当缓存图片
      * @param id 需传递图片数字id
      * @return 磁盘存储路径
@@ -233,11 +247,16 @@ class EternalReturnRequestData(
         val traitSkills = getTraitSkills()
         traitSkills!!.let { skills ->
             val skill = skills.traitSkills.first { it.id == id }
-            val skillGroup = skills.traitSkillGroups.first { skill.group == it.key }
-            val skillGroupPath = PathUtils.getEternalReturnDataImagePath("ico/TraitSkillsIcon/${skillGroup.key}.png")
-            if (!File(skillGroupPath).exists() || !File(skillPath).exists()) {
+            val skillGroup = skills.traitSkillGroups.firstOrNull { skill.group == it.key }
+            var skillGroupPath: String? = null
+            skillGroup?.let {
+                skillGroupPath = PathUtils.getEternalReturnDataImagePath("ico/TraitSkillsIcon/${skillGroup.key}.png")
+                if (!File(skillGroupPath!!).exists()) {
+                    downloadDakGGCompleteUrlStream(skillGroup.imageUrl, skillGroupPath!!)
+                }
+            }
+            if (!File(skillPath).exists()) {
                 downloadDakGGCompleteUrlStream(skill.imageUrl, skillPath)
-                downloadDakGGCompleteUrlStream(skillGroup.imageUrl, skillGroupPath)
             }
             return EternalReturnTraitSkillImgDTO(skill = skillPath, skillGroup = skillGroupPath)
         }
@@ -250,10 +269,10 @@ class EternalReturnRequestData(
      *
      */
     suspend fun downloadDakGGCompleteUrlStream(url: String, outputPath: String) {
-        val resp = requestData.requestRetry({
+        val resp = requestData.requestRetry {
             it.url = "https:${url}"
             it.method = "get"
-        })
+        }
         ReadWriteFile.writeStreamFile(outputPath, resp?.bodyStream())
     }
 

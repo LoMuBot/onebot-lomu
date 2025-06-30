@@ -32,7 +32,7 @@ data class EternalReturnProfilePlayerSeasonOverviews(
     val playerDeaths: Int,
     val characterStats: List<EternalReturnProfileStat>,
     val serverStats: List<EternalReturnServerStat>,
-    val mmrStats: List<List<Long>>,
+    val mmrStats: List<List<Int>>,
     val duoStats: List<EternalReturnProfileDuoStat>,
     val recentMatches: List<RecentGameMatcher>,
     var tierId: Long? = null,

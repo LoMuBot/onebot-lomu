@@ -42,8 +42,7 @@ dependencies {
     // 日志
     implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
 
-    //二维码生成
-    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.github.houbb:opencc4j:1.13.1")
 
     // kotlin官方库 反射
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -52,6 +51,7 @@ dependencies {
 
     // onebot协议库
     implementation("com.mikuac:shiro:2.3.6")
+
 
 
     // spring

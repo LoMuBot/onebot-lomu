@@ -38,9 +38,3 @@ lomu-bot:
     pass: ====
     starttls: true
     ssl: true
-  web-pool:
-    size: 0
-  deep-seek:
-    api-key: "Bearer sk-1"
-    base-url: "https://api.deepseek.com/chat/completions"
-    model: "deepseek-chat"

@@ -1,22 +1,35 @@
 package cn.luorenmu.action.commandProcess.eternalReturn.entity.dto
 
+import com.alibaba.fastjson2.JSON
+
 
 /**
  * @author LoMu
  * Date 2025.03.29 15:08
  */
 data class EternalReturnRender(
-    var userNum: Long,
-    var nickName: String = "螺母",
-    var level: Int = 1,
-    var data: EternalReturnPlayerData,
-    var profileImageUrl: String? = null,
-    var recentPlayers: MutableList<EternalReturnPlayerRecentPlay>,
-    var characterUseStats: MutableList<EternalReturnCharacterUseStats>,
+    val userNum: Long,
+    val nickName: String = "螺母",
+    val level: Int = 1,
+    val data: EternalReturnPlayerData,
+    val profileImageUrl: String? = null,
+    val recentPlayers: MutableList<EternalReturnPlayerRecentPlay>,
+    val characterUseStats: MutableList<EternalReturnCharacterUseStats>,
+    var lomuRating: String? = null,
+    val mmrStats: EternalReturnPlayerMMRStats? = null,
+    val playTime: Long,
     var rightContent: String = "",
-    var season: String,
+    val season: String,
 ) {
 
+
+    data class EternalReturnPlayerMMRStats(
+        val mmrDate: List<String>,
+        val mmr: List<Int>,
+    ) {
+        val mmrDateJson = JSON.toJSONString(mmrDate)!!
+        val mmrJson: String = JSON.toJSONString(mmr)!!
+    }
 
     data class EternalReturnCharacterUseStats(
         val imgUrl: String,
@@ -75,19 +88,27 @@ data class EternalReturnRender(
         var rp: Int = 0,
         var rpSvgUrl: String = "",
         var routeId: String = "Private",
-        var item1Url: String = "",
-        var item2Url: String = "",
-        var item3Url: String = "",
-        var item4Url: String = "",
-        var item5Url: String = "",
-        var itemBg1Url: String = "",
-        var itemBg2Url: String = "",
-        var itemBg3Url: String = "",
-        var itemBg4Url: String = "",
-        var itemBg5Url: String = "",
+        var equips: MutableList<EternalReturnEquip> = mutableListOf(),
         var gameId: String = "0",
         var version: String = "",
-    )
+        var teamMates: List<EternalReturnTeammate>? = null,
+    ) {
+        data class EternalReturnTeammate(
+            var nickName: String = "",
+            var avatarUrl: String = "",
+            var rp: String = "0",
+            var rpImageUrl: String = "",
+            var tk: Int = 0,
+            var kill: Int = 0,
+            var assist: Int = 0,
+            var dmg: Int = 0,
+            var weaponUrl: String = "",
+            var skillUrl: String = "",
+            var traitSkillGroupUrl: String = "",
+            var traitSkillUrl: String = "",
+            var equips: MutableList<EternalReturnEquip> = mutableListOf(),
+        )
+    }
 
 }
 

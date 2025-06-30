@@ -10,7 +10,7 @@ import java.io.IOException
  */
 object WkhtmltoimageUtils {
     private val WKHTMLTOIMAGE_PATH: String = "${ReadWriteFile.CURRENT_PATH}/wkhtmltopdf/bin/wkhtmltoimage.exe"
-     //private val WKHTMLTOIMAGE_PATH: String = "E:\\code\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
+    // private val WKHTMLTOIMAGE_PATH: String = "E:\\code\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
 
 
     /**

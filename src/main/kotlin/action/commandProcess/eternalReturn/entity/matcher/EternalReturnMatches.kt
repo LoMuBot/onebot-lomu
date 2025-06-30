@@ -27,6 +27,7 @@ data class EternalReturnMatches(
         val characterNum: Long,
         val skinCode: Long,
         val characterLevel: Long,
+        val squadRumbleRank: Int,
         val gameRank: Int,
         val playerKill: Int,
         val playerDeaths: Int,
@@ -99,6 +100,7 @@ data class EternalReturnMatches(
         // 主要天赋技能
         // https://er.dakgg.io/api/v1/data/trait-skills?hl=zh-cn
         val traitFirstCore: Long,
+        val traitSecondSub: List<Long>,
         val rankPoint: Int,
         val scoredPoint: List<Long>,
         val killDetails: String,
@@ -112,7 +114,7 @@ data class EternalReturnMatches(
         val boughtInfusion: String,
         val itemTransferredConsole: List<Long>,
         val itemTransferredDrone: List<Long>,
-        val escapeState: Long,
+        val escapeState: Int,
         val totalExtraKill: Long,
         val collectItemForLog: List<Long>,
         val equipFirstItemForLog: List<List<Long>>,
@@ -143,8 +145,33 @@ data class EternalReturnMatches(
             get() {
                 return convertToList(equipmentVirtual)
             }
+
+        // 3为排位模式，2为匹配模式 6为钴协议 8 为联盟 0为全部
+        val matchTypeStr: String =
+            matchModeTypeCovert(matchingMode)
     }
 
+    companion object {
+        fun matchModeTypeCovert(matchingMode: Int) =
+            when (matchingMode) {
+                3 -> "排位"
+                2 -> "匹配"
+                6 -> "钴协议"
+                8 -> "联盟"
+                else -> "未知"
+            }
+
+        fun serverNameCovert(serverName: String) =
+            when (serverName) {
+                "Asia" -> "亚一"
+                "Asia2" -> "亚二"
+                "NorthAmerica" -> "北美"
+                "Europe" -> "欧洲"
+                "SouthAmerica" -> "南美"
+                "Australia" -> "澳一"
+                else -> serverName
+            }
+    }
 
     data class Meta(
         val season: String,

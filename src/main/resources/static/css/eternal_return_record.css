@@ -5,52 +5,65 @@
 }
 
 body {
-    background-color: #e7e3e3;
+    background-color: #F5F5F5;
 }
 
 #content-container {
-    height: 1080px;
+    overflow: hidden;
     width: 1200px;
-
     background-size: cover;
     background-position: center;
     padding: 20px;
 }
 
 #header {
-    border-radius: 10px;
-    height: 176px;
+    width: 1200px;
+    overflow: hidden;
+}
+
+#banner_user_info {
+    height: 177px;
     width: 100%;
-    background-size: cover;
+    border-radius: 10px 10px 0 0;
+    height: 177px;
+    width: 100%;
+    background-size: 100% 177px;
     background-position: center;
     background-image: url("/images/bg-landing-search-v7.jpg");
-    float: left;
-    overflow: hidden;
+    box-sizing: content-box;
+    border: 1px solid #363944;
+}
+
+#describe {
+    width: 100%;
+    border: 1px solid rgb(54, 57, 68);
+    height: 34px;
+    background-color: rgb(54, 57, 68);
+    text-align: center;
 }
 
 
 .profile-image-wrapper,
-#header > .profile-image-wrapper img {
+#header>.profile-image-wrapper img {
     width: 222px;
-    height: 176px;
+    height: 177px;
     float: left;
 }
 
 
 #top {
     width: 355px;
-    height: 150px;
+    height: 100px;
     float: left;
     margin-left: 20px;
     margin-top: 50px;
-    text-align: center;
+    text-align: left;
     color: aliceblue;
 }
 
-#header .nickname {
-    margin: 10px;
+.nickname {
+    margin-top: 10px;
     font-size: 28px;
-
 }
 
 #verison {
@@ -64,38 +77,36 @@ body {
 }
 
 #logo {
-    color: #808080;
-    margin-right: 10px;
-    margin-top: 150px;
-    float: right;
+    color: #d1cfcf;
     font-size: 10px;
-    height: 20px;
-    line-height: 20px;
-    width: 85px;
-    text-align: center;
-    border: 1px #808080 solid;
-    border-radius: 8px;
+    line-height: 34px;
 }
 
-#header .level {
-    margin-left: 75px;
+
+#top>p {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #d6d6d6;
+}
+
+.level {
     width: 70px;
+    text-align: center;
     border-radius: 30px;
     border: 2px solid #fff;
 }
 
 #body {
-    float: left;
     width: 100%;
-    height: 840px;
     margin-top: 20px;
+    float: left;
 }
 
 #left {
+    float: left;
     border-radius: 10px;
     margin-top: 20px;
     width: 352px;
-    float: left;
 }
 
 
@@ -105,26 +116,28 @@ body {
     width: 775px;
     height: 100%;
     float: left;
+
 }
 
 #rank {
     border-radius: 10px;
     background-color: #fff;
     overflow: hidden;
+    display: inline-block;
     width: 100%;
-
+    border: 1px solid rgb(230, 230, 230);
     text-align: center;
 }
 
-#rank > h4 {
+#rank>h4 {
     padding: 10px 0;
     font-size: 20px;
-    border-bottom: 1px solid #8d8a8a;
+    border-bottom: 1px solid rgb(230, 230, 230);
 }
 
 #score {
     height: 106px;
-    border-bottom: 1px solid #8d8a8a;
+    border-bottom: 1px solid rgb(230, 230, 230);
 }
 
 #rp_img,
@@ -173,19 +186,23 @@ body {
     height: 40px;
 }
 
-.record_box > h4:nth-child(2) {
+.record_box>h4:nth-child(2) {
     color: #ff500b
 }
 
-.record_box > h4 {
+.record_box>h4 {
     font-size: 13px;
     font-weight: 700;
 }
 
 
+
+
+
 .war_record {
+    border: 1px solid rgb(230, 230, 230);
     margin-bottom: 10px;
-    height: 200px;
+    height: 100%;
     width: 810px;
     border-radius: 20px;
     position: relative;
@@ -193,73 +210,53 @@ body {
 }
 
 
-.war_record_small {
-    margin-bottom: 10px;
-    height: 100px;
-    width: 810px;
-    border-radius: 20px;
-    position: relative;
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
-
-.war_record_left_large_top1,
-.war_record_left_large_top2,
-.war_record_left_large_top3 {
+.war_record_left_top1,
+.war_record_left_top2,
+.war_record_left_top3,
+.war_record_left_escape {
     border-radius: 20px 0 0 20px;
-    height: 200px;
+    height: 100%;
     width: 15px;
     position: absolute;
 }
 
-.war_record_right_large_top1,
-.war_record_right_large_top2,
-.war_record_right_large_top3 {
+
+
+.war_record_right_top1,
+.war_record_right_top2,
+.war_record_right_top3,
+.war_record_right_escape {
     border-radius: 0 20px 20px 0;
-    height: 200px;
-    width: 15px;
-    position: absolute;
-    right: 0;
-}
-
-.war_record_left_small_top1,
-.war_record_left_small_top2,
-.war_record_left_small_top3 {
-    border-radius: 20px 0 0 20px;
-    height: 100px;
-    width: 15px;
-    position: absolute;
-}
-
-.war_record_right_small_top1,
-.war_record_right_small_top2,
-.war_record_right_small_top3 {
-    border-radius: 0 20px 20px 0;
-    height: 100px;
+    height: 100%;
     width: 15px;
     right: 0;
     position: absolute;
 }
 
+.war_record_right_escape,
+.war_record_left_escape {
+    background-color: #475482;
+}
 
-.war_record_left_large_top1,
-.war_record_right_large_top1,
-.war_record_left_small_top1,
-.war_record_right_small_top1 {
+
+.war_record_left_top1,
+.war_record_right_top1,
+.war_record_left_top1,
+.war_record_right_top1 {
     background-color: #11B288;
 }
 
-.war_record_left_large_top2,
-.war_record_right_small_top2,
-.war_record_right_large_top2,
-.war_record_left_small_top2 {
-    background-color: #39c5bb;
+.war_record_left_top2,
+.war_record_right_top2,
+.war_record_right_top2,
+.war_record_left_top2 {
+    background-color: #207AC7;
 }
 
-.war_record_left_large_top3,
-.war_record_right_large_top3,
-.war_record_right_small_top3,
-.war_record_left_small_top3 {
+.war_record_left_top3,
+.war_record_right_top3,
+.war_record_right_top3,
+.war_record_left_top3 {
     background-color: #4b525d;
 }
 
@@ -273,29 +270,29 @@ body {
     float: left;
 }
 
-.war_rank > div {
+.war_rank>div {
     margin: 5px;
     height: 14px;
     width: 66px;
 }
 
-.war_rank > div:nth-child(1) {
+.war_rank>div:nth-child(1) {
     margin-top: 0;
     color: #999999;
     font-size: 14px;
 }
 
-.war_rank > div:nth-child(2) {
+.war_rank>div:nth-child(2) {
     color: #000000;
     font-size: 12px;
 }
 
-.war_rank > div:nth-child(3) {
+.war_rank>div:nth-child(3) {
     color: #999999;
     font-size: 12px;
 }
 
-.war_rank > div:nth-child(4) {
+.war_rank>div:nth-child(4) {
     color: #999999;
     font-size: 12px;
 }
@@ -310,17 +307,19 @@ body {
 }
 
 .war_record_character_info .character_name {
+    width: 64px;
+    text-align: center;
     font-size: 12px;
 }
 
 
 .hero_avatar,
-.hero_avatar > img {
-    width: 54px;
+.hero_avatar>img {
+    width: 64px;
     height: 64px;
 }
 
-.hero_avatar > img {
+.hero_avatar>img {
     border-radius: 50%;
 }
 
@@ -334,28 +333,26 @@ body {
     overflow: hidden;
     height: 50px;
     width: 100% -10;
-    border-top: 1px solid #8d8a8a;
+    border-top: 1px solid rgb(230, 230, 230);
 }
 
 
 .war_record2 .hero_avatar,
-.war_record2 .hero_avatar > img {
+.war_record2 .hero_avatar>img {
     float: left;
-    width: 27.55px;
+    width: 32.65px;
     height: 32.65px;
     margin-top: 2.55px;
 }
 
 
 .war_record2 .play_data {
-    margin-top: 15px;
+    margin-top: 7px;
     margin-left: 8px;
     height: 35.2px;
 }
 
-.war_record2 .play_data span {
-    font-size: 7px;
-}
+
 
 .war_record2 .skill {
     margin-top: 5px;
@@ -372,8 +369,29 @@ body {
 }
 
 .war_record2 .play_stat {
-    height: 27.55px;
-    margin-top: 12.75px;
+    margin-top: 7px;
+    margin-left: 100px;
+}
+
+.war_record2 .play_data {
+    margin-left: 50px;
+    width: 100px;
+}
+
+.teammate_rp_img {
+    margin-left: 25px;
+    margin-top: 3px;
+    float: left;
+    width: 14px;
+    height: 14px;
+}
+
+.teammate_rp span {
+    margin-left: 5px;
+    margin-top: 2px;
+    float: left;
+    font-size: 12px;
+    color: #808080;
 }
 
 .war_record2 .weapon,
@@ -385,13 +403,13 @@ body {
 
 .war_record2 .stat,
 .war_record2 .play_data_title {
-    font-size: 7.14px;
+    font-size: 14px;
 }
 
 .war_record2 .label,
 .war_record2 .play_data_label {
-    margin-top: 1px;
-    font-size: 6.12px;
+    margin-top: 2px;
+    font-size: 12px;
 }
 
 .weapon,
@@ -402,7 +420,7 @@ body {
 }
 
 .war_record2 .item_box {
-    margin-left: 16px;
+    margin-left: 75px;
     margin-top: 10px;
     width: 102.4px;
     height: 41.6px;
@@ -416,7 +434,7 @@ body {
 
 .skill {
     margin-top: 20px;
-    margin-left: 5px;
+    margin-left: 20px;
     width: 54px;
     height: 54px;
     float: left;
@@ -436,7 +454,7 @@ img {
 }
 
 .stat {
-    height: 14px;
+
     font-size: 14px;
     font-weight: bold;
 }
@@ -523,15 +541,15 @@ img {
 }
 
 
-.item_box > .item:nth-child(1),
-.item_box > .item:nth-child(2),
-.item_box > .item:nth-child(3) {
+.item_box>.item:nth-child(1),
+.item_box>.item:nth-child(2),
+.item_box>.item:nth-child(3) {
     margin-bottom: 2px;
 }
 
-.item_box > .item:nth-child(2),
-.item_box > .item:nth-child(3),
-.item_box > .item:nth-child(5) {
+.item_box>.item:nth-child(2),
+.item_box>.item:nth-child(3),
+.item_box>.item:nth-child(5) {
     margin-left: 2px;
 }
 
@@ -553,11 +571,16 @@ img {
 
 .teammate_name {
     float: left;
-    width: 80px;
+    width: 130px;
     margin-left: 20px;
-    margin-top: 10px;
+    margin-top: 7px;
     font-size: 14px;
     text-align: center;
+}
+
+.teammate_name .play_name {
+    overflow: hidden;
+    text-overflow: ellipsis
 }
 
 .teammate_name .character_name {
@@ -582,14 +605,14 @@ img {
 }
 
 
-#recent_play > thead,
-#rank_character_stats > thead {
+#recent_play>thead,
+#rank_character_stats>thead {
     color: rgb(255, 255, 255);
     background: rgb(54, 57, 68);
 }
 
-#recent_play > thead > tr > th,
-#rank_character_stats > thead > tr > th {
+#recent_play>thead>tr>th,
+#rank_character_stats>thead>tr>th {
     height: 40px;
 }
 
@@ -598,7 +621,7 @@ tbody tr {
 }
 
 
-#recent_play > tbody > tr > td {
+#recent_play>tbody>tr>td {
     height: 40px;
 }
 
@@ -636,7 +659,7 @@ tbody tr {
 }
 
 
-#rank_character_stats > tbody > tr > td .win-rate,
+#rank_character_stats>tbody>tr>td .win-rate,
 .get-rp {
     text-align: center;
 }
@@ -647,10 +670,27 @@ tbody tr {
 
 
 .image-wrapper,
-.image-wrapper > img {
+.image-wrapper>img {
     margin-left: 10px;
     border-radius: 50%;
     float: left;
     height: 40px;
     width: 40px;
+}
+
+#lomu_rating {
+    height: 44px;
+    width: 810px;
+    text-align: center;
+    background-color: #727CF2;
+    line-height: 44px;
+    color: #FFFFFF;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+#rank_stats {
+    margin-top: 10px;
+    border-top: 1px solid rgb(230, 230, 230);
+    padding: 10px 0;
 }

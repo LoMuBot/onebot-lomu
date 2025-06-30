@@ -4,8 +4,6 @@ import action.commandProcess.eternalReturn.entity.EternalReturnCharacterById
 import cn.luorenmu.common.utils.PathUtils
 import cn.luorenmu.service.ImageService
 import org.springframework.core.io.InputStreamResource
-import org.springframework.core.io.Resource
-import org.springframework.core.io.ResourceLoader
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
@@ -39,6 +37,7 @@ class ImageController(
         val path = imageService.getEternalReturnCharacterImage(type, id, skin)
         return ResponseEntity.ok(InputStreamResource(FileInputStream(path)))
     }
+
     @GetMapping("/images/eternal_return/tier/{id}")
     fun getEternalReturnTierImage(@PathVariable id: Int): ResponseEntity<InputStreamResource> {
         val path = imageService.getTierImage(id)
@@ -78,6 +77,9 @@ class ImageController(
         return ResponseEntity.ok(FileReader(path).readText())
     }
 
+    /**
+     * 天赋图片、当is参数为true时返回技能组图片，否则返回技能图片
+     */
     @GetMapping("/images/eternal_return/trait_skill/{id}", produces = [MediaType.IMAGE_PNG_VALUE])
     fun getEternalReturnTraitSkillImage(
         @PathVariable id: Long,
@@ -85,7 +87,11 @@ class ImageController(
     ): ResponseEntity<InputStreamResource> {
         val path = imageService.getEternalReturnTraitSkillImage(id)
         if (`is`) {
-            return ResponseEntity.ok(InputStreamResource(FileInputStream(path.skillGroup)))
+            path.skillGroup?.let {
+                return ResponseEntity.ok(InputStreamResource(FileInputStream(path.skillGroup)))
+            } ?: run {
+                return ResponseEntity.ok(InputStreamResource(FileInputStream(path.skill)))
+            }
         }
         return ResponseEntity.ok(InputStreamResource(FileInputStream(path.skill)))
     }
